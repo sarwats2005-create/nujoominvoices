@@ -1,0 +1,171 @@
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { useInvoice } from '@/contexts/InvoiceContext';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { useToast } from '@/hooks/use-toast';
+import { format } from 'date-fns';
+import { CalendarIcon, DollarSign, Hash, User, Building2, Plus } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import BankSelector from '@/components/BankSelector';
+
+const NewInvoice: React.FC = () => {
+  const [amount, setAmount] = useState('');
+  const [date, setDate] = useState<Date>();
+  const [invoiceNumber, setInvoiceNumber] = useState('');
+  const [beneficiary, setBeneficiary] = useState('');
+  const [bank, setBank] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [calendarOpen, setCalendarOpen] = useState(false);
+
+  const { t } = useLanguage();
+  const { addInvoice } = useInvoice();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!amount || !date || !invoiceNumber || !beneficiary || !bank) {
+      toast({
+        title: t('requiredField'),
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    addInvoice({
+      amount: parseFloat(amount),
+      date: date.toISOString(),
+      invoiceNumber,
+      beneficiary,
+      bank,
+    });
+
+    toast({
+      title: t('invoiceAdded'),
+    });
+
+    navigate('/dashboard');
+    setIsSubmitting(false);
+  };
+
+  return (
+    <div className="max-w-2xl mx-auto animate-fade-in">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Plus className="h-5 w-5 text-primary" />
+            {t('newInvoice')}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Invoice Amount */}
+            <div className="space-y-2">
+              <Label htmlFor="amount">{t('invoiceAmount')}</Label>
+              <div className="relative">
+                <DollarSign className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  id="amount"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  className="pl-10"
+                  placeholder="0.00"
+                  required
+                />
+              </div>
+            </div>
+
+            {/* Invoice Date */}
+            <div className="space-y-2">
+              <Label>{t('invoiceDate')}</Label>
+              <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      'w-full justify-start text-left font-normal',
+                      !date && 'text-muted-foreground'
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {date ? format(date, 'PPP') : <span>{t('invoiceDate')}</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0 bg-popover" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={date}
+                    onSelect={(newDate) => {
+                      setDate(newDate);
+                      setCalendarOpen(false);
+                    }}
+                    initialFocus
+                    className="pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            {/* Invoice Number */}
+            <div className="space-y-2">
+              <Label htmlFor="invoiceNumber">{t('invoiceNumber')}</Label>
+              <div className="relative">
+                <Hash className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  id="invoiceNumber"
+                  type="text"
+                  value={invoiceNumber}
+                  onChange={(e) => setInvoiceNumber(e.target.value)}
+                  className="pl-10"
+                  placeholder="INV-001"
+                  required
+                />
+              </div>
+            </div>
+
+            {/* Beneficiary */}
+            <div className="space-y-2">
+              <Label htmlFor="beneficiary">{t('beneficiary')}</Label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  id="beneficiary"
+                  type="text"
+                  value={beneficiary}
+                  onChange={(e) => setBeneficiary(e.target.value)}
+                  className="pl-10"
+                  placeholder={t('beneficiary')}
+                  required
+                />
+              </div>
+            </div>
+
+            {/* Bank */}
+            <div className="space-y-2">
+              <Label>{t('bank')}</Label>
+              <BankSelector value={bank} onChange={setBank} />
+            </div>
+
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
+              {t('submitInvoice')}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+export default NewInvoice;
