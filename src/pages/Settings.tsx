@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { useLanguage, Language } from '@/contexts/LanguageContext';
 import { useSettings } from '@/contexts/SettingsContext';
 import { useInvoice } from '@/contexts/InvoiceContext';
@@ -8,14 +8,18 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Settings as SettingsIcon, Languages, Image, Building2, Trash2 } from 'lucide-react';
+import { Settings as SettingsIcon, Languages, Image, Building2, Trash2, LayoutDashboard, Mail, Phone, MapPin } from 'lucide-react';
+import DashboardSelector from '@/components/DashboardSelector';
 
 const Settings: React.FC = () => {
   const { t, language, setLanguage } = useLanguage();
-  const { logo, setLogo } = useSettings();
-  const { banks, deleteBank } = useInvoice();
+  const { logo, setLogo, contactInfo, setContactInfo } = useSettings();
+  const { banks, deleteBank, currentDashboardId, setCurrentDashboardId } = useInvoice();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  const [editingContact, setEditingContact] = useState(false);
+  const [contactForm, setContactForm] = useState(contactInfo);
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -27,6 +31,12 @@ const Settings: React.FC = () => {
       };
       reader.readAsDataURL(file);
     }
+  };
+
+  const handleSaveContact = () => {
+    setContactInfo(contactForm);
+    setEditingContact(false);
+    toast({ title: t('contactInfoUpdated') });
   };
 
   return (
@@ -62,6 +72,16 @@ const Settings: React.FC = () => {
             </div>
           </div>
 
+          {/* Manage Dashboards */}
+          <div className="space-y-2">
+            <Label className="flex items-center gap-2"><LayoutDashboard className="h-4 w-4" />{t('manageDashboards')}</Label>
+            <DashboardSelector 
+              value={currentDashboardId || ''} 
+              onChange={setCurrentDashboardId} 
+              showManage 
+            />
+          </div>
+
           {/* Banks List */}
           <div className="space-y-2">
             <Label className="flex items-center gap-2"><Building2 className="h-4 w-4" />{t('manageBanks')}</Label>
@@ -75,6 +95,61 @@ const Settings: React.FC = () => {
                 </div>
               ))}
             </div>
+          </div>
+
+          {/* Contact Info */}
+          <div className="space-y-2">
+            <Label className="flex items-center gap-2"><Mail className="h-4 w-4" />{t('editContactInfo')}</Label>
+            {editingContact ? (
+              <div className="space-y-3 border rounded-md p-4">
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2"><Mail className="h-3 w-3" />{t('contactEmail')}</Label>
+                  <Input
+                    value={contactForm.email}
+                    onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
+                    placeholder="email@example.com"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2"><Phone className="h-3 w-3" />{t('contactPhone')}</Label>
+                  <Input
+                    value={contactForm.phone}
+                    onChange={(e) => setContactForm({ ...contactForm, phone: e.target.value })}
+                    placeholder="+964 750 123 4567"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2"><MapPin className="h-3 w-3" />{t('contactAddress')}</Label>
+                  <Input
+                    value={contactForm.address}
+                    onChange={(e) => setContactForm({ ...contactForm, address: e.target.value })}
+                    placeholder="City, Country"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button onClick={handleSaveContact}>{t('save')}</Button>
+                  <Button variant="ghost" onClick={() => { setEditingContact(false); setContactForm(contactInfo); }}>{t('cancel')}</Button>
+                </div>
+              </div>
+            ) : (
+              <div className="border rounded-md p-4 space-y-2">
+                <div className="flex items-center gap-2 text-sm">
+                  <Mail className="h-4 w-4 text-muted-foreground" />
+                  <span>{contactInfo.email}</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <Phone className="h-4 w-4 text-muted-foreground" />
+                  <span>{contactInfo.phone}</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <MapPin className="h-4 w-4 text-muted-foreground" />
+                  <span>{contactInfo.address}</span>
+                </div>
+                <Button variant="outline" size="sm" onClick={() => setEditingContact(true)} className="mt-2">
+                  {t('edit')}
+                </Button>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>

@@ -7,9 +7,10 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
-import { Copy, FileText, ArrowUpDown, Trash2, Printer, Edit, AlertTriangle } from 'lucide-react';
+import { Copy, FileText, ArrowUpDown, Trash2, Printer, Edit, AlertTriangle, LayoutDashboard } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import EditInvoiceDialog from '@/components/EditInvoiceDialog';
+import DashboardSelector from '@/components/DashboardSelector';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,7 +26,7 @@ type SortKey = 'invoiceNumber' | 'amount' | 'date' | 'beneficiary' | 'bank' | 's
 
 const Dashboard: React.FC = () => {
   const { t } = useLanguage();
-  const { invoices, updateInvoiceStatus, deleteInvoice, deleteMultipleInvoices } = useInvoice();
+  const { invoices, updateInvoiceStatus, deleteInvoice, deleteMultipleInvoices, dashboards, currentDashboardId, setCurrentDashboardId } = useInvoice();
   const { toast } = useToast();
   const [sortKey, setSortKey] = useState<SortKey>('date');
   const [sortAsc, setSortAsc] = useState(false);
@@ -33,6 +34,8 @@ const Dashboard: React.FC = () => {
   const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
+
+  const currentDashboard = dashboards.find(d => d.id === currentDashboardId);
 
   const sortedInvoices = [...invoices].sort((a, b) => {
     let comparison = 0;
@@ -97,7 +100,7 @@ const Dashboard: React.FC = () => {
       <!DOCTYPE html>
       <html>
       <head>
-        <title>${t('allInvoices')}</title>
+        <title>${currentDashboard?.name || t('allInvoices')}</title>
         <style>
           body { font-family: Arial, sans-serif; padding: 20px; }
           table { width: 100%; border-collapse: collapse; margin-top: 20px; }
@@ -110,7 +113,7 @@ const Dashboard: React.FC = () => {
         </style>
       </head>
       <body>
-        <h1>${t('allInvoices')}</h1>
+        <h1>${currentDashboard?.name || t('allInvoices')}</h1>
         <p>${t('printDate')}: ${format(new Date(), 'PPP')}</p>
         <table>
           <thead>
@@ -152,11 +155,26 @@ const Dashboard: React.FC = () => {
   const allSelected = sortedInvoices.length > 0 && selectedIds.length === sortedInvoices.length;
 
   return (
-    <div className="animate-fade-in">
+    <div className="animate-fade-in space-y-4">
+      {/* Dashboard Selector */}
+      <Card>
+        <CardContent className="pt-4">
+          <div className="flex items-center gap-2 mb-2">
+            <LayoutDashboard className="h-5 w-5 text-primary" />
+            <span className="font-medium">{t('selectDashboard')}</span>
+          </div>
+          <DashboardSelector 
+            value={currentDashboardId || ''} 
+            onChange={setCurrentDashboardId} 
+          />
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5 text-primary" />{t('allInvoices')}
+            <FileText className="h-5 w-5 text-primary" />
+            {currentDashboard?.name || t('allInvoices')}
           </CardTitle>
           <div className="flex flex-wrap items-center gap-2">
             {selectedIds.length > 0 && (
@@ -194,15 +212,21 @@ const Dashboard: React.FC = () => {
                 </TableHeader>
                 <TableBody>
                   {sortedInvoices.map((inv) => (
-                    <TableRow key={inv.id} className={cn(inv.status === 'received' && 'bg-success/10')}>
+                    <TableRow key={inv.id}>
                       <TableCell>
                         <Checkbox 
                           checked={selectedIds.includes(inv.id)} 
                           onCheckedChange={(c) => handleSelectOne(inv.id, !!c)} 
                         />
                       </TableCell>
-                      <TableCell>
-                        <Checkbox checked={inv.status === 'received'} onCheckedChange={(c) => handleStatusChange(inv.id, !!c)} />
+                      <TableCell className={cn(
+                        "transition-colors",
+                        inv.status === 'received' && 'bg-success/20'
+                      )}>
+                        <Checkbox 
+                          checked={inv.status === 'received'} 
+                          onCheckedChange={(c) => handleStatusChange(inv.id, !!c)} 
+                        />
                       </TableCell>
                       <TableCell className="font-medium">{inv.invoiceNumber}</TableCell>
                       <TableCell>{inv.amount.toFixed(2)}</TableCell>

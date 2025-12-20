@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useInvoice } from '@/contexts/InvoiceContext';
@@ -10,9 +10,10 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
-import { CalendarIcon, DollarSign, Hash, User, Building2, Plus } from 'lucide-react';
+import { CalendarIcon, DollarSign, Hash, User, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import BankSelector from '@/components/BankSelector';
+import DashboardSelector from '@/components/DashboardSelector';
 
 const NewInvoice: React.FC = () => {
   const [amount, setAmount] = useState('');
@@ -20,18 +21,27 @@ const NewInvoice: React.FC = () => {
   const [invoiceNumber, setInvoiceNumber] = useState('');
   const [beneficiary, setBeneficiary] = useState('');
   const [bank, setBank] = useState('');
+  const [dashboardId, setDashboardId] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [calendarOpen, setCalendarOpen] = useState(false);
 
   const { t } = useLanguage();
-  const { addInvoice } = useInvoice();
+  const { addInvoice, dashboards, currentDashboardId } = useInvoice();
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (currentDashboardId) {
+      setDashboardId(currentDashboardId);
+    } else if (dashboards.length > 0) {
+      setDashboardId(dashboards[0].id);
+    }
+  }, [currentDashboardId, dashboards]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!amount || !date || !invoiceNumber || !beneficiary || !bank) {
+    if (!amount || !date || !invoiceNumber || !beneficiary || !bank || !dashboardId) {
       toast({
         title: t('requiredField'),
         variant: 'destructive',
@@ -47,6 +57,7 @@ const NewInvoice: React.FC = () => {
       invoiceNumber,
       beneficiary,
       bank,
+      dashboardId,
     });
 
     toast({
@@ -68,6 +79,12 @@ const NewInvoice: React.FC = () => {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Dashboard Selection */}
+            <div className="space-y-2">
+              <Label>{t('selectDashboard')}</Label>
+              <DashboardSelector value={dashboardId} onChange={setDashboardId} />
+            </div>
+
             {/* Invoice Amount */}
             <div className="space-y-2">
               <Label htmlFor="amount">{t('invoiceAmount')}</Label>

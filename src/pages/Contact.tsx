@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useSettings } from '@/contexts/SettingsContext';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,6 +11,7 @@ import { Mail, Phone, MapPin, Send, MessageSquare } from 'lucide-react';
 
 const Contact: React.FC = () => {
   const { t } = useLanguage();
+  const { contactInfo } = useSettings();
   const { toast } = useToast();
   const [formData, setFormData] = useState({
     name: '',
@@ -49,7 +51,7 @@ const Contact: React.FC = () => {
               <Mail className="h-6 w-6 text-primary" />
             </div>
             <h3 className="font-semibold mb-1">{t('emailUs')}</h3>
-            <p className="text-sm text-muted-foreground">support@invoiceapp.com</p>
+            <p className="text-sm text-muted-foreground">{contactInfo.email}</p>
           </CardContent>
         </Card>
 
@@ -59,7 +61,7 @@ const Contact: React.FC = () => {
               <Phone className="h-6 w-6 text-success" />
             </div>
             <h3 className="font-semibold mb-1">{t('callUs')}</h3>
-            <p className="text-sm text-muted-foreground">+964 750 123 4567</p>
+            <p className="text-sm text-muted-foreground">{contactInfo.phone}</p>
           </CardContent>
         </Card>
 
@@ -69,7 +71,7 @@ const Contact: React.FC = () => {
               <MapPin className="h-6 w-6 text-warning" />
             </div>
             <h3 className="font-semibold mb-1">{t('visitUs')}</h3>
-            <p className="text-sm text-muted-foreground">Baghdad, Iraq</p>
+            <p className="text-sm text-muted-foreground">{contactInfo.address}</p>
           </CardContent>
         </Card>
       </div>
