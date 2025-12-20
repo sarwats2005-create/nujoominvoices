@@ -13,9 +13,9 @@ interface Translations {
 export const translations: Translations = {
   // Header
   appTitle: {
-    en: 'طلب اوراق حوالات',
-    ar: 'طلب اوراق حوالات',
-    ku: 'طلب اوراق حوالات',
+    en: 'Nujoom Invoices',
+    ar: 'فواتير نجوم',
+    ku: 'پسوولەکانی نوژووم',
   },
   // Auth
   login: {
@@ -65,9 +65,54 @@ export const translations: Translations = {
   },
   // Navigation
   dashboard: {
-    en: 'Dashboard',
-    ar: 'لوحة التحكم',
-    ku: 'داشبۆرد',
+    en: 'Dashboards',
+    ar: 'لوحات التحكم',
+    ku: 'داشبۆردەکان',
+  },
+  selectDashboard: {
+    en: 'Select Dashboard',
+    ar: 'اختر لوحة التحكم',
+    ku: 'داشبۆرد هەڵبژێرە',
+  },
+  addDashboard: {
+    en: 'Add Dashboard',
+    ar: 'إضافة لوحة تحكم',
+    ku: 'زیادکردنی داشبۆرد',
+  },
+  editDashboardName: {
+    en: 'Edit Dashboard Name',
+    ar: 'تعديل اسم لوحة التحكم',
+    ku: 'دەستکاری ناوی داشبۆرد',
+  },
+  dashboardName: {
+    en: 'Dashboard Name',
+    ar: 'اسم لوحة التحكم',
+    ku: 'ناوی داشبۆرد',
+  },
+  deleteDashboard: {
+    en: 'Delete Dashboard',
+    ar: 'حذف لوحة التحكم',
+    ku: 'سڕینەوەی داشبۆرد',
+  },
+  dashboardDeleted: {
+    en: 'Dashboard deleted successfully!',
+    ar: 'تم حذف لوحة التحكم بنجاح!',
+    ku: 'داشبۆرد بە سەرکەوتوویی سڕایەوە!',
+  },
+  dashboardAdded: {
+    en: 'Dashboard added successfully!',
+    ar: 'تمت إضافة لوحة التحكم بنجاح!',
+    ku: 'داشبۆرد بە سەرکەوتوویی زیادکرا!',
+  },
+  dashboardUpdated: {
+    en: 'Dashboard updated successfully!',
+    ar: 'تم تحديث لوحة التحكم بنجاح!',
+    ku: 'داشبۆرد بە سەرکەوتوویی نوێکرایەوە!',
+  },
+  manageDashboards: {
+    en: 'Manage Dashboards',
+    ar: 'إدارة لوحات التحكم',
+    ku: 'بەڕێوەبردنی داشبۆردەکان',
   },
   newInvoice: {
     en: 'New Invoice',
@@ -376,6 +421,31 @@ export const translations: Translations = {
     en: 'Send Message',
     ar: 'إرسال رسالة',
     ku: 'ناردنی نامە',
+  },
+  editContactInfo: {
+    en: 'Edit Contact Info',
+    ar: 'تعديل معلومات الاتصال',
+    ku: 'دەستکاری زانیاری پەیوەندی',
+  },
+  contactEmail: {
+    en: 'Contact Email',
+    ar: 'البريد الإلكتروني للتواصل',
+    ku: 'ئیمەیلی پەیوەندی',
+  },
+  contactPhone: {
+    en: 'Contact Phone',
+    ar: 'هاتف الاتصال',
+    ku: 'ژمارەی تەلەفۆن',
+  },
+  contactAddress: {
+    en: 'Contact Address',
+    ar: 'عنوان الاتصال',
+    ku: 'ناونیشانی پەیوەندی',
+  },
+  contactInfoUpdated: {
+    en: 'Contact info updated successfully!',
+    ar: 'تم تحديث معلومات الاتصال بنجاح!',
+    ku: 'زانیاری پەیوەندی بە سەرکەوتوویی نوێکرایەوە!',
   },
   sendMessageDesc: {
     en: 'Fill out the form and we will get back to you shortly.',
