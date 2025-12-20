@@ -22,8 +22,10 @@ interface InvoiceContextType {
   invoices: Invoice[];
   banks: Bank[];
   addInvoice: (invoice: Omit<Invoice, 'id' | 'userId' | 'status' | 'createdAt'>) => void;
+  updateInvoice: (id: string, data: Partial<Omit<Invoice, 'id' | 'userId' | 'createdAt'>>) => void;
   updateInvoiceStatus: (id: string, status: 'pending' | 'received') => void;
   deleteInvoice: (id: string) => void;
+  deleteMultipleInvoices: (ids: string[]) => void;
   addBank: (name: string) => void;
   updateBank: (id: string, name: string) => void;
   deleteBank: (id: string) => void;
@@ -100,6 +102,17 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
     saveInvoices(invoices.filter(inv => inv.id !== id));
   };
 
+  const deleteMultipleInvoices = (ids: string[]) => {
+    saveInvoices(invoices.filter(inv => !ids.includes(inv.id)));
+  };
+
+  const updateInvoice = (id: string, data: Partial<Omit<Invoice, 'id' | 'userId' | 'createdAt'>>) => {
+    const updated = invoices.map(inv =>
+      inv.id === id ? { ...inv, ...data } : inv
+    );
+    saveInvoices(updated);
+  };
+
   const addBank = (name: string) => {
     const newBank: Bank = {
       id: crypto.randomUUID(),
@@ -125,8 +138,10 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
         invoices: userInvoices,
         banks,
         addInvoice,
+        updateInvoice,
         updateInvoiceStatus,
         deleteInvoice,
+        deleteMultipleInvoices,
         addBank,
         updateBank,
         deleteBank,

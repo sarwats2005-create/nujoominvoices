@@ -14,6 +14,8 @@ import Signup from "@/pages/Signup";
 import Dashboard from "@/pages/Dashboard";
 import NewInvoice from "@/pages/NewInvoice";
 import Settings from "@/pages/Settings";
+import Insights from "@/pages/Insights";
+import Contact from "@/pages/Contact";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -35,6 +37,8 @@ const App = () => (
                   <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
                     <Route path="/dashboard" element={<Dashboard />} />
                     <Route path="/new-invoice" element={<NewInvoice />} />
+                    <Route path="/insights" element={<Insights />} />
+                    <Route path="/contact" element={<Contact />} />
                     <Route path="/settings" element={<Settings />} />
                   </Route>
                   <Route path="*" element={<NotFound />} />
