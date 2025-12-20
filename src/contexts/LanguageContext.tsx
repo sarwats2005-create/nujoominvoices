@@ -300,6 +300,184 @@ export const translations: Translations = {
     ar: 'ابدأ الآن',
     ku: 'دەست پێبکە',
   },
+  // Insights
+  insights: {
+    en: 'Insights',
+    ar: 'التحليلات',
+    ku: 'شیکاری',
+  },
+  totalAmount: {
+    en: 'Total Amount',
+    ar: 'المبلغ الإجمالي',
+    ku: 'کۆی گشتی',
+  },
+  totalInvoices: {
+    en: 'Total Invoices',
+    ar: 'إجمالي الفواتير',
+    ku: 'کۆی پسوولەکان',
+  },
+  monthlyTrend: {
+    en: 'Monthly Trend',
+    ar: 'الاتجاه الشهري',
+    ku: 'ڕەوتی مانگانە',
+  },
+  statusDistribution: {
+    en: 'Status Distribution',
+    ar: 'توزيع الحالة',
+    ku: 'دابەشکردنی دۆخ',
+  },
+  bankDistribution: {
+    en: 'Bank Distribution',
+    ar: 'توزيع البنوك',
+    ku: 'دابەشکردنی بانک',
+  },
+  invoicesByMonth: {
+    en: 'Invoices by Month',
+    ar: 'الفواتير حسب الشهر',
+    ku: 'پسوولەکان بە مانگ',
+  },
+  invoiceCount: {
+    en: 'Invoice Count',
+    ar: 'عدد الفواتير',
+    ku: 'ژمارەی پسوولە',
+  },
+  // Contact
+  contact: {
+    en: 'Contact',
+    ar: 'اتصل بنا',
+    ku: 'پەیوەندی',
+  },
+  getInTouch: {
+    en: 'Get in Touch',
+    ar: 'تواصل معنا',
+    ku: 'پەیوەندیمان پێوە بکە',
+  },
+  getInTouchDesc: {
+    en: 'Have questions? We would love to hear from you.',
+    ar: 'لديك أسئلة؟ نحب أن نسمع منك.',
+    ku: 'پرسیارت هەیە؟ حەز دەکەین گوێت لێ بگرین.',
+  },
+  emailUs: {
+    en: 'Email Us',
+    ar: 'راسلنا',
+    ku: 'ئیمەیلمان بۆ بنێرە',
+  },
+  callUs: {
+    en: 'Call Us',
+    ar: 'اتصل بنا',
+    ku: 'پەیوەندیمان پێوە بکە',
+  },
+  visitUs: {
+    en: 'Visit Us',
+    ar: 'قم بزيارتنا',
+    ku: 'سەردانمان بکە',
+  },
+  sendMessage: {
+    en: 'Send Message',
+    ar: 'إرسال رسالة',
+    ku: 'ناردنی نامە',
+  },
+  sendMessageDesc: {
+    en: 'Fill out the form and we will get back to you shortly.',
+    ar: 'املأ النموذج وسنعود إليك قريباً.',
+    ku: 'فۆڕمەکە پڕ بکەرەوە و بەم زووانە وەڵامت دەدەینەوە.',
+  },
+  yourName: {
+    en: 'Your Name',
+    ar: 'اسمك',
+    ku: 'ناوت',
+  },
+  enterYourName: {
+    en: 'Enter your name',
+    ar: 'أدخل اسمك',
+    ku: 'ناوت بنووسە',
+  },
+  yourEmail: {
+    en: 'Your Email',
+    ar: 'بريدك الإلكتروني',
+    ku: 'ئیمەیلەکەت',
+  },
+  enterYourEmail: {
+    en: 'Enter your email',
+    ar: 'أدخل بريدك الإلكتروني',
+    ku: 'ئیمەیلەکەت بنووسە',
+  },
+  subject: {
+    en: 'Subject',
+    ar: 'الموضوع',
+    ku: 'بابەت',
+  },
+  enterSubject: {
+    en: 'Enter subject',
+    ar: 'أدخل الموضوع',
+    ku: 'بابەت بنووسە',
+  },
+  message: {
+    en: 'Message',
+    ar: 'الرسالة',
+    ku: 'نامە',
+  },
+  enterMessage: {
+    en: 'Enter your message',
+    ar: 'أدخل رسالتك',
+    ku: 'نامەکەت بنووسە',
+  },
+  sending: {
+    en: 'Sending...',
+    ar: 'جاري الإرسال...',
+    ku: 'دەنێردرێت...',
+  },
+  messageSent: {
+    en: 'Message Sent',
+    ar: 'تم إرسال الرسالة',
+    ku: 'نامە نێردرا',
+  },
+  messageSentDesc: {
+    en: 'Thank you for contacting us. We will get back to you soon.',
+    ar: 'شكراً للتواصل معنا. سنعود إليك قريباً.',
+    ku: 'سوپاس بۆ پەیوەندیکردن. بەم زووانە وەڵامت دەدەینەوە.',
+  },
+  // Dashboard extras
+  deleteSelected: {
+    en: 'Delete Selected',
+    ar: 'حذف المحدد',
+    ku: 'سڕینەوەی هەڵبژێردراو',
+  },
+  print: {
+    en: 'Print',
+    ar: 'طباعة',
+    ku: 'چاپ',
+  },
+  printDate: {
+    en: 'Print Date',
+    ar: 'تاريخ الطباعة',
+    ku: 'بەرواری چاپ',
+  },
+  editInvoice: {
+    en: 'Edit Invoice',
+    ar: 'تعديل الفاتورة',
+    ku: 'دەستکاری پسوولە',
+  },
+  invoiceUpdated: {
+    en: 'Invoice updated successfully!',
+    ar: 'تم تحديث الفاتورة بنجاح!',
+    ku: 'پسوولە بە سەرکەوتوویی نوێکرایەوە!',
+  },
+  invoicesDeleted: {
+    en: 'Invoices deleted successfully!',
+    ar: 'تم حذف الفواتير بنجاح!',
+    ku: 'پسوولەکان بە سەرکەوتوویی سڕانەوە!',
+  },
+  confirmDelete: {
+    en: 'Confirm Delete',
+    ar: 'تأكيد الحذف',
+    ku: 'دڵنیاکردنەوەی سڕینەوە',
+  },
+  confirmDeleteMultiple: {
+    en: 'Are you sure you want to delete {count} selected invoices? This action cannot be undone.',
+    ar: 'هل أنت متأكد من حذف {count} فواتير محددة؟ لا يمكن التراجع عن هذا الإجراء.',
+    ku: 'دڵنیایت لە سڕینەوەی {count} پسوولەی هەڵبژێردراو؟ ناتوانرێت ئەم کردارە هەڵوەشێندرێتەوە.',
+  },
 };
 
 interface LanguageContextType {

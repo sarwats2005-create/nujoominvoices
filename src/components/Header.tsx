@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { LayoutDashboard, FilePlus, Settings, LogOut, User, Menu, Sun, Moon } from 'lucide-react';
+import { LayoutDashboard, FilePlus, Settings, LogOut, User, Menu, Sun, Moon, BarChart3, Mail } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
 const Header: React.FC = () => {
@@ -29,6 +29,8 @@ const Header: React.FC = () => {
   const navItems = [
     { path: '/dashboard', label: t('dashboard'), icon: LayoutDashboard },
     { path: '/new-invoice', label: t('newInvoice'), icon: FilePlus },
+    { path: '/insights', label: t('insights'), icon: BarChart3 },
+    { path: '/contact', label: t('contact'), icon: Mail },
     { path: '/settings', label: t('settings'), icon: Settings },
   ];
 
