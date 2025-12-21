@@ -548,6 +548,21 @@ export const translations: Translations = {
     ar: 'هل أنت متأكد من حذف {count} فواتير محددة؟ لا يمكن التراجع عن هذا الإجراء.',
     ku: 'دڵنیایت لە سڕینەوەی {count} پسوولەی هەڵبژێردراو؟ ناتوانرێت ئەم کردارە هەڵوەشێندرێتەوە.',
   },
+  containerNumber: {
+    en: 'Container Number',
+    ar: 'رقم الحاوية',
+    ku: 'ژمارەی کۆنتەینەر',
+  },
+  optional: {
+    en: 'Optional',
+    ar: 'اختياري',
+    ku: 'هەڵبژاردەیی',
+  },
+  searchInvoices: {
+    en: 'Search invoices...',
+    ar: 'البحث في الفواتير...',
+    ku: 'گەڕان لە پسوولەکان...',
+  },
 };
 
 interface LanguageContextType {

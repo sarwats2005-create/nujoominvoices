@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
+import { Hash, DollarSign, CalendarIcon, User, Landmark, Package } from 'lucide-react';
 
 interface EditInvoiceDialogProps {
   invoice: Invoice | null;
@@ -26,6 +27,7 @@ const EditInvoiceDialog: React.FC<EditInvoiceDialogProps> = ({ invoice, open, on
     invoiceNumber: '',
     beneficiary: '',
     bank: '',
+    containerNumber: '',
   });
 
   useEffect(() => {
@@ -36,6 +38,7 @@ const EditInvoiceDialog: React.FC<EditInvoiceDialogProps> = ({ invoice, open, on
         invoiceNumber: invoice.invoiceNumber,
         beneficiary: invoice.beneficiary,
         bank: invoice.bank,
+        containerNumber: invoice.containerNumber || '',
       });
     }
   }, [invoice]);
@@ -50,6 +53,7 @@ const EditInvoiceDialog: React.FC<EditInvoiceDialogProps> = ({ invoice, open, on
       invoiceNumber: formData.invoiceNumber,
       beneficiary: formData.beneficiary,
       bank: formData.bank,
+      containerNumber: formData.containerNumber || undefined,
     });
 
     toast({ title: t('invoiceUpdated') });
@@ -65,7 +69,10 @@ const EditInvoiceDialog: React.FC<EditInvoiceDialogProps> = ({ invoice, open, on
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="invoiceNumber">{t('invoiceNumber')}</Label>
+              <Label htmlFor="invoiceNumber" className="flex items-center gap-2">
+                <Hash className="h-3 w-3" />
+                {t('invoiceNumber')}
+              </Label>
               <Input
                 id="invoiceNumber"
                 value={formData.invoiceNumber}
@@ -74,7 +81,10 @@ const EditInvoiceDialog: React.FC<EditInvoiceDialogProps> = ({ invoice, open, on
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="amount">{t('invoiceAmount')}</Label>
+              <Label htmlFor="amount" className="flex items-center gap-2">
+                <DollarSign className="h-3 w-3" />
+                {t('invoiceAmount')}
+              </Label>
               <Input
                 id="amount"
                 type="number"
@@ -88,7 +98,10 @@ const EditInvoiceDialog: React.FC<EditInvoiceDialogProps> = ({ invoice, open, on
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="date">{t('invoiceDate')}</Label>
+              <Label htmlFor="date" className="flex items-center gap-2">
+                <CalendarIcon className="h-3 w-3" />
+                {t('invoiceDate')}
+              </Label>
               <Input
                 id="date"
                 type="date"
@@ -98,7 +111,10 @@ const EditInvoiceDialog: React.FC<EditInvoiceDialogProps> = ({ invoice, open, on
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="bank">{t('bank')}</Label>
+              <Label htmlFor="bank" className="flex items-center gap-2">
+                <Landmark className="h-3 w-3" />
+                {t('bank')}
+              </Label>
               <Select value={formData.bank} onValueChange={(value) => setFormData({ ...formData, bank: value })}>
                 <SelectTrigger>
                   <SelectValue placeholder={t('selectBank')} />
@@ -114,14 +130,31 @@ const EditInvoiceDialog: React.FC<EditInvoiceDialogProps> = ({ invoice, open, on
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="beneficiary">{t('beneficiary')}</Label>
-            <Input
-              id="beneficiary"
-              value={formData.beneficiary}
-              onChange={(e) => setFormData({ ...formData, beneficiary: e.target.value })}
-              required
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="beneficiary" className="flex items-center gap-2">
+                <User className="h-3 w-3" />
+                {t('beneficiary')}
+              </Label>
+              <Input
+                id="beneficiary"
+                value={formData.beneficiary}
+                onChange={(e) => setFormData({ ...formData, beneficiary: e.target.value })}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="containerNumber" className="flex items-center gap-2">
+                <Package className="h-3 w-3" />
+                {t('containerNumber')}
+              </Label>
+              <Input
+                id="containerNumber"
+                value={formData.containerNumber}
+                onChange={(e) => setFormData({ ...formData, containerNumber: e.target.value })}
+                placeholder={t('optional')}
+              />
+            </div>
           </div>
 
           <DialogFooter>

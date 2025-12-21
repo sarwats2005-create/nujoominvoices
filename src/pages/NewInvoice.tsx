@@ -10,7 +10,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
-import { CalendarIcon, DollarSign, Hash, User, Plus } from 'lucide-react';
+import { CalendarIcon, DollarSign, Hash, User, Plus, Landmark, LayoutDashboard, Package } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import BankSelector from '@/components/BankSelector';
 import DashboardSelector from '@/components/DashboardSelector';
@@ -21,6 +21,7 @@ const NewInvoice: React.FC = () => {
   const [invoiceNumber, setInvoiceNumber] = useState('');
   const [beneficiary, setBeneficiary] = useState('');
   const [bank, setBank] = useState('');
+  const [containerNumber, setContainerNumber] = useState('');
   const [dashboardId, setDashboardId] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [calendarOpen, setCalendarOpen] = useState(false);
@@ -57,6 +58,7 @@ const NewInvoice: React.FC = () => {
       invoiceNumber,
       beneficiary,
       bank,
+      containerNumber: containerNumber || undefined,
       dashboardId,
     });
 
@@ -81,13 +83,19 @@ const NewInvoice: React.FC = () => {
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Dashboard Selection */}
             <div className="space-y-2">
-              <Label>{t('selectDashboard')}</Label>
+              <Label className="flex items-center gap-2">
+                <LayoutDashboard className="h-4 w-4 text-muted-foreground" />
+                {t('selectDashboard')}
+              </Label>
               <DashboardSelector value={dashboardId} onChange={setDashboardId} />
             </div>
 
             {/* Invoice Amount */}
             <div className="space-y-2">
-              <Label htmlFor="amount">{t('invoiceAmount')}</Label>
+              <Label htmlFor="amount" className="flex items-center gap-2">
+                <DollarSign className="h-4 w-4 text-muted-foreground" />
+                {t('invoiceAmount')}
+              </Label>
               <div className="relative">
                 <DollarSign className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
@@ -106,7 +114,10 @@ const NewInvoice: React.FC = () => {
 
             {/* Invoice Date */}
             <div className="space-y-2">
-              <Label>{t('invoiceDate')}</Label>
+              <Label className="flex items-center gap-2">
+                <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+                {t('invoiceDate')}
+              </Label>
               <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
                 <PopoverTrigger asChild>
                   <Button
@@ -137,7 +148,10 @@ const NewInvoice: React.FC = () => {
 
             {/* Invoice Number */}
             <div className="space-y-2">
-              <Label htmlFor="invoiceNumber">{t('invoiceNumber')}</Label>
+              <Label htmlFor="invoiceNumber" className="flex items-center gap-2">
+                <Hash className="h-4 w-4 text-muted-foreground" />
+                {t('invoiceNumber')}
+              </Label>
               <div className="relative">
                 <Hash className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
@@ -152,9 +166,32 @@ const NewInvoice: React.FC = () => {
               </div>
             </div>
 
+            {/* Container Number (Optional) */}
+            <div className="space-y-2">
+              <Label htmlFor="containerNumber" className="flex items-center gap-2">
+                <Package className="h-4 w-4 text-muted-foreground" />
+                {t('containerNumber')}
+                <span className="text-xs text-muted-foreground">({t('optional')})</span>
+              </Label>
+              <div className="relative">
+                <Package className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  id="containerNumber"
+                  type="text"
+                  value={containerNumber}
+                  onChange={(e) => setContainerNumber(e.target.value)}
+                  className="pl-10"
+                  placeholder="CONT-001"
+                />
+              </div>
+            </div>
+
             {/* Beneficiary */}
             <div className="space-y-2">
-              <Label htmlFor="beneficiary">{t('beneficiary')}</Label>
+              <Label htmlFor="beneficiary" className="flex items-center gap-2">
+                <User className="h-4 w-4 text-muted-foreground" />
+                {t('beneficiary')}
+              </Label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
@@ -171,7 +208,10 @@ const NewInvoice: React.FC = () => {
 
             {/* Bank */}
             <div className="space-y-2">
-              <Label>{t('bank')}</Label>
+              <Label className="flex items-center gap-2">
+                <Landmark className="h-4 w-4 text-muted-foreground" />
+                {t('bank')}
+              </Label>
               <BankSelector value={bank} onChange={setBank} />
             </div>
 
