@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { useLanguage, Language } from '@/contexts/LanguageContext';
-import { useSettings } from '@/contexts/SettingsContext';
+import { useSettings, currencies } from '@/contexts/SettingsContext';
 import { useInvoice } from '@/contexts/InvoiceContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,12 +8,12 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Settings as SettingsIcon, Languages, Image, Building2, Trash2, LayoutDashboard, Mail, Phone, MapPin } from 'lucide-react';
+import { Settings as SettingsIcon, Languages, Image, Building2, Trash2, LayoutDashboard, Mail, Phone, MapPin, Coins } from 'lucide-react';
 import DashboardSelector from '@/components/DashboardSelector';
 
 const Settings: React.FC = () => {
   const { t, language, setLanguage } = useLanguage();
-  const { logo, setLogo, contactInfo, setContactInfo } = useSettings();
+  const { logo, setLogo, contactInfo, setContactInfo, currency, setCurrency } = useSettings();
   const { banks, deleteBank, currentDashboardId, setCurrentDashboardId } = useInvoice();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -39,6 +39,13 @@ const Settings: React.FC = () => {
     toast({ title: t('contactInfoUpdated') });
   };
 
+  const handleCurrencyChange = (code: string) => {
+    const selected = currencies.find(c => c.code === code);
+    if (selected) {
+      setCurrency(selected);
+    }
+  };
+
   return (
     <div className="max-w-2xl mx-auto space-y-6 animate-fade-in">
       <Card>
@@ -57,6 +64,21 @@ const Settings: React.FC = () => {
                 <SelectItem value="en">{t('english')}</SelectItem>
                 <SelectItem value="ar">{t('arabic')}</SelectItem>
                 <SelectItem value="ku">{t('kurdish')}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Currency */}
+          <div className="space-y-2">
+            <Label className="flex items-center gap-2"><Coins className="h-4 w-4" />{t('currency')}</Label>
+            <Select value={currency.code} onValueChange={handleCurrencyChange}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent className="bg-popover">
+                {currencies.map((c) => (
+                  <SelectItem key={c.code} value={c.code}>
+                    {c.symbol} - {c.name} ({c.code})
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>

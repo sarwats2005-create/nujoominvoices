@@ -1,6 +1,7 @@
 import React, { useState, useRef, useMemo } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useInvoice, Invoice } from '@/contexts/InvoiceContext';
+import { useSettings } from '@/contexts/SettingsContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -28,6 +29,7 @@ type SortKey = 'invoiceNumber' | 'amount' | 'date' | 'beneficiary' | 'bank' | 's
 const Dashboard: React.FC = () => {
   const { t } = useLanguage();
   const { invoices, updateInvoiceStatus, deleteInvoice, deleteMultipleInvoices, dashboards, currentDashboardId, setCurrentDashboardId } = useInvoice();
+  const { currency } = useSettings();
   const { toast } = useToast();
   const [sortKey, setSortKey] = useState<SortKey>('date');
   const [sortAsc, setSortAsc] = useState(false);
@@ -38,6 +40,8 @@ const Dashboard: React.FC = () => {
   const printRef = useRef<HTMLDivElement>(null);
 
   const currentDashboard = dashboards.find(d => d.id === currentDashboardId);
+
+  const formatAmount = (amount: number) => `${currency.symbol}${Math.round(amount).toLocaleString()}`;
 
   const filteredInvoices = useMemo(() => {
     if (!searchQuery.trim()) return invoices;
@@ -96,7 +100,7 @@ const Dashboard: React.FC = () => {
   const copyTableToClipboard = () => {
     const rows = sortedInvoices.map(inv => [
       inv.invoiceNumber,
-      inv.amount.toFixed(2),
+      formatAmount(inv.amount),
       format(new Date(inv.date), 'yyyy-MM-dd'),
       inv.beneficiary,
       inv.bank,
@@ -150,7 +154,7 @@ const Dashboard: React.FC = () => {
             ${sortedInvoices.map(inv => `
               <tr class="${inv.status === 'received' ? 'received' : ''}">
                 <td>${inv.invoiceNumber}</td>
-                <td>${inv.amount.toFixed(2)}</td>
+                <td>${formatAmount(inv.amount)}</td>
                 <td>${format(new Date(inv.date), 'PPP')}</td>
                 <td>${inv.beneficiary}</td>
                 <td>${inv.bank}</td>
@@ -232,7 +236,7 @@ const Dashboard: React.FC = () => {
           {invoices.length === 0 ? (
             <p className="text-center py-8 text-muted-foreground">{t('noInvoices')}</p>
           ) : (
-            <div className="overflow-x-auto" ref={printRef}>
+            <div className="overflow-x-auto border border-border rounded-md" ref={printRef}>
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -273,7 +277,7 @@ const Dashboard: React.FC = () => {
                         />
                       </TableCell>
                       <TableCell className="font-medium">{inv.invoiceNumber}</TableCell>
-                      <TableCell>{inv.amount.toFixed(2)}</TableCell>
+                      <TableCell>{formatAmount(inv.amount)}</TableCell>
                       <TableCell>{format(new Date(inv.date), 'PPP')}</TableCell>
                       <TableCell>{inv.beneficiary}</TableCell>
                       <TableCell>{inv.bank}</TableCell>

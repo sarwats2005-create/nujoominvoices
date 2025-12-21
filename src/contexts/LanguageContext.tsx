@@ -563,6 +563,16 @@ export const translations: Translations = {
     ar: 'البحث في الفواتير...',
     ku: 'گەڕان لە پسوولەکان...',
   },
+  currency: {
+    en: 'Currency',
+    ar: 'العملة',
+    ku: 'دراو',
+  },
+  selectCurrency: {
+    en: 'Select Currency',
+    ar: 'اختر العملة',
+    ku: 'دراو هەڵبژێرە',
+  },
 };
 
 interface LanguageContextType {

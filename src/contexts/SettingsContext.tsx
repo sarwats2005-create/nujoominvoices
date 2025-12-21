@@ -6,6 +6,22 @@ export interface ContactInfo {
   address: string;
 }
 
+export interface Currency {
+  symbol: string;
+  name: string;
+  code: string;
+}
+
+export const currencies: Currency[] = [
+  { symbol: '$', name: 'US Dollar', code: 'USD' },
+  { symbol: '€', name: 'Euro', code: 'EUR' },
+  { symbol: '£', name: 'British Pound', code: 'GBP' },
+  { symbol: 'د.ع', name: 'Iraqi Dinar', code: 'IQD' },
+  { symbol: '₺', name: 'Turkish Lira', code: 'TRY' },
+  { symbol: '﷼', name: 'Saudi Riyal', code: 'SAR' },
+  { symbol: 'د.إ', name: 'UAE Dirham', code: 'AED' },
+];
+
 interface SettingsContextType {
   logo: string | null;
   setLogo: (logo: string | null) => void;
@@ -13,6 +29,8 @@ interface SettingsContextType {
   toggleDarkMode: () => void;
   contactInfo: ContactInfo;
   setContactInfo: (info: ContactInfo) => void;
+  currency: Currency;
+  setCurrency: (currency: Currency) => void;
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -20,6 +38,7 @@ const SettingsContext = createContext<SettingsContextType | undefined>(undefined
 const LOGO_KEY = 'invoice_app_logo';
 const THEME_KEY = 'invoice_app_theme';
 const CONTACT_INFO_KEY = 'invoice_app_contact_info';
+const CURRENCY_KEY = 'invoice_app_currency';
 
 const defaultContactInfo: ContactInfo = {
   email: 'support@nujoom.com',
@@ -27,15 +46,19 @@ const defaultContactInfo: ContactInfo = {
   address: 'Baghdad, Iraq',
 };
 
+const defaultCurrency: Currency = currencies[0]; // USD
+
 export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [logo, setLogoState] = useState<string | null>(null);
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [contactInfo, setContactInfoState] = useState<ContactInfo>(defaultContactInfo);
+  const [currency, setCurrencyState] = useState<Currency>(defaultCurrency);
 
   useEffect(() => {
     const savedLogo = localStorage.getItem(LOGO_KEY);
     const savedTheme = localStorage.getItem(THEME_KEY);
     const savedContactInfo = localStorage.getItem(CONTACT_INFO_KEY);
+    const savedCurrency = localStorage.getItem(CURRENCY_KEY);
     
     if (savedLogo) {
       setLogoState(savedLogo);
@@ -48,6 +71,10 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
 
     if (savedContactInfo) {
       setContactInfoState(JSON.parse(savedContactInfo));
+    }
+
+    if (savedCurrency) {
+      setCurrencyState(JSON.parse(savedCurrency));
     }
   }, []);
 
@@ -72,8 +99,13 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     localStorage.setItem(CONTACT_INFO_KEY, JSON.stringify(info));
   };
 
+  const setCurrency = (curr: Currency) => {
+    setCurrencyState(curr);
+    localStorage.setItem(CURRENCY_KEY, JSON.stringify(curr));
+  };
+
   return (
-    <SettingsContext.Provider value={{ logo, setLogo, isDarkMode, toggleDarkMode, contactInfo, setContactInfo }}>
+    <SettingsContext.Provider value={{ logo, setLogo, isDarkMode, toggleDarkMode, contactInfo, setContactInfo, currency, setCurrency }}>
       {children}
     </SettingsContext.Provider>
   );
