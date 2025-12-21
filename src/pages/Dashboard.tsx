@@ -1,13 +1,14 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useInvoice, Invoice } from '@/contexts/InvoiceContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
-import { Copy, FileText, ArrowUpDown, Trash2, Printer, Edit, AlertTriangle, LayoutDashboard } from 'lucide-react';
+import { Copy, FileText, ArrowUpDown, Trash2, Printer, Edit, AlertTriangle, LayoutDashboard, Search, Hash, DollarSign, CalendarIcon, User, Landmark, Package, CheckCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import EditInvoiceDialog from '@/components/EditInvoiceDialog';
 import DashboardSelector from '@/components/DashboardSelector';
@@ -22,7 +23,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 
-type SortKey = 'invoiceNumber' | 'amount' | 'date' | 'beneficiary' | 'bank' | 'status';
+type SortKey = 'invoiceNumber' | 'amount' | 'date' | 'beneficiary' | 'bank' | 'status' | 'containerNumber';
 
 const Dashboard: React.FC = () => {
   const { t } = useLanguage();
@@ -33,17 +34,35 @@ const Dashboard: React.FC = () => {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const printRef = useRef<HTMLDivElement>(null);
 
   const currentDashboard = dashboards.find(d => d.id === currentDashboardId);
 
-  const sortedInvoices = [...invoices].sort((a, b) => {
-    let comparison = 0;
-    if (sortKey === 'amount') comparison = a.amount - b.amount;
-    else if (sortKey === 'date') comparison = new Date(a.date).getTime() - new Date(b.date).getTime();
-    else comparison = String(a[sortKey]).localeCompare(String(b[sortKey]));
-    return sortAsc ? comparison : -comparison;
-  });
+  const filteredInvoices = useMemo(() => {
+    if (!searchQuery.trim()) return invoices;
+    const query = searchQuery.toLowerCase();
+    return invoices.filter(inv => 
+      inv.invoiceNumber.toLowerCase().includes(query) ||
+      inv.beneficiary.toLowerCase().includes(query) ||
+      inv.bank.toLowerCase().includes(query) ||
+      inv.amount.toString().includes(query) ||
+      (inv.containerNumber && inv.containerNumber.toLowerCase().includes(query)) ||
+      format(new Date(inv.date), 'yyyy-MM-dd').includes(query) ||
+      (inv.status === 'received' ? t('received') : t('pending')).toLowerCase().includes(query)
+    );
+  }, [invoices, searchQuery, t]);
+
+  const sortedInvoices = useMemo(() => {
+    return [...filteredInvoices].sort((a, b) => {
+      let comparison = 0;
+      if (sortKey === 'amount') comparison = a.amount - b.amount;
+      else if (sortKey === 'date') comparison = new Date(a.date).getTime() - new Date(b.date).getTime();
+      else if (sortKey === 'containerNumber') comparison = (a.containerNumber || '').localeCompare(b.containerNumber || '');
+      else comparison = String(a[sortKey]).localeCompare(String(b[sortKey]));
+      return sortAsc ? comparison : -comparison;
+    });
+  }, [filteredInvoices, sortKey, sortAsc]);
 
   const handleSort = (key: SortKey) => {
     if (sortKey === key) setSortAsc(!sortAsc);
@@ -75,16 +94,16 @@ const Dashboard: React.FC = () => {
   };
 
   const copyTableToClipboard = () => {
-    const headers = [t('invoiceNumber'), t('invoiceAmount'), t('invoiceDate'), t('beneficiary'), t('bank'), t('status')];
     const rows = sortedInvoices.map(inv => [
       inv.invoiceNumber,
       inv.amount.toFixed(2),
       format(new Date(inv.date), 'yyyy-MM-dd'),
       inv.beneficiary,
       inv.bank,
+      inv.containerNumber || '',
       inv.status === 'received' ? t('received') : t('pending'),
     ]);
-    const text = [headers, ...rows].map(row => row.join('\t')).join('\n');
+    const text = rows.map(row => row.join('\t')).join('\n');
     navigator.clipboard.writeText(text);
     toast({ title: t('tableCopied') });
   };
@@ -123,6 +142,7 @@ const Dashboard: React.FC = () => {
               <th>${t('invoiceDate')}</th>
               <th>${t('beneficiary')}</th>
               <th>${t('bank')}</th>
+              <th>${t('containerNumber')}</th>
               <th>${t('status')}</th>
             </tr>
           </thead>
@@ -134,6 +154,7 @@ const Dashboard: React.FC = () => {
                 <td>${format(new Date(inv.date), 'PPP')}</td>
                 <td>${inv.beneficiary}</td>
                 <td>${inv.bank}</td>
+                <td>${inv.containerNumber || '-'}</td>
                 <td>${inv.status === 'received' ? t('received') : t('pending')}</td>
               </tr>
             `).join('')}
@@ -146,9 +167,13 @@ const Dashboard: React.FC = () => {
     printWindow.print();
   };
 
-  const SortHeader = ({ label, sortKeyName }: { label: string; sortKeyName: SortKey }) => (
+  const SortHeader = ({ label, sortKeyName, icon: Icon }: { label: string; sortKeyName: SortKey; icon: React.ElementType }) => (
     <TableHead className="cursor-pointer hover:bg-accent/50" onClick={() => handleSort(sortKeyName)}>
-      <div className="flex items-center gap-1">{label}<ArrowUpDown className="h-3 w-3" /></div>
+      <div className="flex items-center gap-1">
+        <Icon className="h-3 w-3" />
+        {label}
+        <ArrowUpDown className="h-3 w-3" />
+      </div>
     </TableHead>
   );
 
@@ -191,6 +216,19 @@ const Dashboard: React.FC = () => {
           </div>
         </CardHeader>
         <CardContent>
+          {/* Search Bar */}
+          <div className="mb-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder={t('searchInvoices')}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+          </div>
+
           {invoices.length === 0 ? (
             <p className="text-center py-8 text-muted-foreground">{t('noInvoices')}</p>
           ) : (
@@ -201,12 +239,18 @@ const Dashboard: React.FC = () => {
                     <TableHead className="w-12">
                       <Checkbox checked={allSelected} onCheckedChange={handleSelectAll} />
                     </TableHead>
-                    <TableHead className="w-12">{t('status')}</TableHead>
-                    <SortHeader label={t('invoiceNumber')} sortKeyName="invoiceNumber" />
-                    <SortHeader label={t('invoiceAmount')} sortKeyName="amount" />
-                    <SortHeader label={t('invoiceDate')} sortKeyName="date" />
-                    <SortHeader label={t('beneficiary')} sortKeyName="beneficiary" />
-                    <SortHeader label={t('bank')} sortKeyName="bank" />
+                    <TableHead className="w-12">
+                      <div className="flex items-center gap-1">
+                        <CheckCircle className="h-3 w-3" />
+                        {t('status')}
+                      </div>
+                    </TableHead>
+                    <SortHeader label={t('invoiceNumber')} sortKeyName="invoiceNumber" icon={Hash} />
+                    <SortHeader label={t('invoiceAmount')} sortKeyName="amount" icon={DollarSign} />
+                    <SortHeader label={t('invoiceDate')} sortKeyName="date" icon={CalendarIcon} />
+                    <SortHeader label={t('beneficiary')} sortKeyName="beneficiary" icon={User} />
+                    <SortHeader label={t('bank')} sortKeyName="bank" icon={Landmark} />
+                    <SortHeader label={t('containerNumber')} sortKeyName="containerNumber" icon={Package} />
                     <TableHead>{t('actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -233,6 +277,7 @@ const Dashboard: React.FC = () => {
                       <TableCell>{format(new Date(inv.date), 'PPP')}</TableCell>
                       <TableCell>{inv.beneficiary}</TableCell>
                       <TableCell>{inv.bank}</TableCell>
+                      <TableCell>{inv.containerNumber || '-'}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1">
                           <Button 

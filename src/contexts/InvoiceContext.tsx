@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { useAuth } from './AuthContext';
 
 export interface Invoice {
   id: string;
@@ -10,6 +9,7 @@ export interface Invoice {
   invoiceNumber: string;
   beneficiary: string;
   bank: string;
+  containerNumber?: string;
   status: 'pending' | 'received';
   createdAt: string;
 }
@@ -50,6 +50,7 @@ const INVOICES_KEY = 'invoice_app_invoices';
 const BANKS_KEY = 'invoice_app_banks';
 const DASHBOARDS_KEY = 'invoice_app_dashboards';
 const CURRENT_DASHBOARD_KEY = 'invoice_app_current_dashboard';
+const DEFAULT_USER_ID = 'local_user';
 
 const defaultBanks: Bank[] = [
   { id: '1', name: 'Central Bank of Iraq' },
@@ -60,7 +61,6 @@ const defaultBanks: Bank[] = [
 ];
 
 export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const { user } = useAuth();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [banks, setBanks] = useState<Bank[]>([]);
   const [dashboards, setDashboards] = useState<Dashboard[]>([]);
@@ -84,39 +84,30 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
 
     if (savedDashboards) {
-      setDashboards(JSON.parse(savedDashboards));
-    }
-
-    if (savedCurrentDashboard) {
-      setCurrentDashboardIdState(savedCurrentDashboard);
-    }
-  }, []);
-
-  // Create default dashboard for user if none exists
-  useEffect(() => {
-    if (user && dashboards.length === 0) {
+      const parsed = JSON.parse(savedDashboards);
+      setDashboards(parsed);
+      if (savedCurrentDashboard) {
+        setCurrentDashboardIdState(savedCurrentDashboard);
+      } else if (parsed.length > 0) {
+        setCurrentDashboardIdState(parsed[0].id);
+        localStorage.setItem(CURRENT_DASHBOARD_KEY, parsed[0].id);
+      }
+    } else {
+      // Create default dashboard
       const defaultDashboard: Dashboard = {
         id: crypto.randomUUID(),
         name: 'Main Dashboard',
-        userId: user.id,
+        userId: DEFAULT_USER_ID,
       };
       const newDashboards = [defaultDashboard];
       setDashboards(newDashboards);
       localStorage.setItem(DASHBOARDS_KEY, JSON.stringify(newDashboards));
       setCurrentDashboardIdState(defaultDashboard.id);
       localStorage.setItem(CURRENT_DASHBOARD_KEY, defaultDashboard.id);
-    } else if (user && !currentDashboardId) {
-      const userDashboards = dashboards.filter(d => d.userId === user.id);
-      if (userDashboards.length > 0) {
-        setCurrentDashboardIdState(userDashboards[0].id);
-        localStorage.setItem(CURRENT_DASHBOARD_KEY, userDashboards[0].id);
-      }
     }
-  }, [user, dashboards, currentDashboardId]);
+  }, []);
 
-  const userDashboards = dashboards.filter(d => d.userId === user?.id);
-  const userInvoices = invoices.filter(inv => inv.userId === user?.id);
-  const currentDashboardInvoices = userInvoices.filter(inv => inv.dashboardId === currentDashboardId);
+  const currentDashboardInvoices = invoices.filter(inv => inv.dashboardId === currentDashboardId);
 
   const setCurrentDashboardId = (id: string | null) => {
     setCurrentDashboardIdState(id);
@@ -143,12 +134,10 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
   };
 
   const addInvoice = (invoiceData: Omit<Invoice, 'id' | 'userId' | 'status' | 'createdAt'>) => {
-    if (!user) return;
-    
     const newInvoice: Invoice = {
       ...invoiceData,
       id: crypto.randomUUID(),
-      userId: user.id,
+      userId: DEFAULT_USER_ID,
       status: 'pending',
       createdAt: new Date().toISOString(),
     };
@@ -198,11 +187,10 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
   };
 
   const addDashboard = (name: string) => {
-    if (!user) return;
     const newDashboard: Dashboard = {
       id: crypto.randomUUID(),
       name,
-      userId: user.id,
+      userId: DEFAULT_USER_ID,
     };
     saveDashboards([...dashboards, newDashboard]);
   };
@@ -220,7 +208,7 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
     saveInvoices(invoices.filter(inv => inv.dashboardId !== id));
     // Reset current dashboard if deleted
     if (currentDashboardId === id) {
-      const remaining = dashboards.filter(d => d.id !== id && d.userId === user?.id);
+      const remaining = dashboards.filter(d => d.id !== id);
       if (remaining.length > 0) {
         setCurrentDashboardId(remaining[0].id);
       } else {
@@ -234,7 +222,7 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
       value={{
         invoices: currentDashboardInvoices,
         banks,
-        dashboards: userDashboards,
+        dashboards,
         currentDashboardId,
         setCurrentDashboardId,
         addInvoice,

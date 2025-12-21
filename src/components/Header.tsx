@@ -1,30 +1,15 @@
 import React from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
+import { Link, useLocation } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useSettings } from '@/contexts/SettingsContext';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { LayoutDashboard, FilePlus, Settings, LogOut, User, Menu, Sun, Moon, BarChart3, Mail } from 'lucide-react';
+import { LayoutDashboard, FilePlus, Settings, Menu, Sun, Moon, BarChart3, Mail } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
 const Header: React.FC = () => {
-  const { user, logout } = useAuth();
   const { t } = useLanguage();
   const { logo, isDarkMode, toggleDarkMode } = useSettings();
   const location = useLocation();
-  const navigate = useNavigate();
-
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
 
   const navItems = [
     { path: '/dashboard', label: t('dashboard'), icon: LayoutDashboard },
@@ -97,27 +82,6 @@ const Header: React.FC = () => {
           <Button variant="ghost" size="icon" onClick={toggleDarkMode}>
             {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
           </Button>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="flex items-center gap-2">
-                <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                  <User className="h-4 w-4 text-primary" />
-                </div>
-                <span className="hidden sm:inline text-sm">{user?.fullName}</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48 bg-popover">
-              <DropdownMenuItem className="text-muted-foreground">
-                {user?.email}
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout} className="text-destructive">
-                <LogOut className="h-4 w-4 mr-2" />
-                {t('logout')}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
         </div>
       </div>
     </header>
