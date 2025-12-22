@@ -32,6 +32,7 @@ interface InvoiceContextType {
   currentDashboardId: string | null;
   setCurrentDashboardId: (id: string | null) => void;
   addInvoice: (invoice: Omit<Invoice, 'id' | 'userId' | 'status' | 'createdAt'>) => void;
+  addMultipleInvoices: (invoices: Omit<Invoice, 'id' | 'userId' | 'status' | 'createdAt'>[]) => void;
   updateInvoice: (id: string, data: Partial<Omit<Invoice, 'id' | 'userId' | 'createdAt'>>) => void;
   updateInvoiceStatus: (id: string, status: 'pending' | 'received') => void;
   deleteInvoice: (id: string) => void;
@@ -145,6 +146,18 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
     saveInvoices([...invoices, newInvoice]);
   };
 
+  const addMultipleInvoices = (invoicesData: Omit<Invoice, 'id' | 'userId' | 'status' | 'createdAt'>[]) => {
+    const newInvoices: Invoice[] = invoicesData.map(invoiceData => ({
+      ...invoiceData,
+      id: crypto.randomUUID(),
+      userId: DEFAULT_USER_ID,
+      status: 'pending' as const,
+      createdAt: new Date().toISOString(),
+    }));
+
+    saveInvoices([...invoices, ...newInvoices]);
+  };
+
   const updateInvoiceStatus = (id: string, status: 'pending' | 'received') => {
     const updated = invoices.map(inv => 
       inv.id === id ? { ...inv, status } : inv
@@ -226,6 +239,7 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
         currentDashboardId,
         setCurrentDashboardId,
         addInvoice,
+        addMultipleInvoices,
         updateInvoice,
         updateInvoiceStatus,
         deleteInvoice,
