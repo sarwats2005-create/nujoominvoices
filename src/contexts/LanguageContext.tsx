@@ -573,6 +573,31 @@ export const translations: Translations = {
     ar: 'اختر العملة',
     ku: 'دراو هەڵبژێرە',
   },
+  importCSV: {
+    en: 'Import CSV',
+    ar: 'استيراد CSV',
+    ku: 'هاوردەکردنی CSV',
+  },
+  csvImported: {
+    en: 'CSV imported successfully!',
+    ar: 'تم استيراد CSV بنجاح!',
+    ku: 'CSV بە سەرکەوتوویی هاوردە کرا!',
+  },
+  csvImportError: {
+    en: 'Error importing CSV. Please check the format.',
+    ar: 'خطأ في استيراد CSV. يرجى التحقق من التنسيق.',
+    ku: 'هەڵە لە هاوردەکردنی CSV. تکایە فۆرماتەکە بپشکنە.',
+  },
+  exportCSV: {
+    en: 'Export CSV',
+    ar: 'تصدير CSV',
+    ku: 'هەناردەکردنی CSV',
+  },
+  csvExported: {
+    en: 'CSV exported successfully!',
+    ar: 'تم تصدير CSV بنجاح!',
+    ku: 'CSV بە سەرکەوتوویی هەناردە کرا!',
+  },
 };
 
 interface LanguageContextType {
