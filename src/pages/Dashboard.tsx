@@ -53,7 +53,7 @@ const Dashboard: React.FC = () => {
       inv.bank.toLowerCase().includes(query) ||
       inv.amount.toString().includes(query) ||
       (inv.containerNumber && inv.containerNumber.toLowerCase().includes(query)) ||
-      format(new Date(inv.date), 'yyyy-MM-dd').includes(query) ||
+      format(new Date(inv.date), 'dd/MM/yyyy').includes(query) ||
       (inv.status === 'received' ? t('received') : t('pending')).toLowerCase().includes(query)
     );
   }, [invoices, searchQuery, t]);
@@ -102,7 +102,7 @@ const Dashboard: React.FC = () => {
     const rows = sortedInvoices.map(inv => [
       inv.invoiceNumber,
       formatAmount(inv.amount),
-      format(new Date(inv.date), 'yyyy-MM-dd'),
+      format(new Date(inv.date), 'dd/MM/yyyy'),
       inv.beneficiary,
       inv.bank,
       inv.containerNumber || '',
@@ -162,7 +162,7 @@ const Dashboard: React.FC = () => {
     const rows = sortedInvoices.map(inv => [
       inv.invoiceNumber,
       inv.amount.toString(),
-      format(new Date(inv.date), 'yyyy-MM-dd'),
+      format(new Date(inv.date), 'dd/MM/yyyy'),
       inv.beneficiary,
       inv.bank,
       inv.containerNumber || '',
@@ -223,7 +223,7 @@ const Dashboard: React.FC = () => {
               <tr class="${inv.status === 'received' ? 'received' : ''}">
                 <td>${inv.invoiceNumber}</td>
                 <td>${formatAmount(inv.amount)}</td>
-                <td>${format(new Date(inv.date), 'PPP')}</td>
+                <td>${format(new Date(inv.date), 'dd/MM/yyyy')}</td>
                 <td>${inv.beneficiary}</td>
                 <td>${inv.bank}</td>
                 <td>${inv.containerNumber || '-'}</td>
@@ -452,7 +452,7 @@ const Dashboard: React.FC = () => {
                       </TableCell>
                       <TableCell className="font-semibold text-primary">{inv.invoiceNumber}</TableCell>
                       <TableCell className="font-medium">{formatAmount(inv.amount)}</TableCell>
-                      <TableCell className="text-muted-foreground">{format(new Date(inv.date), 'PPP')}</TableCell>
+                      <TableCell className="text-muted-foreground">{format(new Date(inv.date), 'dd/MM/yyyy')}</TableCell>
                       <TableCell>{inv.beneficiary}</TableCell>
                       <TableCell>{inv.bank}</TableCell>
                       <TableCell className="text-muted-foreground">{inv.containerNumber || '-'}</TableCell>
