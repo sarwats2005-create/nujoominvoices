@@ -9,10 +9,11 @@ import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
-import { Copy, FileText, ArrowUpDown, Trash2, Printer, Edit, AlertTriangle, LayoutDashboard, Search, Hash, DollarSign, CalendarIcon, User, Landmark, Package, CheckCircle, Upload, Download } from 'lucide-react';
+import { Copy, FileText, ArrowUpDown, Trash2, Printer, Edit, AlertTriangle, LayoutDashboard, Search, Hash, DollarSign, CalendarIcon, User, Landmark, Package, CheckCircle, Upload, Download, BarChart3 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import EditInvoiceDialog from '@/components/EditInvoiceDialog';
 import DashboardSelector from '@/components/DashboardSelector';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -260,6 +261,28 @@ const Dashboard: React.FC = () => {
   const totalAmount = sortedInvoices.reduce((sum, inv) => sum + inv.amount, 0);
   const receivedCount = sortedInvoices.filter(inv => inv.status === 'received').length;
 
+  // Bank chart data
+  const bankChartData = useMemo(() => {
+    const bankCounts: Record<string, number> = {};
+    sortedInvoices.forEach(inv => {
+      bankCounts[inv.bank] = (bankCounts[inv.bank] || 0) + 1;
+    });
+    return Object.entries(bankCounts)
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count);
+  }, [sortedInvoices]);
+
+  const chartColors = [
+    'hsl(var(--primary))',
+    'hsl(var(--success))',
+    'hsl(var(--warning))',
+    'hsl(210, 70%, 50%)',
+    'hsl(280, 60%, 55%)',
+    'hsl(340, 65%, 50%)',
+    'hsl(160, 55%, 45%)',
+    'hsl(30, 70%, 50%)',
+  ];
+
   return (
     <div className="animate-fade-in space-y-6">
       {/* Stats Cards */}
@@ -304,6 +327,54 @@ const Dashboard: React.FC = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Bank Chart */}
+      {bankChartData.length > 0 && (
+        <Card className="shadow-lg border-0 overflow-hidden">
+          <CardHeader className="bg-gradient-to-r from-card to-muted/20 border-b">
+            <CardTitle className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-primary/10">
+                <BarChart3 className="h-5 w-5 text-primary" />
+              </div>
+              <span className="text-xl">{t('invoicesByBank')}</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={bankChartData} margin={{ top: 10, right: 30, left: 0, bottom: 40 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis 
+                    dataKey="name" 
+                    tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+                    angle={-45}
+                    textAnchor="end"
+                    height={60}
+                  />
+                  <YAxis 
+                    tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+                    allowDecimals={false}
+                  />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: 'hsl(var(--card))', 
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '8px',
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                    }}
+                    labelStyle={{ color: 'hsl(var(--foreground))', fontWeight: 600 }}
+                  />
+                  <Bar dataKey="count" radius={[6, 6, 0, 0]}>
+                    {bankChartData.map((_, index) => (
+                      <Cell key={`cell-${index}`} fill={chartColors[index % chartColors.length]} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Dashboard Selector */}
       <Card className="shadow-lg border-0 overflow-hidden">
