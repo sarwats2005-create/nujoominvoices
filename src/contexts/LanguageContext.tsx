@@ -216,6 +216,11 @@ export const translations: Translations = {
     ar: 'لا توجد فواتير بعد',
     ku: 'هیچ پسوولەیەک نییە',
   },
+  invoicesByBank: {
+    en: 'Invoices by Bank',
+    ar: 'الفواتير حسب البنك',
+    ku: 'پسوولەکان بە پێی بانک',
+  },
   // Settings
   language: {
     en: 'Language',
