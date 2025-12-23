@@ -2,18 +2,20 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useInvoice } from '@/contexts/InvoiceContext';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { CalendarIcon, DollarSign, Hash, User, Plus, Landmark, LayoutDashboard, Package } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import BankSelector from '@/components/BankSelector';
 import DashboardSelector from '@/components/DashboardSelector';
+import { MagicButton } from '@/components/MagicButton';
+import { MagicCard } from '@/components/MagicCard';
 
 const NewInvoice: React.FC = () => {
   const [amount, setAmount] = useState('');
@@ -72,13 +74,14 @@ const NewInvoice: React.FC = () => {
 
   return (
     <div className="max-w-2xl mx-auto animate-fade-in">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Plus className="h-5 w-5 text-primary" />
-            {t('newInvoice')}
-          </CardTitle>
-        </CardHeader>
+      <MagicCard className="rounded-xl" glowColor="99, 102, 241">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Plus className="h-5 w-5 text-primary" />
+              {t('newInvoice')}
+            </CardTitle>
+          </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Dashboard Selection */}
@@ -215,12 +218,13 @@ const NewInvoice: React.FC = () => {
               <BankSelector value={bank} onChange={setBank} />
             </div>
 
-            <Button type="submit" className="w-full" disabled={isSubmitting}>
+            <MagicButton type="submit" className="w-full" disabled={isSubmitting} glowColor="99, 102, 241">
               {t('submitInvoice')}
-            </Button>
+            </MagicButton>
           </form>
         </CardContent>
       </Card>
+      </MagicCard>
     </div>
   );
 };

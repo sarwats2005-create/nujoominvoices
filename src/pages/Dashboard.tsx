@@ -13,6 +13,7 @@ import { Copy, FileText, ArrowUpDown, Trash2, Printer, Edit, AlertTriangle, Layo
 import { cn } from '@/lib/utils';
 import EditInvoiceDialog from '@/components/EditInvoiceDialog';
 import DashboardSelector from '@/components/DashboardSelector';
+import { MagicCard } from '@/components/MagicCard';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import {
   AlertDialog,
@@ -287,45 +288,51 @@ const Dashboard: React.FC = () => {
     <div className="animate-fade-in space-y-6">
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="card-hover gradient-subtle border-0 shadow-md">
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 rounded-xl bg-primary/10">
-                <FileText className="h-6 w-6 text-primary" />
+        <MagicCard className="rounded-xl" glowColor="99, 102, 241">
+          <Card className="card-hover gradient-subtle border-0 shadow-md h-full">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 rounded-xl bg-primary/10">
+                  <FileText className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground font-medium">{t('totalInvoices')}</p>
+                  <p className="text-2xl font-bold">{sortedInvoices.length}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground font-medium">{t('totalInvoices')}</p>
-                <p className="text-2xl font-bold">{sortedInvoices.length}</p>
+            </CardContent>
+          </Card>
+        </MagicCard>
+        <MagicCard className="rounded-xl" glowColor="34, 197, 94">
+          <Card className="card-hover gradient-subtle border-0 shadow-md h-full">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 rounded-xl bg-success/10">
+                  <DollarSign className="h-6 w-6 text-success" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground font-medium">{t('totalAmount')}</p>
+                  <p className="text-2xl font-bold">{formatAmount(totalAmount)}</p>
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="card-hover gradient-subtle border-0 shadow-md">
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 rounded-xl bg-success/10">
-                <DollarSign className="h-6 w-6 text-success" />
+            </CardContent>
+          </Card>
+        </MagicCard>
+        <MagicCard className="rounded-xl" glowColor="234, 179, 8">
+          <Card className="card-hover gradient-subtle border-0 shadow-md h-full">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 rounded-xl bg-warning/10">
+                  <CheckCircle className="h-6 w-6 text-warning" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground font-medium">{t('received')}</p>
+                  <p className="text-2xl font-bold">{receivedCount} / {sortedInvoices.length}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground font-medium">{t('totalAmount')}</p>
-                <p className="text-2xl font-bold">{formatAmount(totalAmount)}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="card-hover gradient-subtle border-0 shadow-md">
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 rounded-xl bg-warning/10">
-                <CheckCircle className="h-6 w-6 text-warning" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground font-medium">{t('received')}</p>
-                <p className="text-2xl font-bold">{receivedCount} / {sortedInvoices.length}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </MagicCard>
       </div>
 
       {/* Bank Chart */}
