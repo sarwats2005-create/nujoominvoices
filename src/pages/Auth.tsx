@@ -2,13 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { Mail, Lock, LogIn, UserPlus, FileText } from 'lucide-react';
+import { MagicButton } from '@/components/MagicButton';
+import { MagicCard } from '@/components/MagicCard';
 import { z } from 'zod';
 
 const emailSchema = z.string().email('Invalid email address');
@@ -94,6 +95,7 @@ const Auth: React.FC = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted/50 p-4">
+      <MagicCard className="w-full max-w-md rounded-xl" glowColor="132, 0, 255" enableParticles={true}>
       <Card className="w-full max-w-md shadow-xl border-0">
         <CardHeader className="text-center space-y-4">
           <div className="mx-auto p-3 rounded-xl bg-primary/10 w-fit">
@@ -151,9 +153,9 @@ const Auth: React.FC = () => {
                     autoComplete="current-password"
                   />
                 </div>
-                <Button type="submit" className="w-full" disabled={isLoading}>
+                <MagicButton type="submit" className="w-full" disabled={isLoading} glowColor="132, 0, 255">
                   {isLoading ? t('loading') : t('login')}
-                </Button>
+                </MagicButton>
               </form>
             </TabsContent>
 
@@ -193,14 +195,15 @@ const Auth: React.FC = () => {
                     {t('passwordRequirement')}
                   </p>
                 </div>
-                <Button type="submit" className="w-full" disabled={isLoading}>
+                <MagicButton type="submit" className="w-full" disabled={isLoading} glowColor="132, 0, 255">
                   {isLoading ? t('loading') : t('signup')}
-                </Button>
+                </MagicButton>
               </form>
             </TabsContent>
           </Tabs>
         </CardContent>
       </Card>
+      </MagicCard>
     </div>
   );
 };
