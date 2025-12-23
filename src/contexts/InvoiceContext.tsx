@@ -1,4 +1,6 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from './AuthContext';
 
 export interface Invoice {
   id: string;
@@ -30,202 +32,425 @@ interface InvoiceContextType {
   banks: Bank[];
   dashboards: Dashboard[];
   currentDashboardId: string | null;
+  loading: boolean;
   setCurrentDashboardId: (id: string | null) => void;
-  addInvoice: (invoice: Omit<Invoice, 'id' | 'userId' | 'status' | 'createdAt'>) => void;
-  addMultipleInvoices: (invoices: Omit<Invoice, 'id' | 'userId' | 'status' | 'createdAt'>[]) => void;
-  updateInvoice: (id: string, data: Partial<Omit<Invoice, 'id' | 'userId' | 'createdAt'>>) => void;
-  updateInvoiceStatus: (id: string, status: 'pending' | 'received') => void;
-  deleteInvoice: (id: string) => void;
-  deleteMultipleInvoices: (ids: string[]) => void;
-  addBank: (name: string) => void;
-  updateBank: (id: string, name: string) => void;
-  deleteBank: (id: string) => void;
-  addDashboard: (name: string) => void;
-  updateDashboard: (id: string, name: string) => void;
-  deleteDashboard: (id: string) => void;
+  addInvoice: (invoice: Omit<Invoice, 'id' | 'userId' | 'status' | 'createdAt'>) => Promise<void>;
+  addMultipleInvoices: (invoices: Omit<Invoice, 'id' | 'userId' | 'status' | 'createdAt'>[]) => Promise<void>;
+  updateInvoice: (id: string, data: Partial<Omit<Invoice, 'id' | 'userId' | 'createdAt'>>) => Promise<void>;
+  updateInvoiceStatus: (id: string, status: 'pending' | 'received') => Promise<void>;
+  deleteInvoice: (id: string) => Promise<void>;
+  deleteMultipleInvoices: (ids: string[]) => Promise<void>;
+  addBank: (name: string) => Promise<void>;
+  updateBank: (id: string, name: string) => Promise<void>;
+  deleteBank: (id: string) => Promise<void>;
+  addDashboard: (name: string) => Promise<void>;
+  updateDashboard: (id: string, name: string) => Promise<void>;
+  deleteDashboard: (id: string) => Promise<void>;
+  refreshData: () => Promise<void>;
 }
 
 const InvoiceContext = createContext<InvoiceContextType | undefined>(undefined);
 
-const INVOICES_KEY = 'invoice_app_invoices';
-const BANKS_KEY = 'invoice_app_banks';
-const DASHBOARDS_KEY = 'invoice_app_dashboards';
-const CURRENT_DASHBOARD_KEY = 'invoice_app_current_dashboard';
-const DEFAULT_USER_ID = 'local_user';
-
-const defaultBanks: Bank[] = [
-  { id: '1', name: 'Central Bank of Iraq' },
-  { id: '2', name: 'Rafidain Bank' },
-  { id: '3', name: 'Rasheed Bank' },
-  { id: '4', name: 'Trade Bank of Iraq' },
-  { id: '5', name: 'Kurdistan International Bank' },
+const defaultBanks = [
+  'Central Bank of Iraq',
+  'Rafidain Bank',
+  'Rasheed Bank',
+  'Trade Bank of Iraq',
+  'Kurdistan International Bank',
 ];
 
 export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const { user } = useAuth();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [banks, setBanks] = useState<Bank[]>([]);
   const [dashboards, setDashboards] = useState<Dashboard[]>([]);
   const [currentDashboardId, setCurrentDashboardIdState] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const fetchDashboards = useCallback(async () => {
+    if (!user) return [];
+    
+    const { data, error } = await supabase
+      .from('dashboards')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      console.error('Error fetching dashboards:', error);
+      return [];
+    }
+
+    return (data || []).map(d => ({
+      id: d.id,
+      name: d.name,
+      userId: d.user_id,
+    }));
+  }, [user]);
+
+  const fetchBanks = useCallback(async () => {
+    if (!user) return [];
+
+    const { data, error } = await supabase
+      .from('banks')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      console.error('Error fetching banks:', error);
+      return [];
+    }
+
+    return (data || []).map(b => ({
+      id: b.id,
+      name: b.name,
+    }));
+  }, [user]);
+
+  const fetchInvoices = useCallback(async (dashboardId: string | null) => {
+    if (!user || !dashboardId) return [];
+
+    const { data, error } = await supabase
+      .from('invoices')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('dashboard_id', dashboardId)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching invoices:', error);
+      return [];
+    }
+
+    return (data || []).map(inv => ({
+      id: inv.id,
+      userId: inv.user_id,
+      dashboardId: inv.dashboard_id,
+      amount: Number(inv.amount),
+      date: inv.date,
+      invoiceNumber: inv.invoice_number,
+      beneficiary: inv.beneficiary,
+      bank: inv.bank,
+      containerNumber: inv.container_number || undefined,
+      status: inv.status as 'pending' | 'received',
+      createdAt: inv.created_at,
+    }));
+  }, [user]);
+
+  const initializeUserData = useCallback(async () => {
+    if (!user) {
+      setDashboards([]);
+      setBanks([]);
+      setInvoices([]);
+      setCurrentDashboardIdState(null);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      // Fetch dashboards
+      let userDashboards = await fetchDashboards();
+
+      // Create default dashboard if none exists
+      if (userDashboards.length === 0) {
+        const { data: newDashboard, error } = await supabase
+          .from('dashboards')
+          .insert({ user_id: user.id, name: 'Main Dashboard' })
+          .select()
+          .single();
+
+        if (!error && newDashboard) {
+          userDashboards = [{
+            id: newDashboard.id,
+            name: newDashboard.name,
+            userId: newDashboard.user_id,
+          }];
+        }
+      }
+
+      setDashboards(userDashboards);
+
+      // Set current dashboard
+      const savedDashboardId = localStorage.getItem(`current_dashboard_${user.id}`);
+      const validDashboardId = userDashboards.find(d => d.id === savedDashboardId)?.id || userDashboards[0]?.id || null;
+      setCurrentDashboardIdState(validDashboardId);
+
+      // Fetch banks
+      let userBanks = await fetchBanks();
+
+      // Create default banks if none exist
+      if (userBanks.length === 0) {
+        const banksToInsert = defaultBanks.map(name => ({ user_id: user.id, name }));
+        const { data: newBanks, error } = await supabase
+          .from('banks')
+          .insert(banksToInsert)
+          .select();
+
+        if (!error && newBanks) {
+          userBanks = newBanks.map(b => ({ id: b.id, name: b.name }));
+        }
+      }
+
+      setBanks(userBanks);
+
+      // Fetch invoices for current dashboard
+      if (validDashboardId) {
+        const userInvoices = await fetchInvoices(validDashboardId);
+        setInvoices(userInvoices);
+      }
+    } catch (error) {
+      console.error('Error initializing user data:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [user, fetchDashboards, fetchBanks, fetchInvoices]);
 
   useEffect(() => {
-    const savedInvoices = localStorage.getItem(INVOICES_KEY);
-    const savedBanks = localStorage.getItem(BANKS_KEY);
-    const savedDashboards = localStorage.getItem(DASHBOARDS_KEY);
-    const savedCurrentDashboard = localStorage.getItem(CURRENT_DASHBOARD_KEY);
-    
-    if (savedInvoices) {
-      setInvoices(JSON.parse(savedInvoices));
-    }
-    
-    if (savedBanks) {
-      setBanks(JSON.parse(savedBanks));
-    } else {
-      setBanks(defaultBanks);
-      localStorage.setItem(BANKS_KEY, JSON.stringify(defaultBanks));
-    }
+    initializeUserData();
+  }, [initializeUserData]);
 
-    if (savedDashboards) {
-      const parsed = JSON.parse(savedDashboards);
-      setDashboards(parsed);
-      if (savedCurrentDashboard) {
-        setCurrentDashboardIdState(savedCurrentDashboard);
-      } else if (parsed.length > 0) {
-        setCurrentDashboardIdState(parsed[0].id);
-        localStorage.setItem(CURRENT_DASHBOARD_KEY, parsed[0].id);
-      }
-    } else {
-      // Create default dashboard
-      const defaultDashboard: Dashboard = {
-        id: crypto.randomUUID(),
-        name: 'Main Dashboard',
-        userId: DEFAULT_USER_ID,
-      };
-      const newDashboards = [defaultDashboard];
-      setDashboards(newDashboards);
-      localStorage.setItem(DASHBOARDS_KEY, JSON.stringify(newDashboards));
-      setCurrentDashboardIdState(defaultDashboard.id);
-      localStorage.setItem(CURRENT_DASHBOARD_KEY, defaultDashboard.id);
+  // Re-fetch invoices when dashboard changes
+  useEffect(() => {
+    if (user && currentDashboardId) {
+      fetchInvoices(currentDashboardId).then(setInvoices);
+      localStorage.setItem(`current_dashboard_${user.id}`, currentDashboardId);
     }
-  }, []);
-
-  const currentDashboardInvoices = invoices.filter(inv => inv.dashboardId === currentDashboardId);
+  }, [currentDashboardId, user, fetchInvoices]);
 
   const setCurrentDashboardId = (id: string | null) => {
     setCurrentDashboardIdState(id);
-    if (id) {
-      localStorage.setItem(CURRENT_DASHBOARD_KEY, id);
-    } else {
-      localStorage.removeItem(CURRENT_DASHBOARD_KEY);
+  };
+
+  const refreshData = async () => {
+    await initializeUserData();
+  };
+
+  const addInvoice = async (invoiceData: Omit<Invoice, 'id' | 'userId' | 'status' | 'createdAt'>) => {
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from('invoices')
+      .insert({
+        user_id: user.id,
+        dashboard_id: invoiceData.dashboardId,
+        amount: invoiceData.amount,
+        date: invoiceData.date,
+        invoice_number: invoiceData.invoiceNumber,
+        beneficiary: invoiceData.beneficiary,
+        bank: invoiceData.bank,
+        container_number: invoiceData.containerNumber || null,
+        status: 'pending',
+      })
+      .select()
+      .single();
+
+    if (!error && data) {
+      const newInvoice: Invoice = {
+        id: data.id,
+        userId: data.user_id,
+        dashboardId: data.dashboard_id,
+        amount: Number(data.amount),
+        date: data.date,
+        invoiceNumber: data.invoice_number,
+        beneficiary: data.beneficiary,
+        bank: data.bank,
+        containerNumber: data.container_number || undefined,
+        status: data.status as 'pending' | 'received',
+        createdAt: data.created_at,
+      };
+      setInvoices(prev => [newInvoice, ...prev]);
     }
   };
 
-  const saveInvoices = (newInvoices: Invoice[]) => {
-    setInvoices(newInvoices);
-    localStorage.setItem(INVOICES_KEY, JSON.stringify(newInvoices));
-  };
+  const addMultipleInvoices = async (invoicesData: Omit<Invoice, 'id' | 'userId' | 'status' | 'createdAt'>[]) => {
+    if (!user) return;
 
-  const saveBanks = (newBanks: Bank[]) => {
-    setBanks(newBanks);
-    localStorage.setItem(BANKS_KEY, JSON.stringify(newBanks));
-  };
-
-  const saveDashboards = (newDashboards: Dashboard[]) => {
-    setDashboards(newDashboards);
-    localStorage.setItem(DASHBOARDS_KEY, JSON.stringify(newDashboards));
-  };
-
-  const addInvoice = (invoiceData: Omit<Invoice, 'id' | 'userId' | 'status' | 'createdAt'>) => {
-    const newInvoice: Invoice = {
-      ...invoiceData,
-      id: crypto.randomUUID(),
-      userId: DEFAULT_USER_ID,
+    const toInsert = invoicesData.map(inv => ({
+      user_id: user.id,
+      dashboard_id: inv.dashboardId,
+      amount: inv.amount,
+      date: inv.date,
+      invoice_number: inv.invoiceNumber,
+      beneficiary: inv.beneficiary,
+      bank: inv.bank,
+      container_number: inv.containerNumber || null,
       status: 'pending',
-      createdAt: new Date().toISOString(),
-    };
-
-    saveInvoices([...invoices, newInvoice]);
-  };
-
-  const addMultipleInvoices = (invoicesData: Omit<Invoice, 'id' | 'userId' | 'status' | 'createdAt'>[]) => {
-    const newInvoices: Invoice[] = invoicesData.map(invoiceData => ({
-      ...invoiceData,
-      id: crypto.randomUUID(),
-      userId: DEFAULT_USER_ID,
-      status: 'pending' as const,
-      createdAt: new Date().toISOString(),
     }));
 
-    saveInvoices([...invoices, ...newInvoices]);
+    const { data, error } = await supabase
+      .from('invoices')
+      .insert(toInsert)
+      .select();
+
+    if (!error && data) {
+      const newInvoices: Invoice[] = data.map(d => ({
+        id: d.id,
+        userId: d.user_id,
+        dashboardId: d.dashboard_id,
+        amount: Number(d.amount),
+        date: d.date,
+        invoiceNumber: d.invoice_number,
+        beneficiary: d.beneficiary,
+        bank: d.bank,
+        containerNumber: d.container_number || undefined,
+        status: d.status as 'pending' | 'received',
+        createdAt: d.created_at,
+      }));
+      setInvoices(prev => [...newInvoices, ...prev]);
+    }
   };
 
-  const updateInvoiceStatus = (id: string, status: 'pending' | 'received') => {
-    const updated = invoices.map(inv => 
-      inv.id === id ? { ...inv, status } : inv
-    );
-    saveInvoices(updated);
+  const updateInvoice = async (id: string, data: Partial<Omit<Invoice, 'id' | 'userId' | 'createdAt'>>) => {
+    if (!user) return;
+
+    const updateData: Record<string, unknown> = {};
+    if (data.amount !== undefined) updateData.amount = data.amount;
+    if (data.date !== undefined) updateData.date = data.date;
+    if (data.invoiceNumber !== undefined) updateData.invoice_number = data.invoiceNumber;
+    if (data.beneficiary !== undefined) updateData.beneficiary = data.beneficiary;
+    if (data.bank !== undefined) updateData.bank = data.bank;
+    if (data.containerNumber !== undefined) updateData.container_number = data.containerNumber || null;
+    if (data.status !== undefined) updateData.status = data.status;
+    if (data.dashboardId !== undefined) updateData.dashboard_id = data.dashboardId;
+
+    const { error } = await supabase
+      .from('invoices')
+      .update(updateData)
+      .eq('id', id)
+      .eq('user_id', user.id);
+
+    if (!error) {
+      setInvoices(prev => prev.map(inv =>
+        inv.id === id ? { ...inv, ...data } : inv
+      ));
+    }
   };
 
-  const deleteInvoice = (id: string) => {
-    saveInvoices(invoices.filter(inv => inv.id !== id));
+  const updateInvoiceStatus = async (id: string, status: 'pending' | 'received') => {
+    await updateInvoice(id, { status });
   };
 
-  const deleteMultipleInvoices = (ids: string[]) => {
-    saveInvoices(invoices.filter(inv => !ids.includes(inv.id)));
+  const deleteInvoice = async (id: string) => {
+    if (!user) return;
+
+    const { error } = await supabase
+      .from('invoices')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', user.id);
+
+    if (!error) {
+      setInvoices(prev => prev.filter(inv => inv.id !== id));
+    }
   };
 
-  const updateInvoice = (id: string, data: Partial<Omit<Invoice, 'id' | 'userId' | 'createdAt'>>) => {
-    const updated = invoices.map(inv =>
-      inv.id === id ? { ...inv, ...data } : inv
-    );
-    saveInvoices(updated);
+  const deleteMultipleInvoices = async (ids: string[]) => {
+    if (!user) return;
+
+    const { error } = await supabase
+      .from('invoices')
+      .delete()
+      .in('id', ids)
+      .eq('user_id', user.id);
+
+    if (!error) {
+      setInvoices(prev => prev.filter(inv => !ids.includes(inv.id)));
+    }
   };
 
-  const addBank = (name: string) => {
-    const newBank: Bank = {
-      id: crypto.randomUUID(),
-      name,
-    };
-    saveBanks([...banks, newBank]);
+  const addBank = async (name: string) => {
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from('banks')
+      .insert({ user_id: user.id, name })
+      .select()
+      .single();
+
+    if (!error && data) {
+      setBanks(prev => [...prev, { id: data.id, name: data.name }]);
+    }
   };
 
-  const updateBank = (id: string, name: string) => {
-    const updated = banks.map(bank => 
-      bank.id === id ? { ...bank, name } : bank
-    );
-    saveBanks(updated);
+  const updateBank = async (id: string, name: string) => {
+    if (!user) return;
+
+    const { error } = await supabase
+      .from('banks')
+      .update({ name })
+      .eq('id', id)
+      .eq('user_id', user.id);
+
+    if (!error) {
+      setBanks(prev => prev.map(bank =>
+        bank.id === id ? { ...bank, name } : bank
+      ));
+    }
   };
 
-  const deleteBank = (id: string) => {
-    saveBanks(banks.filter(bank => bank.id !== id));
+  const deleteBank = async (id: string) => {
+    if (!user) return;
+
+    const { error } = await supabase
+      .from('banks')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', user.id);
+
+    if (!error) {
+      setBanks(prev => prev.filter(bank => bank.id !== id));
+    }
   };
 
-  const addDashboard = (name: string) => {
-    const newDashboard: Dashboard = {
-      id: crypto.randomUUID(),
-      name,
-      userId: DEFAULT_USER_ID,
-    };
-    saveDashboards([...dashboards, newDashboard]);
+  const addDashboard = async (name: string) => {
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from('dashboards')
+      .insert({ user_id: user.id, name })
+      .select()
+      .single();
+
+    if (!error && data) {
+      setDashboards(prev => [...prev, { id: data.id, name: data.name, userId: data.user_id }]);
+    }
   };
 
-  const updateDashboard = (id: string, name: string) => {
-    const updated = dashboards.map(d => 
-      d.id === id ? { ...d, name } : d
-    );
-    saveDashboards(updated);
+  const updateDashboard = async (id: string, name: string) => {
+    if (!user) return;
+
+    const { error } = await supabase
+      .from('dashboards')
+      .update({ name })
+      .eq('id', id)
+      .eq('user_id', user.id);
+
+    if (!error) {
+      setDashboards(prev => prev.map(d =>
+        d.id === id ? { ...d, name } : d
+      ));
+    }
   };
 
-  const deleteDashboard = (id: string) => {
-    saveDashboards(dashboards.filter(d => d.id !== id));
-    // Also delete invoices for this dashboard
-    saveInvoices(invoices.filter(inv => inv.dashboardId !== id));
-    // Reset current dashboard if deleted
-    if (currentDashboardId === id) {
-      const remaining = dashboards.filter(d => d.id !== id);
-      if (remaining.length > 0) {
-        setCurrentDashboardId(remaining[0].id);
-      } else {
-        setCurrentDashboardId(null);
+  const deleteDashboard = async (id: string) => {
+    if (!user) return;
+
+    const { error } = await supabase
+      .from('dashboards')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', user.id);
+
+    if (!error) {
+      setDashboards(prev => prev.filter(d => d.id !== id));
+      setInvoices(prev => prev.filter(inv => inv.dashboardId !== id));
+
+      if (currentDashboardId === id) {
+        const remaining = dashboards.filter(d => d.id !== id);
+        setCurrentDashboardIdState(remaining.length > 0 ? remaining[0].id : null);
       }
     }
   };
@@ -233,10 +458,11 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
   return (
     <InvoiceContext.Provider
       value={{
-        invoices: currentDashboardInvoices,
+        invoices,
         banks,
         dashboards,
         currentDashboardId,
+        loading,
         setCurrentDashboardId,
         addInvoice,
         addMultipleInvoices,
@@ -250,6 +476,7 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
         addDashboard,
         updateDashboard,
         deleteDashboard,
+        refreshData,
       }}
     >
       {children}

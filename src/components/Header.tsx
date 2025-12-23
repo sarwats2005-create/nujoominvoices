@@ -2,13 +2,15 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useSettings } from '@/contexts/SettingsContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { LayoutDashboard, FilePlus, Settings, Menu, Sun, Moon, BarChart3, Mail } from 'lucide-react';
+import { LayoutDashboard, FilePlus, Settings, Menu, Sun, Moon, BarChart3, Mail, LogOut } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
 const Header: React.FC = () => {
   const { t } = useLanguage();
   const { logo, isDarkMode, toggleDarkMode } = useSettings();
+  const { signOut } = useAuth();
   const location = useLocation();
 
   const navItems = [
@@ -81,6 +83,9 @@ const Header: React.FC = () => {
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="icon" onClick={toggleDarkMode}>
             {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+          </Button>
+          <Button variant="ghost" size="icon" onClick={signOut} title={t('logout')}>
+            <LogOut className="h-5 w-5" />
           </Button>
         </div>
       </div>
