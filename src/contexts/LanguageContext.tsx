@@ -603,6 +603,41 @@ export const translations: Translations = {
     ar: 'تم تصدير CSV بنجاح!',
     ku: 'CSV بە سەرکەوتوویی هەناردە کرا!',
   },
+  appName: {
+    en: 'Invoice Manager',
+    ar: 'مدير الفواتير',
+    ku: 'بەڕێوەبەری پسوولە',
+  },
+  loginDescription: {
+    en: 'Sign in to manage your invoices',
+    ar: 'سجل دخولك لإدارة فواتيرك',
+    ku: 'بچۆرە ژوورەوە بۆ بەڕێوەبردنی پسوولەکانت',
+  },
+  signupDescription: {
+    en: 'Create an account to get started',
+    ar: 'أنشئ حساباً للبدء',
+    ku: 'هەژمارێک دروست بکە بۆ دەستپێکردن',
+  },
+  loginFailed: {
+    en: 'Login failed',
+    ar: 'فشل تسجيل الدخول',
+    ku: 'چوونەژوورەوە سەرکەوتوو نەبوو',
+  },
+  signupFailed: {
+    en: 'Signup failed',
+    ar: 'فشل إنشاء الحساب',
+    ku: 'تۆمارکردن سەرکەوتوو نەبوو',
+  },
+  loading: {
+    en: 'Loading...',
+    ar: 'جاري التحميل...',
+    ku: 'چاوەڕوان بە...',
+  },
+  passwordRequirement: {
+    en: 'Password must be at least 6 characters',
+    ar: 'يجب أن تكون كلمة المرور 6 أحرف على الأقل',
+    ku: 'وشەی نهێنی دەبێت لانیکەم ٦ پیت بێت',
+  },
 };
 
 interface LanguageContextType {
