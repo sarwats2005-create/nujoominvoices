@@ -1,15 +1,72 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useInvoice } from '@/contexts/InvoiceContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
-import { BarChart, Bar, XAxis, YAxis, PieChart, Pie, Cell, LineChart, Line, ResponsiveContainer, Legend } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, PieChart, Pie, Cell, LineChart, Line, Sector } from 'recharts';
 import { TrendingUp, DollarSign, FileText, Building, Calendar, CheckCircle, Clock } from 'lucide-react';
 import { format, parseISO, startOfMonth, endOfMonth, eachMonthOfInterval, subMonths } from 'date-fns';
+import { gsap } from 'gsap';
+
+// Custom animated active shape for pie chart
+const renderActiveShape = (props: any) => {
+  const {
+    cx, cy, innerRadius, outerRadius, startAngle, endAngle,
+    fill, payload, percent, value
+  } = props;
+
+  return (
+    <g>
+      <text x={cx} y={cy - 10} textAnchor="middle" className="fill-foreground text-lg font-bold">
+        {payload.name}
+      </text>
+      <text x={cx} y={cy + 15} textAnchor="middle" className="fill-muted-foreground text-sm">
+        ${value.toLocaleString()}
+      </text>
+      <text x={cx} y={cy + 35} textAnchor="middle" className="fill-muted-foreground text-xs">
+        {`${(percent * 100).toFixed(1)}%`}
+      </text>
+      <Sector
+        cx={cx}
+        cy={cy}
+        innerRadius={innerRadius}
+        outerRadius={outerRadius + 10}
+        startAngle={startAngle}
+        endAngle={endAngle}
+        fill={fill}
+        className="drop-shadow-lg"
+      />
+      <Sector
+        cx={cx}
+        cy={cy}
+        startAngle={startAngle}
+        endAngle={endAngle}
+        innerRadius={outerRadius + 14}
+        outerRadius={outerRadius + 18}
+        fill={fill}
+        opacity={0.4}
+      />
+    </g>
+  );
+};
+
+const BANK_COLORS = [
+  'hsl(var(--primary))',
+  'hsl(var(--success))',
+  'hsl(var(--warning))',
+  'hsl(var(--destructive))',
+  'hsl(142, 76%, 36%)',
+  'hsl(262, 83%, 58%)',
+  'hsl(24, 95%, 53%)',
+  'hsl(199, 89%, 48%)',
+];
 
 const Insights: React.FC = () => {
   const { t } = useLanguage();
   const { invoices, banks } = useInvoice();
+  const [activeIndex, setActiveIndex] = useState(0);
+  const bankChartRef = useRef<HTMLDivElement>(null);
+  const statsRef = useRef<HTMLDivElement>(null);
 
   // Calculate statistics
   const totalAmount = invoices.reduce((sum, inv) => sum + inv.amount, 0);
@@ -60,11 +117,58 @@ const Insights: React.FC = () => {
 
   const COLORS = ['hsl(var(--primary))', 'hsl(var(--success))', 'hsl(var(--warning))', 'hsl(var(--destructive))', 'hsl(var(--accent))'];
 
+  // Animation on mount
+  useEffect(() => {
+    if (statsRef.current) {
+      const cards = statsRef.current.querySelectorAll('.stat-card');
+      gsap.fromTo(cards, 
+        { y: 30, opacity: 0, scale: 0.95 },
+        { 
+          y: 0, 
+          opacity: 1, 
+          scale: 1,
+          duration: 0.6, 
+          stagger: 0.1,
+          ease: 'back.out(1.7)'
+        }
+      );
+    }
+    
+    if (bankChartRef.current) {
+      gsap.fromTo(bankChartRef.current,
+        { opacity: 0, scale: 0.9, rotateY: -15 },
+        { 
+          opacity: 1, 
+          scale: 1, 
+          rotateY: 0,
+          duration: 0.8, 
+          delay: 0.4,
+          ease: 'power3.out'
+        }
+      );
+    }
+  }, []);
+
+  // Auto-rotate active pie slice
+  useEffect(() => {
+    if (bankData.length === 0) return;
+    
+    const interval = setInterval(() => {
+      setActiveIndex(prev => (prev + 1) % bankData.length);
+    }, 3000);
+    
+    return () => clearInterval(interval);
+  }, [bankData.length]);
+
+  const onPieEnter = (_: any, index: number) => {
+    setActiveIndex(index);
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-gradient-to-br from-primary/10 to-primary/5">
+      <div ref={statsRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="stat-card bg-gradient-to-br from-primary/10 to-primary/5 hover:scale-105 transition-transform duration-300">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
@@ -76,7 +180,7 @@ const Insights: React.FC = () => {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-success/10 to-success/5">
+        <Card className="stat-card bg-gradient-to-br from-success/10 to-success/5 hover:scale-105 transition-transform duration-300">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
@@ -88,7 +192,7 @@ const Insights: React.FC = () => {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-warning/10 to-warning/5">
+        <Card className="stat-card bg-gradient-to-br from-warning/10 to-warning/5 hover:scale-105 transition-transform duration-300">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
@@ -100,14 +204,14 @@ const Insights: React.FC = () => {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-green-500/10 to-green-500/5">
+        <Card className="stat-card bg-gradient-to-br from-success/10 to-success/5 hover:scale-105 transition-transform duration-300">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">{t('received')}</p>
-                <p className="text-2xl font-bold text-green-500">{receivedInvoices}</p>
+                <p className="text-2xl font-bold text-success">{receivedInvoices}</p>
               </div>
-              <CheckCircle className="h-10 w-10 text-green-500/50" />
+              <CheckCircle className="h-10 w-10 text-success/50" />
             </div>
           </CardContent>
         </Card>
@@ -166,23 +270,79 @@ const Insights: React.FC = () => {
         </Card>
       </div>
 
-      {/* Bank Distribution */}
-      <Card>
+      {/* Bank Distribution - Animated Pie Chart */}
+      <Card ref={bankChartRef} className="overflow-hidden">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Building className="h-5 w-5 text-primary" />
+            <Building className="h-5 w-5 text-primary animate-pulse" />
             {t('bankDistribution')}
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <ChartContainer config={chartConfig} className="h-[300px]">
-            <BarChart data={bankData} layout="vertical">
-              <XAxis type="number" />
-              <YAxis dataKey="name" type="category" width={150} />
-              <ChartTooltip content={<ChartTooltipContent />} />
-              <Bar dataKey="amount" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
-            </BarChart>
-          </ChartContainer>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <ChartContainer config={chartConfig} className="h-[350px]">
+              <PieChart>
+                <Pie
+                  activeIndex={activeIndex}
+                  activeShape={renderActiveShape}
+                  data={bankData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={70}
+                  outerRadius={110}
+                  dataKey="amount"
+                  onMouseEnter={onPieEnter}
+                  animationBegin={0}
+                  animationDuration={1000}
+                  animationEasing="ease-out"
+                >
+                  {bankData.map((entry, index) => (
+                    <Cell 
+                      key={`cell-${index}`} 
+                      fill={BANK_COLORS[index % BANK_COLORS.length]}
+                      className="transition-all duration-300 hover:opacity-80"
+                    />
+                  ))}
+                </Pie>
+                <ChartTooltip content={<ChartTooltipContent />} />
+              </PieChart>
+            </ChartContainer>
+            
+            {/* Legend with animations */}
+            <div className="flex flex-col justify-center space-y-3">
+              {bankData.map((entry, index) => (
+                <div
+                  key={entry.name}
+                  className={`flex items-center gap-3 p-3 rounded-lg transition-all duration-300 cursor-pointer
+                    ${activeIndex === index 
+                      ? 'bg-accent scale-105 shadow-lg' 
+                      : 'hover:bg-muted/50'
+                    }`}
+                  onMouseEnter={() => setActiveIndex(index)}
+                >
+                  <div 
+                    className="w-4 h-4 rounded-full shrink-0 shadow-md"
+                    style={{ 
+                      backgroundColor: BANK_COLORS[index % BANK_COLORS.length],
+                      boxShadow: `0 0 0 2px var(--background), 0 0 0 4px ${BANK_COLORS[index % BANK_COLORS.length]}`
+                    }}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium truncate">{entry.name}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {entry.count} {t('invoiceCount').toLowerCase()} • ${entry.amount.toLocaleString()}
+                    </p>
+                  </div>
+                </div>
+              ))}
+              {bankData.length === 0 && (
+                <div className="text-center text-muted-foreground py-8">
+                  <Building className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                  <p>No bank data available</p>
+                </div>
+              )}
+            </div>
+          </div>
         </CardContent>
       </Card>
 
