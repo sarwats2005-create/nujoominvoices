@@ -1,6 +1,6 @@
 .electric-border {
   --electric-border-color: #5227FF;
-  --eb-border-width: 2px;
+  --eb-border-width: 3px;
   position: relative;
   display: inline-block;
   border-radius: 8px;
@@ -19,7 +19,7 @@
   inset: 0;
   border-radius: inherit;
   pointer-events: none;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .eb-stroke {
@@ -32,21 +32,21 @@
 
 .eb-glow-1 {
   position: absolute;
-  inset: calc(var(--eb-border-width) * -1);
+  inset: calc(var(--eb-border-width) * -0.5);
   border-radius: inherit;
-  border: var(--eb-border-width) solid var(--electric-border-color);
-  filter: blur(4px);
-  opacity: 0.8;
+  border: calc(var(--eb-border-width) * 1.5) solid var(--electric-border-color);
+  filter: blur(6px);
+  opacity: 0.9;
   box-sizing: border-box;
 }
 
 .eb-glow-2 {
   position: absolute;
-  inset: calc(var(--eb-border-width) * -2);
+  inset: calc(var(--eb-border-width) * -1);
   border-radius: inherit;
-  border: var(--eb-border-width) solid var(--electric-border-color);
-  filter: blur(8px);
-  opacity: 0.5;
+  border: calc(var(--eb-border-width) * 2) solid var(--electric-border-color);
+  filter: blur(12px);
+  opacity: 0.6;
   box-sizing: border-box;
 }
 
