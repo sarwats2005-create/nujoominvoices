@@ -52,15 +52,28 @@
 
 .eb-background-glow {
   position: absolute;
-  inset: -10px;
+  inset: -15px;
   border-radius: inherit;
   background: radial-gradient(
     ellipse at center,
-    color-mix(in srgb, var(--electric-border-color) 20%, transparent) 0%,
+    color-mix(in srgb, var(--electric-border-color) 35%, transparent) 0%,
+    color-mix(in srgb, var(--electric-border-color) 15%, transparent) 40%,
     transparent 70%
   );
-  filter: blur(15px);
-  opacity: 0.6;
+  filter: blur(20px);
+  opacity: 0.8;
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.02);
+  }
 }
 
 .eb-content {
