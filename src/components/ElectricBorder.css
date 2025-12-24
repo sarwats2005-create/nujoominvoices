@@ -1,0 +1,70 @@
+.electric-border {
+  --electric-border-color: #5227FF;
+  --eb-border-width: 2px;
+  position: relative;
+  display: inline-block;
+  border-radius: 8px;
+}
+
+.eb-svg {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.eb-layers {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.eb-stroke {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: var(--eb-border-width) solid var(--electric-border-color);
+  box-sizing: border-box;
+}
+
+.eb-glow-1 {
+  position: absolute;
+  inset: calc(var(--eb-border-width) * -1);
+  border-radius: inherit;
+  border: var(--eb-border-width) solid var(--electric-border-color);
+  filter: blur(4px);
+  opacity: 0.8;
+  box-sizing: border-box;
+}
+
+.eb-glow-2 {
+  position: absolute;
+  inset: calc(var(--eb-border-width) * -2);
+  border-radius: inherit;
+  border: var(--eb-border-width) solid var(--electric-border-color);
+  filter: blur(8px);
+  opacity: 0.5;
+  box-sizing: border-box;
+}
+
+.eb-background-glow {
+  position: absolute;
+  inset: -10px;
+  border-radius: inherit;
+  background: radial-gradient(
+    ellipse at center,
+    color-mix(in srgb, var(--electric-border-color) 20%, transparent) 0%,
+    transparent 70%
+  );
+  filter: blur(15px);
+  opacity: 0.6;
+}
+
+.eb-content {
+  position: relative;
+  z-index: 1;
+  border-radius: inherit;
+}
