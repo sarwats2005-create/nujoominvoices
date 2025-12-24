@@ -14,8 +14,8 @@ import { CalendarIcon, DollarSign, Hash, User, Plus, Landmark, LayoutDashboard, 
 import { cn } from '@/lib/utils';
 import BankSelector from '@/components/BankSelector';
 import DashboardSelector from '@/components/DashboardSelector';
-import { MagicButton } from '@/components/MagicButton';
 import { MagicCard } from '@/components/MagicCard';
+import ElectricBorder from '@/components/ElectricBorder';
 
 const NewInvoice: React.FC = () => {
   const [amount, setAmount] = useState('');
@@ -218,9 +218,11 @@ const NewInvoice: React.FC = () => {
               <BankSelector value={bank} onChange={setBank} />
             </div>
 
-            <MagicButton type="submit" className="w-full" disabled={isSubmitting} glowColor="99, 102, 241">
-              {t('submitInvoice')}
-            </MagicButton>
+            <ElectricBorder color="hsl(var(--primary))" speed={1.5} chaos={0.8} thickness={2} className="w-full">
+              <Button type="submit" className="w-full" disabled={isSubmitting}>
+                {t('submitInvoice')}
+              </Button>
+            </ElectricBorder>
           </form>
         </CardContent>
       </Card>
