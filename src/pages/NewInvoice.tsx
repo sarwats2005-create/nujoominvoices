@@ -218,8 +218,8 @@ const NewInvoice: React.FC = () => {
               <BankSelector value={bank} onChange={setBank} />
             </div>
 
-            <ElectricBorder color="hsl(var(--primary))" speed={0.9} chaos={0.1} thickness={3} className="w-full">
-              <Button type="submit" className="w-full shadow-[0_0_20px_hsl(var(--primary)/0.5)]" disabled={isSubmitting}>
+            <ElectricBorder color="#2CFF05" speed={0.9} chaos={0.1} thickness={3} className="w-full">
+              <Button type="submit" className="w-full shadow-[0_0_20px_rgba(44,255,5,0.5)]" disabled={isSubmitting}>
                 {t('submitInvoice')}
               </Button>
             </ElectricBorder>
