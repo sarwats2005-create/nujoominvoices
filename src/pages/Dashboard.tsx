@@ -9,12 +9,13 @@ import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
-import { Copy, FileText, ArrowUpDown, Trash2, Printer, Edit, AlertTriangle, LayoutDashboard, Search, Hash, DollarSign, CalendarIcon, User, Landmark, Package, CheckCircle, Upload, Download, BarChart3 } from 'lucide-react';
+import { Copy, FileText, ArrowUpDown, Trash2, Printer, Edit, AlertTriangle, LayoutDashboard, Search, Hash, DollarSign, CalendarIcon, User, Landmark, Package, CheckCircle, Upload, Download, BarChart3, Sheet } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import EditInvoiceDialog from '@/components/EditInvoiceDialog';
 import DashboardSelector from '@/components/DashboardSelector';
 import { MagicCard } from '@/components/MagicCard';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import ZapierSyncDialog from '@/components/ZapierSyncDialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -38,6 +39,7 @@ const Dashboard: React.FC = () => {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showZapierDialog, setShowZapierDialog] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const printRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -455,6 +457,15 @@ const Dashboard: React.FC = () => {
             >
               <Copy className="h-4 w-4 mr-2" />{t('copyTable')}
             </Button>
+            <Button 
+              onClick={() => setShowZapierDialog(true)} 
+              variant="outline" 
+              size="sm" 
+              disabled={!invoices.length}
+              className="border-success/30 hover:bg-success/5 hover:border-success/50 transition-all text-success"
+            >
+              <Sheet className="h-4 w-4 mr-2" />{t('googleSheetsSync')}
+            </Button>
           </div>
         </CardHeader>
         <CardContent className="p-6">
@@ -567,6 +578,11 @@ const Dashboard: React.FC = () => {
         invoice={editingInvoice}
         open={!!editingInvoice}
         onOpenChange={(open) => !open && setEditingInvoice(null)}
+      />
+
+      <ZapierSyncDialog
+        open={showZapierDialog}
+        onOpenChange={setShowZapierDialog}
       />
 
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
