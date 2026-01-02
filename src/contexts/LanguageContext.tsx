@@ -638,6 +638,107 @@ export const translations: Translations = {
     ar: 'يجب أن تكون كلمة المرور 6 أحرف على الأقل',
     ku: 'وشەی نهێنی دەبێت لانیکەم ٦ پیت بێت',
   },
+  // Zapier Sync
+  syncToGoogleSheets: {
+    en: 'Sync to Google Sheets',
+    ar: 'مزامنة مع جوجل شيت',
+    ku: 'هاوکاتکردن لەگەڵ گووگڵ شیت',
+  },
+  syncToGoogleSheetsDesc: {
+    en: 'Connect your dashboard to Google Sheets via Zapier to keep your data synchronized.',
+    ar: 'اربط لوحة التحكم بجوجل شيت عبر Zapier للحفاظ على مزامنة البيانات.',
+    ku: 'داشبۆردەکەت بە گووگڵ شیتەوە ببەستە لە ڕێگەی Zapier بۆ هاوکاتکردنی داتا.',
+  },
+  zapierWebhookUrl: {
+    en: 'Zapier Webhook URL',
+    ar: 'رابط Webhook الخاص بـ Zapier',
+    ku: 'لینکی Webhook ی Zapier',
+  },
+  zapierWebhookRequired: {
+    en: 'Please enter your Zapier webhook URL',
+    ar: 'يرجى إدخال رابط Webhook الخاص بـ Zapier',
+    ku: 'تکایە لینکی Webhook ی Zapier بنووسە',
+  },
+  zapierWebhookHelp: {
+    en: 'Paste your Zapier webhook URL here. Create a Zap with "Webhooks by Zapier" trigger.',
+    ar: 'الصق رابط Zapier webhook هنا. أنشئ Zap باستخدام مشغل "Webhooks by Zapier".',
+    ku: 'لینکی Zapier webhook لێرە بلکێنە. Zap دروست بکە بە بەکارهێنانی "Webhooks by Zapier".',
+  },
+  howToSetupZapier: {
+    en: 'How to set up:',
+    ar: 'كيفية الإعداد:',
+    ku: 'چۆنیەتی دامەزراندن:',
+  },
+  zapierStep1: {
+    en: 'Go to Zapier.com and create a new Zap',
+    ar: 'اذهب إلى Zapier.com وأنشئ Zap جديد',
+    ku: 'بڕۆ بۆ Zapier.com و Zap ی نوێ دروست بکە',
+  },
+  zapierStep2: {
+    en: 'Choose "Webhooks by Zapier" as trigger, then "Catch Hook"',
+    ar: 'اختر "Webhooks by Zapier" كمشغل، ثم "Catch Hook"',
+    ku: '"Webhooks by Zapier" وەک تریگەر هەڵبژێرە، پاشان "Catch Hook"',
+  },
+  zapierStep3: {
+    en: 'Copy the webhook URL and paste it above',
+    ar: 'انسخ رابط webhook والصقه أعلاه',
+    ku: 'لینکی webhook کۆپی بکە و لە سەرەوە بیلکێنە',
+  },
+  zapierStep4: {
+    en: 'Add "Google Sheets" action to create/update rows',
+    ar: 'أضف إجراء "Google Sheets" لإنشاء/تحديث الصفوف',
+    ku: 'کرداری "Google Sheets" زیاد بکە بۆ دروستکردن/نوێکردنەوەی ڕیزەکان',
+  },
+  willSync: {
+    en: 'Will sync',
+    ar: 'سيتم مزامنة',
+    ku: 'هاوکات دەکرێت',
+  },
+  invoicesFromDashboard: {
+    en: 'invoices from dashboard',
+    ar: 'فواتير من لوحة التحكم',
+    ku: 'پسوولە لە داشبۆرد',
+  },
+  syncSuccess: {
+    en: 'Sync Request Sent',
+    ar: 'تم إرسال طلب المزامنة',
+    ku: 'داواکاری هاوکاتکردن نێردرا',
+  },
+  syncSuccessDesc: {
+    en: 'Data was sent to Zapier. Check your Zap history to confirm.',
+    ar: 'تم إرسال البيانات إلى Zapier. تحقق من سجل Zap للتأكيد.',
+    ku: 'داتا بۆ Zapier نێردرا. مێژووی Zap بپشکنە بۆ دڵنیابوون.',
+  },
+  syncError: {
+    en: 'Failed to sync. Please check the webhook URL and try again.',
+    ar: 'فشلت المزامنة. يرجى التحقق من رابط webhook والمحاولة مرة أخرى.',
+    ku: 'هاوکاتکردن سەرکەوتوو نەبوو. تکایە لینکی webhook بپشکنە و دووبارە هەوڵ بدە.',
+  },
+  syncing: {
+    en: 'Syncing...',
+    ar: 'جاري المزامنة...',
+    ku: 'هاوکات دەکرێت...',
+  },
+  syncNow: {
+    en: 'Sync Now',
+    ar: 'مزامنة الآن',
+    ku: 'ئێستا هاوکات بکە',
+  },
+  lastSyncSuccess: {
+    en: 'Data sent successfully! Check your Google Sheet.',
+    ar: 'تم إرسال البيانات بنجاح! تحقق من جوجل شيت الخاص بك.',
+    ku: 'داتا بە سەرکەوتوویی نێردرا! گووگڵ شیتەکەت بپشکنە.',
+  },
+  googleSheetsSync: {
+    en: 'Google Sheets',
+    ar: 'جوجل شيت',
+    ku: 'گووگڵ شیت',
+  },
+  error: {
+    en: 'Error',
+    ar: 'خطأ',
+    ku: 'هەڵە',
+  },
 };
 
 interface LanguageContextType {
