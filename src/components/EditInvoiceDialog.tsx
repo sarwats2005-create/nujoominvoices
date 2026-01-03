@@ -7,8 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { format } from 'date-fns';
-import { Hash, DollarSign, CalendarIcon, User, Landmark, Package } from 'lucide-react';
+import { format, addDays, isBefore, isAfter } from 'date-fns';
+import { Hash, DollarSign, CalendarIcon, User, Landmark, Package, Clock, AlertTriangle } from 'lucide-react';
 
 interface EditInvoiceDialogProps {
   invoice: Invoice | null;
@@ -28,6 +28,7 @@ const EditInvoiceDialog: React.FC<EditInvoiceDialogProps> = ({ invoice, open, on
     beneficiary: '',
     bank: '',
     containerNumber: '',
+    swiftDate: '',
   });
 
   useEffect(() => {
@@ -39,6 +40,7 @@ const EditInvoiceDialog: React.FC<EditInvoiceDialogProps> = ({ invoice, open, on
         beneficiary: invoice.beneficiary,
         bank: invoice.bank,
         containerNumber: invoice.containerNumber || '',
+        swiftDate: invoice.swiftDate ? format(new Date(invoice.swiftDate), 'yyyy-MM-dd') : '',
       });
     }
   }, [invoice]);
@@ -54,6 +56,7 @@ const EditInvoiceDialog: React.FC<EditInvoiceDialogProps> = ({ invoice, open, on
       beneficiary: formData.beneficiary,
       bank: formData.bank,
       containerNumber: formData.containerNumber || undefined,
+      swiftDate: formData.swiftDate || undefined,
     });
 
     toast({ title: t('invoiceUpdated') });
@@ -155,6 +158,20 @@ const EditInvoiceDialog: React.FC<EditInvoiceDialogProps> = ({ invoice, open, on
                 placeholder={t('optional')}
               />
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="swiftDate" className="flex items-center gap-2">
+              <Clock className="h-3 w-3" />
+              {t('swiftDate')}
+            </Label>
+            <Input
+              id="swiftDate"
+              type="date"
+              value={formData.swiftDate}
+              onChange={(e) => setFormData({ ...formData, swiftDate: e.target.value })}
+              placeholder={t('optional')}
+            />
           </div>
 
           <DialogFooter>

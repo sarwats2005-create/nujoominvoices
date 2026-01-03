@@ -8,15 +8,15 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-import { format } from 'date-fns';
-import { Copy, FileText, ArrowUpDown, Trash2, Printer, Edit, AlertTriangle, LayoutDashboard, Search, Hash, DollarSign, CalendarIcon, User, Landmark, Package, CheckCircle, Upload, Download, BarChart3 } from 'lucide-react';
+import { format, addDays, isBefore } from 'date-fns';
+import { Copy, FileText, ArrowUpDown, Trash2, Printer, Edit, AlertTriangle, LayoutDashboard, Search, Hash, DollarSign, CalendarIcon, User, Landmark, Package, CheckCircle, Upload, Download, BarChart3, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import EditInvoiceDialog from '@/components/EditInvoiceDialog';
 import DashboardSelector from '@/components/DashboardSelector';
 import { MagicCard } from '@/components/MagicCard';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-type SortKey = 'invoiceNumber' | 'amount' | 'date' | 'beneficiary' | 'bank' | 'status' | 'containerNumber';
+type SortKey = 'invoiceNumber' | 'amount' | 'date' | 'beneficiary' | 'bank' | 'status' | 'containerNumber' | 'swiftDate';
 const Dashboard: React.FC = () => {
   const {
     t
@@ -55,7 +55,11 @@ const Dashboard: React.FC = () => {
   const sortedInvoices = useMemo(() => {
     return [...filteredInvoices].sort((a, b) => {
       let comparison = 0;
-      if (sortKey === 'amount') comparison = a.amount - b.amount;else if (sortKey === 'date') comparison = new Date(a.date).getTime() - new Date(b.date).getTime();else if (sortKey === 'containerNumber') comparison = (a.containerNumber || '').localeCompare(b.containerNumber || '');else comparison = String(a[sortKey]).localeCompare(String(b[sortKey]));
+      if (sortKey === 'amount') comparison = a.amount - b.amount;
+      else if (sortKey === 'date') comparison = new Date(a.date).getTime() - new Date(b.date).getTime();
+      else if (sortKey === 'containerNumber') comparison = (a.containerNumber || '').localeCompare(b.containerNumber || '');
+      else if (sortKey === 'swiftDate') comparison = (a.swiftDate || '').localeCompare(b.swiftDate || '');
+      else comparison = String(a[sortKey]).localeCompare(String(b[sortKey]));
       return sortAsc ? comparison : -comparison;
     });
   }, [filteredInvoices, sortKey, sortAsc]);
@@ -89,7 +93,7 @@ const Dashboard: React.FC = () => {
     });
   };
   const copyTableToClipboard = () => {
-    const rows = sortedInvoices.map(inv => [inv.invoiceNumber, formatAmount(inv.amount), format(new Date(inv.date), 'dd/MM/yyyy'), inv.beneficiary, inv.bank, inv.containerNumber || '', inv.status === 'received' ? t('received') : t('pending')]);
+    const rows = sortedInvoices.map(inv => [inv.invoiceNumber, formatAmount(inv.amount), format(new Date(inv.date), 'dd/MM/yyyy'), inv.beneficiary, inv.bank, inv.containerNumber || '', inv.swiftDate ? format(new Date(inv.swiftDate), 'dd/MM/yyyy') : '', inv.status === 'received' ? t('received') : t('pending')]);
     const text = rows.map(row => row.join('\t')).join('\n');
     navigator.clipboard.writeText(text);
     toast({
@@ -145,8 +149,8 @@ const Dashboard: React.FC = () => {
     event.target.value = '';
   };
   const handleCSVExport = () => {
-    const headers = ['Invoice Number', 'Amount', 'Date', 'Beneficiary', 'Bank', 'Container Number', 'Status'];
-    const rows = sortedInvoices.map(inv => [inv.invoiceNumber, inv.amount.toString(), format(new Date(inv.date), 'dd/MM/yyyy'), inv.beneficiary, inv.bank, inv.containerNumber || '', inv.status]);
+    const headers = ['Invoice Number', 'Amount', 'Date', 'Beneficiary', 'Bank', 'Container Number', 'Swift Date', 'Status'];
+    const rows = sortedInvoices.map(inv => [inv.invoiceNumber, inv.amount.toString(), format(new Date(inv.date), 'dd/MM/yyyy'), inv.beneficiary, inv.bank, inv.containerNumber || '', inv.swiftDate ? format(new Date(inv.swiftDate), 'dd/MM/yyyy') : '', inv.status]);
     const csv = [headers.join(','), ...rows.map(row => row.map(cell => `"${cell}"`).join(','))].join('\n');
     const blob = new Blob([csv], {
       type: 'text/csv'
@@ -194,6 +198,7 @@ const Dashboard: React.FC = () => {
               <th>${t('beneficiary')}</th>
               <th>${t('bank')}</th>
               <th>${t('containerNumber')}</th>
+              <th>${t('swiftDate')}</th>
               <th>${t('status')}</th>
             </tr>
           </thead>
@@ -206,6 +211,7 @@ const Dashboard: React.FC = () => {
                 <td>${inv.beneficiary}</td>
                 <td>${inv.bank}</td>
                 <td>${inv.containerNumber || '-'}</td>
+                <td>${inv.swiftDate ? format(new Date(inv.swiftDate), 'dd/MM/yyyy') : '-'}</td>
                 <td>${inv.status === 'received' ? t('received') : t('pending')}</td>
               </tr>
             `).join('')}
@@ -417,6 +423,7 @@ const Dashboard: React.FC = () => {
                     <SortHeader label={t('beneficiary')} sortKeyName="beneficiary" icon={User} />
                     <SortHeader label={t('bank')} sortKeyName="bank" icon={Landmark} />
                     <SortHeader label={t('containerNumber')} sortKeyName="containerNumber" icon={Package} />
+                    <SortHeader label={t('swiftDate')} sortKeyName="swiftDate" icon={Clock} />
                     <TableHead className="font-semibold">{t('actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -434,6 +441,19 @@ const Dashboard: React.FC = () => {
                       <TableCell>{inv.beneficiary}</TableCell>
                       <TableCell>{inv.bank}</TableCell>
                       <TableCell className="text-muted-foreground">{inv.containerNumber || '-'}</TableCell>
+                      <TableCell>
+                        {inv.swiftDate ? (
+                          <div className="flex items-center gap-2">
+                            <span className="text-muted-foreground">{format(new Date(inv.swiftDate), 'dd/MM/yyyy')}</span>
+                            {isBefore(new Date(), addDays(new Date(inv.swiftDate), 60)) && isBefore(addDays(new Date(inv.swiftDate), 60), addDays(new Date(), 60)) && (
+                              <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-warning/20 text-warning text-xs font-medium">
+                                <AlertTriangle className="h-3 w-3" />
+                                <span>{t('expiringIn60Days')}</span>
+                              </div>
+                            )}
+                          </div>
+                        ) : '-'}
+                      </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1">
                           <Button variant="ghost" size="icon" className="h-9 w-9 hover:bg-primary/10 hover:text-primary transition-colors" onClick={() => setEditingInvoice(inv)}>
