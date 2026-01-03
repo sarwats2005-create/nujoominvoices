@@ -568,6 +568,11 @@ export const translations: Translations = {
     ar: 'ينتهي قريباً',
     ku: 'بەزوویی تەواو دەبێت',
   },
+  daysLeft: {
+    en: 'days left',
+    ar: 'أيام متبقية',
+    ku: 'ڕۆژ ماوە',
+  },
   optional: {
     en: 'Optional',
     ar: 'اختياري',
