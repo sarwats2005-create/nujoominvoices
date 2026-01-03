@@ -8,7 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-import { format, addDays, isBefore } from 'date-fns';
+import { format, addDays, isBefore, differenceInDays } from 'date-fns';
 import { Copy, FileText, ArrowUpDown, Trash2, Printer, Edit, AlertTriangle, LayoutDashboard, Search, Hash, DollarSign, CalendarIcon, User, Landmark, Package, CheckCircle, Upload, Download, BarChart3, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import EditInvoiceDialog from '@/components/EditInvoiceDialog';
@@ -428,32 +428,47 @@ const Dashboard: React.FC = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {sortedInvoices.map((inv, index) => <TableRow key={inv.id} className={cn("transition-all duration-200 hover:bg-muted/50", index % 2 === 0 ? "bg-card" : "bg-muted/10")}>
-                      <TableCell>
-                        <Checkbox checked={selectedIds.includes(inv.id)} onCheckedChange={c => handleSelectOne(inv.id, !!c)} />
-                      </TableCell>
-                      <TableCell className={cn("transition-all duration-300", inv.status === 'received' && 'bg-success/15')}>
-                        <Checkbox checked={inv.status === 'received'} onCheckedChange={c => handleStatusChange(inv.id, !!c)} className={cn(inv.status === 'received' && "border-success data-[state=checked]:bg-success")} />
-                      </TableCell>
-                      <TableCell className="font-semibold text-primary">{inv.invoiceNumber}</TableCell>
-                      <TableCell className="font-medium">{formatAmount(inv.amount)}</TableCell>
-                      <TableCell className="text-muted-foreground">{format(new Date(inv.date), 'dd/MM/yyyy')}</TableCell>
-                      <TableCell>{inv.beneficiary}</TableCell>
-                      <TableCell>{inv.bank}</TableCell>
-                      <TableCell className="text-muted-foreground">{inv.containerNumber || '-'}</TableCell>
-                      <TableCell>
-                        {inv.swiftDate ? (
-                          <div className="flex items-center gap-2">
-                            <span className="text-muted-foreground">{format(new Date(inv.swiftDate), 'dd/MM/yyyy')}</span>
-                            {isBefore(new Date(), addDays(new Date(inv.swiftDate), 60)) && isBefore(addDays(new Date(inv.swiftDate), 60), addDays(new Date(), 60)) && (
-                              <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-warning/20 text-warning text-xs font-medium">
-                                <AlertTriangle className="h-3 w-3" />
-                                <span>{t('expiringIn60Days')}</span>
-                              </div>
-                            )}
-                          </div>
-                        ) : '-'}
-                      </TableCell>
+                  {sortedInvoices.map((inv, index) => {
+                    // Calculate days until expiry (60 days from swift date)
+                    const expiryDate = inv.swiftDate ? addDays(new Date(inv.swiftDate), 60) : null;
+                    const daysUntilExpiry = expiryDate ? differenceInDays(expiryDate, new Date()) : null;
+                    const isExpiringSoon = daysUntilExpiry !== null && daysUntilExpiry >= 0 && daysUntilExpiry <= 60;
+                    const isCritical = daysUntilExpiry !== null && daysUntilExpiry >= 0 && daysUntilExpiry <= 10;
+                    
+                    return (
+                      <TableRow key={inv.id} className={cn(
+                        "transition-all duration-200 hover:bg-muted/50",
+                        index % 2 === 0 ? "bg-card" : "bg-muted/10",
+                        isCritical && "!bg-warning/30 hover:!bg-warning/40"
+                      )}>
+                        <TableCell>
+                          <Checkbox checked={selectedIds.includes(inv.id)} onCheckedChange={c => handleSelectOne(inv.id, !!c)} />
+                        </TableCell>
+                        <TableCell className={cn("transition-all duration-300", inv.status === 'received' && 'bg-success/15')}>
+                          <Checkbox checked={inv.status === 'received'} onCheckedChange={c => handleStatusChange(inv.id, !!c)} className={cn(inv.status === 'received' && "border-success data-[state=checked]:bg-success")} />
+                        </TableCell>
+                        <TableCell className="font-semibold text-primary">{inv.invoiceNumber}</TableCell>
+                        <TableCell className="font-medium">{formatAmount(inv.amount)}</TableCell>
+                        <TableCell className="text-muted-foreground">{format(new Date(inv.date), 'dd/MM/yyyy')}</TableCell>
+                        <TableCell>{inv.beneficiary}</TableCell>
+                        <TableCell>{inv.bank}</TableCell>
+                        <TableCell className="text-muted-foreground">{inv.containerNumber || '-'}</TableCell>
+                        <TableCell>
+                          {inv.swiftDate ? (
+                            <div className="flex items-center gap-2">
+                              <span className="text-muted-foreground">{format(new Date(inv.swiftDate), 'dd/MM/yyyy')}</span>
+                              {isExpiringSoon && (
+                                <div className={cn(
+                                  "flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium",
+                                  isCritical ? "bg-destructive/20 text-destructive" : "bg-warning/20 text-warning"
+                                )}>
+                                  <AlertTriangle className="h-3 w-3" />
+                                  <span>{daysUntilExpiry} {t('daysLeft')}</span>
+                                </div>
+                              )}
+                            </div>
+                          ) : '-'}
+                        </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1">
                           <Button variant="ghost" size="icon" className="h-9 w-9 hover:bg-primary/10 hover:text-primary transition-colors" onClick={() => setEditingInvoice(inv)}>
@@ -464,7 +479,9 @@ const Dashboard: React.FC = () => {
                           </Button>
                         </div>
                       </TableCell>
-                    </TableRow>)}
+                    </TableRow>
+                  );
+                  })}
                 </TableBody>
               </Table>
             </div>}
