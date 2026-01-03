@@ -558,6 +558,16 @@ export const translations: Translations = {
     ar: 'رقم الحاوية',
     ku: 'ژمارەی کۆنتەینەر',
   },
+  swiftDate: {
+    en: 'Swift Date',
+    ar: 'تاريخ سويفت',
+    ku: 'بەرواری سویفت',
+  },
+  expiringIn60Days: {
+    en: 'Expiring soon',
+    ar: 'ينتهي قريباً',
+    ku: 'بەزوویی تەواو دەبێت',
+  },
   optional: {
     en: 'Optional',
     ar: 'اختياري',

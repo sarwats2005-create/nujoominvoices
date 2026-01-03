@@ -71,6 +71,7 @@ export type Database = {
           id: string
           invoice_number: string
           status: string
+          swift_date: string | null
           updated_at: string
           user_id: string
         }
@@ -85,6 +86,7 @@ export type Database = {
           id?: string
           invoice_number: string
           status?: string
+          swift_date?: string | null
           updated_at?: string
           user_id: string
         }
@@ -99,6 +101,7 @@ export type Database = {
           id?: string
           invoice_number?: string
           status?: string
+          swift_date?: string | null
           updated_at?: string
           user_id?: string
         }

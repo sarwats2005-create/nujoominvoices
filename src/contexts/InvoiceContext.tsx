@@ -12,6 +12,7 @@ export interface Invoice {
   beneficiary: string;
   bank: string;
   containerNumber?: string;
+  swiftDate?: string;
   status: 'pending' | 'received';
   createdAt: string;
 }
@@ -133,6 +134,7 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
       beneficiary: inv.beneficiary,
       bank: inv.bank,
       containerNumber: inv.container_number || undefined,
+      swiftDate: inv.swift_date || undefined,
       status: inv.status as 'pending' | 'received',
       createdAt: inv.created_at,
     }));
@@ -242,6 +244,7 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
         beneficiary: invoiceData.beneficiary,
         bank: invoiceData.bank,
         container_number: invoiceData.containerNumber || null,
+        swift_date: invoiceData.swiftDate || null,
         status: 'pending',
       })
       .select()
@@ -258,6 +261,7 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
         beneficiary: data.beneficiary,
         bank: data.bank,
         containerNumber: data.container_number || undefined,
+        swiftDate: data.swift_date || undefined,
         status: data.status as 'pending' | 'received',
         createdAt: data.created_at,
       };
@@ -277,6 +281,7 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
       beneficiary: inv.beneficiary,
       bank: inv.bank,
       container_number: inv.containerNumber || null,
+      swift_date: inv.swiftDate || null,
       status: 'pending',
     }));
 
@@ -296,6 +301,7 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
         beneficiary: d.beneficiary,
         bank: d.bank,
         containerNumber: d.container_number || undefined,
+        swiftDate: d.swift_date || undefined,
         status: d.status as 'pending' | 'received',
         createdAt: d.created_at,
       }));
@@ -313,6 +319,7 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
     if (data.beneficiary !== undefined) updateData.beneficiary = data.beneficiary;
     if (data.bank !== undefined) updateData.bank = data.bank;
     if (data.containerNumber !== undefined) updateData.container_number = data.containerNumber || null;
+    if (data.swiftDate !== undefined) updateData.swift_date = data.swiftDate || null;
     if (data.status !== undefined) updateData.status = data.status;
     if (data.dashboardId !== undefined) updateData.dashboard_id = data.dashboardId;
 
