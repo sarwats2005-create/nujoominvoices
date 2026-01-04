@@ -2,19 +2,21 @@ import React, { useRef, useState } from 'react';
 import { useLanguage, Language } from '@/contexts/LanguageContext';
 import { useSettings, currencies } from '@/contexts/SettingsContext';
 import { useInvoice } from '@/contexts/InvoiceContext';
+import { usePWAInstall } from '@/hooks/usePWAInstall';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Settings as SettingsIcon, Languages, Image, Building2, Trash2, LayoutDashboard, Mail, Phone, MapPin, Coins } from 'lucide-react';
+import { Settings as SettingsIcon, Languages, Image, Building2, Trash2, LayoutDashboard, Mail, Phone, MapPin, Coins, Download, Smartphone, Check } from 'lucide-react';
 import DashboardSelector from '@/components/DashboardSelector';
 
 const Settings: React.FC = () => {
   const { t, language, setLanguage } = useLanguage();
   const { logo, setLogo, contactInfo, setContactInfo, currency, setCurrency } = useSettings();
   const { banks, deleteBank, currentDashboardId, setCurrentDashboardId } = useInvoice();
+  const { canInstall, isInstalled, isIOS, promptInstall } = usePWAInstall();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
@@ -46,6 +48,13 @@ const Settings: React.FC = () => {
     }
   };
 
+  const handleInstall = async () => {
+    const success = await promptInstall();
+    if (success) {
+      toast({ title: t('appInstalled') });
+    }
+  };
+
   return (
     <div className="max-w-2xl mx-auto space-y-6 animate-fade-in">
       <Card>
@@ -55,6 +64,31 @@ const Settings: React.FC = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
+          {/* Install App */}
+          <div className="space-y-2">
+            <Label className="flex items-center gap-2"><Smartphone className="h-4 w-4" />{t('installApp')}</Label>
+            {isInstalled ? (
+              <div className="flex items-center gap-2 text-sm text-success border rounded-md p-3 bg-success/10">
+                <Check className="h-4 w-4" />
+                <span>{t('appAlreadyInstalled')}</span>
+              </div>
+            ) : canInstall ? (
+              <Button onClick={handleInstall} className="gap-2">
+                <Download className="h-4 w-4" />
+                {t('installNow')}
+              </Button>
+            ) : isIOS ? (
+              <div className="border rounded-md p-3 text-sm text-muted-foreground">
+                <p>{t('iosInstallInstructions')}</p>
+              </div>
+            ) : (
+              <Button variant="outline" onClick={() => window.location.href = '/install'} className="gap-2">
+                <Download className="h-4 w-4" />
+                {t('howToInstall')}
+              </Button>
+            )}
+          </div>
+
           {/* Language */}
           <div className="space-y-2">
             <Label className="flex items-center gap-2"><Languages className="h-4 w-4" />{t('language')}</Label>
