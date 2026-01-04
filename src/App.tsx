@@ -15,6 +15,8 @@ import Insights from "@/pages/Insights";
 import Contact from "@/pages/Contact";
 import Auth from "@/pages/Auth";
 import NotFound from "./pages/NotFound";
+import Install from "@/pages/Install";
+import { NetworkStatusIndicator } from "@/components/NetworkStatusIndicator";
 
 const queryClient = new QueryClient();
 
@@ -50,6 +52,7 @@ const AppRoutes = () => {
   return (
     <Routes>
       <Route path="/auth" element={user ? <Navigate to="/dashboard" replace /> : <Auth />} />
+      <Route path="/install" element={<Install />} />
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route element={
         <ProtectedRoute>
@@ -78,6 +81,7 @@ const App = () => (
               <Sonner />
               <BrowserRouter>
                 <AppRoutes />
+                <NetworkStatusIndicator />
               </BrowserRouter>
             </TooltipProvider>
           </InvoiceProvider>
