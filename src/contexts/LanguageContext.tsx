@@ -754,6 +754,36 @@ export const translations: Translations = {
     ar: 'خطأ',
     ku: 'هەڵە',
   },
+  installApp: {
+    en: 'Install App',
+    ar: 'تثبيت التطبيق',
+    ku: 'دامەزراندنی ئەپ',
+  },
+  appAlreadyInstalled: {
+    en: 'App is already installed on your device',
+    ar: 'التطبيق مثبت بالفعل على جهازك',
+    ku: 'ئەپ پێشتر لە ئامێرەکەتدا دامەزراوە',
+  },
+  installNow: {
+    en: 'Install Now',
+    ar: 'ثبّت الآن',
+    ku: 'ئێستا دابمەزرێنە',
+  },
+  howToInstall: {
+    en: 'How to Install',
+    ar: 'كيفية التثبيت',
+    ku: 'چۆن دایبمەزرێنم',
+  },
+  iosInstallInstructions: {
+    en: 'Tap the Share button in Safari, then tap "Add to Home Screen"',
+    ar: 'اضغط على زر المشاركة في Safari، ثم اضغط على "إضافة إلى الشاشة الرئيسية"',
+    ku: 'لە Safari دوگمەی هاوبەشکردن بپەنجێنە، پاشان "زیادکردن بۆ شاشەی سەرەکی" بپەنجێنە',
+  },
+  appInstalled: {
+    en: 'App installed successfully!',
+    ar: 'تم تثبيت التطبيق بنجاح!',
+    ku: 'ئەپ بە سەرکەوتوویی دامەزرا!',
+  },
 };
 
 interface LanguageContextType {
