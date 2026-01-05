@@ -207,7 +207,7 @@ const Header: React.FC = () => {
 
           {/* Logo */}
           <Link to="/dashboard" className="flex items-center gap-3">
-            {logo ? <img src={logo} alt="Logo" className="h-10 w-auto object-scale-down border border-transparent" /> : <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+            {logo ? <img src={logo} alt="Logo" className="h-10 w-auto object-scale-down border border-transparent px-[10px] py-[8px] mx-px my-px" /> : <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
                 <span className="text-primary font-bold text-lg">📄</span>
               </div>}
             <h1 className="text-lg font-bold text-foreground hidden sm:block">
