@@ -17,6 +17,7 @@ import Auth from "@/pages/Auth";
 import NotFound from "./pages/NotFound";
 import Install from "@/pages/Install";
 import { NetworkStatusIndicator } from "@/components/NetworkStatusIndicator";
+import PWAUpdateBanner from "@/components/PWAUpdateBanner";
 
 const queryClient = new QueryClient();
 
@@ -82,6 +83,7 @@ const App = () => (
               <BrowserRouter>
                 <AppRoutes />
                 <NetworkStatusIndicator />
+                <PWAUpdateBanner />
               </BrowserRouter>
             </TooltipProvider>
           </InvoiceProvider>
