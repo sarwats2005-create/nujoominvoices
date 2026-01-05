@@ -8,7 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-import { format, addDays, isBefore, differenceInDays } from 'date-fns';
+import { format, differenceInDays } from 'date-fns';
 import { Copy, FileText, ArrowUpDown, Trash2, Printer, Edit, AlertTriangle, LayoutDashboard, Search, Hash, DollarSign, CalendarIcon, User, Landmark, Package, CheckCircle, Upload, Download, BarChart3, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import EditInvoiceDialog from '@/components/EditInvoiceDialog';
@@ -429,17 +429,19 @@ const Dashboard: React.FC = () => {
                 </TableHeader>
                 <TableBody>
                   {sortedInvoices.map((inv, index) => {
-                    // Calculate days until expiry (60 days from swift date)
-                    const expiryDate = inv.swiftDate ? addDays(new Date(inv.swiftDate), 60) : null;
-                    const daysUntilExpiry = expiryDate ? differenceInDays(expiryDate, new Date()) : null;
-                    const isExpiringSoon = daysUntilExpiry !== null && daysUntilExpiry >= 0 && daysUntilExpiry <= 60;
-                    const isCritical = daysUntilExpiry !== null && daysUntilExpiry >= 0 && daysUntilExpiry <= 10;
+                    // Calculate 60-day countdown from swift date
+                    const daysSinceSwift = inv.swiftDate ? differenceInDays(new Date(), new Date(inv.swiftDate)) : null;
+                    const daysRemaining = daysSinceSwift !== null ? 60 - daysSinceSwift : null;
+                    const showWarning = daysRemaining !== null && daysRemaining > 0;
+                    const isCritical = daysRemaining !== null && daysRemaining <= 10 && daysRemaining > 0;
+                    const isExpired = daysRemaining !== null && daysRemaining <= 0;
                     
                     return (
                       <TableRow key={inv.id} className={cn(
                         "transition-all duration-200 hover:bg-muted/50",
                         index % 2 === 0 ? "bg-card" : "bg-muted/10",
-                        isCritical && "!bg-warning/30 hover:!bg-warning/40"
+                        isCritical && "!bg-warning/30 hover:!bg-warning/40",
+                        isExpired && "!bg-destructive/20 hover:!bg-destructive/30"
                       )}>
                         <TableCell>
                           <Checkbox checked={selectedIds.includes(inv.id)} onCheckedChange={c => handleSelectOne(inv.id, !!c)} />
@@ -457,13 +459,18 @@ const Dashboard: React.FC = () => {
                           {inv.swiftDate ? (
                             <div className="flex items-center gap-2">
                               <span className="text-muted-foreground">{format(new Date(inv.swiftDate), 'dd/MM/yyyy')}</span>
-                              {isExpiringSoon && (
+                              {isExpired ? (
+                                <div className="flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-destructive/20 text-destructive">
+                                  <AlertTriangle className="h-3 w-3" />
+                                  <span>{t('expired')}</span>
+                                </div>
+                              ) : showWarning && (
                                 <div className={cn(
                                   "flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium",
                                   isCritical ? "bg-destructive/20 text-destructive" : "bg-warning/20 text-warning"
                                 )}>
                                   <AlertTriangle className="h-3 w-3" />
-                                  <span>{daysUntilExpiry} {t('daysLeft')}</span>
+                                  <span>{daysRemaining} {t('daysLeft')}</span>
                                 </div>
                               )}
                             </div>

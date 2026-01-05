@@ -754,6 +754,11 @@ export const translations: Translations = {
     ar: 'خطأ',
     ku: 'هەڵە',
   },
+  expired: {
+    en: 'Expired',
+    ar: 'منتهي الصلاحية',
+    ku: 'بەسەرچوو',
+  },
   installApp: {
     en: 'Install App',
     ar: 'تثبيت التطبيق',
