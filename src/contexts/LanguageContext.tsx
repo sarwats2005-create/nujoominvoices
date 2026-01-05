@@ -759,6 +759,41 @@ export const translations: Translations = {
     ar: 'منتهي الصلاحية',
     ku: 'بەسەرچوو',
   },
+  forgotPassword: {
+    en: 'Forgot Password?',
+    ar: 'نسيت كلمة المرور؟',
+    ku: 'وشەی نهێنی لەبیرچوو؟',
+  },
+  forgotPasswordDescription: {
+    en: 'Enter your email and we\'ll send you a link to reset your password.',
+    ar: 'أدخل بريدك الإلكتروني وسنرسل لك رابطًا لإعادة تعيين كلمة المرور.',
+    ku: 'ئیمەیڵەکەت بنووسە و بەستەرێکت بۆ دەنێرین بۆ ڕێکخستنەوەی وشەی نهێنی.',
+  },
+  sendResetLink: {
+    en: 'Send Reset Link',
+    ar: 'إرسال رابط إعادة التعيين',
+    ku: 'بەستەری ڕێکخستنەوە بنێرە',
+  },
+  backToLogin: {
+    en: 'Back to Login',
+    ar: 'العودة إلى تسجيل الدخول',
+    ku: 'بگەڕێوە بۆ چوونەژوورەوە',
+  },
+  passwordResetSent: {
+    en: 'Password Reset Email Sent',
+    ar: 'تم إرسال بريد إعادة تعيين كلمة المرور',
+    ku: 'ئیمەیڵی ڕێکخستنەوەی وشەی نهێنی نێردرا',
+  },
+  checkEmailForReset: {
+    en: 'Check your email for a link to reset your password.',
+    ar: 'تحقق من بريدك الإلكتروني للحصول على رابط لإعادة تعيين كلمة المرور.',
+    ku: 'ئیمەیڵەکەت بپشکنە بۆ بەستەری ڕێکخستنەوەی وشەی نهێنی.',
+  },
+  maxUsersReached: {
+    en: 'Maximum number of users reached. New registrations are closed.',
+    ar: 'تم الوصول إلى الحد الأقصى لعدد المستخدمين. التسجيلات الجديدة مغلقة.',
+    ku: 'ژمارەی بەکارهێنەران گەیشتە ئەوپەڕی. تۆمارکردنی نوێ داخراوە.',
+  },
   installApp: {
     en: 'Install App',
     ar: 'تثبيت التطبيق',
