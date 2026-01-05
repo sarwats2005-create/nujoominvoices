@@ -784,6 +784,26 @@ export const translations: Translations = {
     ar: 'تم تثبيت التطبيق بنجاح!',
     ku: 'ئەپ بە سەرکەوتوویی دامەزرا!',
   },
+  updateAvailable: {
+    en: 'Update Available',
+    ar: 'تحديث متاح',
+    ku: 'نوێکردنەوە بەردەستە',
+  },
+  updateDescription: {
+    en: 'A new version of the app is ready. Reload to update.',
+    ar: 'إصدار جديد من التطبيق جاهز. أعد التحميل للتحديث.',
+    ku: 'وەشانێکی نوێی ئەپ ئامادەیە. دووبارە باربکەوە بۆ نوێکردنەوە.',
+  },
+  updateNow: {
+    en: 'Update Now',
+    ar: 'تحديث الآن',
+    ku: 'ئێستا نوێبکەوە',
+  },
+  later: {
+    en: 'Later',
+    ar: 'لاحقاً',
+    ku: 'دواتر',
+  },
 };
 
 interface LanguageContextType {
