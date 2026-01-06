@@ -844,6 +844,82 @@ export const translations: Translations = {
     ar: 'لاحقاً',
     ku: 'دواتر',
   },
+  // Admin Panel
+  adminPanel: {
+    en: 'Admin Panel',
+    ar: 'لوحة الإدارة',
+    ku: 'پانێلی بەڕێوەبەر',
+  },
+  adminPanelDescription: {
+    en: 'Manage users and view registered accounts',
+    ar: 'إدارة المستخدمين وعرض الحسابات المسجلة',
+    ku: 'بەڕێوەبردنی بەکارهێنەران و بینینی هەژمارە تۆمارکراوەکان',
+  },
+  totalUsers: {
+    en: 'Total Users',
+    ar: 'إجمالي المستخدمين',
+    ku: 'کۆی بەکارهێنەران',
+  },
+  role: {
+    en: 'Role',
+    ar: 'الدور',
+    ku: 'ڕۆڵ',
+  },
+  admin: {
+    en: 'Admin',
+    ar: 'مدير',
+    ku: 'بەڕێوەبەر',
+  },
+  user: {
+    en: 'User',
+    ar: 'مستخدم',
+    ku: 'بەکارهێنەر',
+  },
+  registeredOn: {
+    en: 'Registered On',
+    ar: 'تاريخ التسجيل',
+    ku: 'بەرواری تۆمارکردن',
+  },
+  resetPassword: {
+    en: 'Reset Password',
+    ar: 'إعادة تعيين كلمة المرور',
+    ku: 'ڕێکخستنەوەی وشەی نهێنی',
+  },
+  deleteUserConfirmation: {
+    en: 'Are you sure you want to delete this user?',
+    ar: 'هل أنت متأكد من حذف هذا المستخدم؟',
+    ku: 'دڵنیایت لە سڕینەوەی ئەم بەکارهێنەرە؟',
+  },
+  userDeleted: {
+    en: 'User deleted successfully',
+    ar: 'تم حذف المستخدم بنجاح',
+    ku: 'بەکارهێنەر بە سەرکەوتوویی سڕایەوە',
+  },
+  errorLoadingUsers: {
+    en: 'Error loading users',
+    ar: 'خطأ في تحميل المستخدمين',
+    ku: 'هەڵە لە بارکردنی بەکارهێنەران',
+  },
+  errorDeletingUser: {
+    en: 'Error deleting user',
+    ar: 'خطأ في حذف المستخدم',
+    ku: 'هەڵە لە سڕینەوەی بەکارهێنەر',
+  },
+  errorResettingPassword: {
+    en: 'Error sending password reset email',
+    ar: 'خطأ في إرسال بريد إعادة تعيين كلمة المرور',
+    ku: 'هەڵە لە ناردنی ئیمەیڵی ڕێکخستنەوەی وشەی نهێنی',
+  },
+  backToDashboard: {
+    en: 'Back to Dashboard',
+    ar: 'العودة إلى لوحة التحكم',
+    ku: 'بگەڕێوە بۆ داشبۆرد',
+  },
+  success: {
+    en: 'Success',
+    ar: 'نجاح',
+    ku: 'سەرکەوتوو',
+  },
 };
 
 interface LanguageContextType {
