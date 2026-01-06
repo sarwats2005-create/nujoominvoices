@@ -429,25 +429,43 @@ const Dashboard: React.FC = () => {
                 </TableHeader>
                 <TableBody>
                   {sortedInvoices.map((inv, index) => {
-                    // Calculate 60-day countdown from swift date
+                    // Calculate days since swift date: TODAY - SWIFT_DATE
                     const daysSinceSwift = inv.swiftDate ? differenceInDays(new Date(), new Date(inv.swiftDate)) : null;
+                    // 60-day countdown: starts at 60, decreases each day
                     const daysRemaining = daysSinceSwift !== null ? 60 - daysSinceSwift : null;
-                    const showWarning = daysRemaining !== null && daysRemaining > 0;
-                    const isCritical = daysRemaining !== null && daysRemaining <= 10 && daysRemaining > 0;
-                    const isExpired = daysRemaining !== null && daysRemaining <= 0;
+                    
+                    // Status checkbox checked = received/complete
+                    const isComplete = inv.status === 'received';
+                    
+                    // Only show warning if: has swift date, not complete, and within 60-day window (or expired)
+                    const isWithin60Days = daysRemaining !== null && daysRemaining <= 60;
+                    const showWarning = !isComplete && daysRemaining !== null && isWithin60Days && daysRemaining > 0;
+                    const isCritical = !isComplete && daysRemaining !== null && daysRemaining <= 10 && daysRemaining > 0;
+                    const isExpired = !isComplete && daysRemaining !== null && daysRemaining <= 0;
+                    
+                    // Determine row background color
+                    // Complete = green, Critical/Expired = warning/destructive colors, Default = alternating
+                    const getRowClass = () => {
+                      if (isComplete) return "!bg-success/20 hover:!bg-success/30";
+                      if (isExpired) return "!bg-destructive/20 hover:!bg-destructive/30";
+                      if (isCritical) return "!bg-warning/30 hover:!bg-warning/40";
+                      return index % 2 === 0 ? "bg-card" : "bg-muted/10";
+                    };
                     
                     return (
                       <TableRow key={inv.id} className={cn(
                         "transition-all duration-200 hover:bg-muted/50",
-                        index % 2 === 0 ? "bg-card" : "bg-muted/10",
-                        isCritical && "!bg-warning/30 hover:!bg-warning/40",
-                        isExpired && "!bg-destructive/20 hover:!bg-destructive/30"
+                        getRowClass()
                       )}>
                         <TableCell>
                           <Checkbox checked={selectedIds.includes(inv.id)} onCheckedChange={c => handleSelectOne(inv.id, !!c)} />
                         </TableCell>
-                        <TableCell className={cn("transition-all duration-300", inv.status === 'received' && 'bg-success/15')}>
-                          <Checkbox checked={inv.status === 'received'} onCheckedChange={c => handleStatusChange(inv.id, !!c)} className={cn(inv.status === 'received' && "border-success data-[state=checked]:bg-success")} />
+                        <TableCell>
+                          <Checkbox 
+                            checked={isComplete} 
+                            onCheckedChange={c => handleStatusChange(inv.id, !!c)} 
+                            className={cn(isComplete && "border-success data-[state=checked]:bg-success")} 
+                          />
                         </TableCell>
                         <TableCell className="font-semibold text-primary">{inv.invoiceNumber}</TableCell>
                         <TableCell className="font-medium">{formatAmount(inv.amount)}</TableCell>
@@ -459,19 +477,28 @@ const Dashboard: React.FC = () => {
                           {inv.swiftDate ? (
                             <div className="flex items-center gap-2">
                               <span className="text-muted-foreground">{format(new Date(inv.swiftDate), 'dd/MM/yyyy')}</span>
-                              {isExpired ? (
-                                <div className="flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-destructive/20 text-destructive">
-                                  <AlertTriangle className="h-3 w-3" />
-                                  <span>{t('expired')}</span>
-                                </div>
-                              ) : showWarning && (
-                                <div className={cn(
-                                  "flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium",
-                                  isCritical ? "bg-destructive/20 text-destructive" : "bg-warning/20 text-warning"
-                                )}>
-                                  <AlertTriangle className="h-3 w-3" />
-                                  <span>{daysRemaining} {t('daysLeft')}</span>
-                                </div>
+                              {/* Hide warning completely when complete (checkbox checked) */}
+                              {!isComplete && (
+                                <>
+                                  {isExpired ? (
+                                    <div className="flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-destructive/20 text-destructive animate-pulse">
+                                      <AlertTriangle className="h-3 w-3" />
+                                      <span>{t('expired')}</span>
+                                    </div>
+                                  ) : showWarning && (
+                                    <div className={cn(
+                                      "flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium",
+                                      isCritical 
+                                        ? "bg-destructive/20 text-destructive animate-pulse" 
+                                        : daysRemaining !== null && daysRemaining <= 30 
+                                          ? "bg-orange-500/20 text-orange-600 dark:text-orange-400"
+                                          : "bg-warning/20 text-warning"
+                                    )}>
+                                      <AlertTriangle className="h-3 w-3" />
+                                      <span>{daysRemaining} {t('daysLeft')}</span>
+                                    </div>
+                                  )}
+                                </>
                               )}
                             </div>
                           ) : '-'}
