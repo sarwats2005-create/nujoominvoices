@@ -1,10 +1,11 @@
-import React, { useRef, useCallback, useEffect } from 'react';
+import React, { useRef, useCallback } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useSettings } from '@/contexts/SettingsContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAdmin } from '@/hooks/useAdmin';
 import { Button } from '@/components/ui/button';
-import { LayoutDashboard, FilePlus, Settings, Menu, Sun, Moon, BarChart3, Mail, LogOut } from 'lucide-react';
+import { LayoutDashboard, FilePlus, Settings, Menu, Sun, Moon, BarChart3, Mail, LogOut, Shield } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { gsap } from 'gsap';
 const GLOW_COLOR = '132, 0, 255';
@@ -153,6 +154,7 @@ const Header: React.FC = () => {
   const {
     signOut
   } = useAuth();
+  const { isAdmin } = useAdmin();
   const location = useLocation();
   const navItems = [{
     path: '/dashboard',
@@ -174,7 +176,11 @@ const Header: React.FC = () => {
     path: '/settings',
     label: t('settings'),
     icon: Settings
-  }];
+  }, ...(isAdmin ? [{
+    path: '/admin',
+    label: t('adminPanel'),
+    icon: Shield
+  }] : [])];
   const NavLinks = ({
     mobile = false,
     onClose

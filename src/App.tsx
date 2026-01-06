@@ -16,6 +16,7 @@ import Contact from "@/pages/Contact";
 import Auth from "@/pages/Auth";
 import NotFound from "./pages/NotFound";
 import Install from "@/pages/Install";
+import AdminPanel from "@/pages/AdminPanel";
 import { NetworkStatusIndicator } from "@/components/NetworkStatusIndicator";
 import PWAUpdateBanner from "@/components/PWAUpdateBanner";
 
@@ -65,6 +66,7 @@ const AppRoutes = () => {
         <Route path="/insights" element={<Insights />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/settings" element={<Settings />} />
+        <Route path="/admin" element={<AdminPanel />} />
       </Route>
       <Route path="*" element={<NotFound />} />
     </Routes>
