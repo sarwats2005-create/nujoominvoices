@@ -9,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Shield, Trash2, KeyRound, ArrowLeft, Users } from 'lucide-react';
+import { Shield, Trash2, KeyRound, ArrowLeft, Users, Clock } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface UserProfile {
@@ -163,11 +163,22 @@ const AdminPanel: React.FC = () => {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center gap-2 mb-4">
-              <Users className="h-5 w-5 text-muted-foreground" />
-              <span className="text-muted-foreground">
-                {t('totalUsers')}: {users.length}
-              </span>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <Users className="h-5 w-5 text-muted-foreground" />
+                <span className="text-muted-foreground">
+                  {t('totalUsers')}: {users.length}
+                </span>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate('/audit-log')}
+                className="flex items-center gap-2"
+              >
+                <Clock className="h-4 w-4" />
+                {t('viewAuditLog')}
+              </Button>
             </div>
 
             <div className="rounded-lg border overflow-hidden">

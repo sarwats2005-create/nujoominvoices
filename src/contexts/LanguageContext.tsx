@@ -920,6 +920,78 @@ export const translations: Translations = {
     ar: 'نجاح',
     ku: 'سەرکەوتوو',
   },
+  // Security & Rate Limiting
+  tooManyAttempts: {
+    en: 'Too Many Attempts',
+    ar: 'محاولات كثيرة جداً',
+    ku: 'هەوڵی زۆر',
+  },
+  tryAgainIn: {
+    en: 'Please try again in {minutes} minutes',
+    ar: 'يرجى المحاولة مرة أخرى بعد {minutes} دقيقة',
+    ku: 'تکایە دوای {minutes} خولەک هەوڵبدەوە',
+  },
+  attemptsRemaining: {
+    en: '{count} attempts remaining',
+    ar: '{count} محاولات متبقية',
+    ku: '{count} هەوڵ ماوە',
+  },
+  validationError: {
+    en: 'Validation Error',
+    ar: 'خطأ في التحقق',
+    ku: 'هەڵەی پشتڕاستکردنەوە',
+  },
+  passwordMinLength: {
+    en: 'Password must be at least 6 characters',
+    ar: 'يجب أن تكون كلمة المرور 6 أحرف على الأقل',
+    ku: 'وشەی نهێنی دەبێت لانیکەم ٦ پیت بێت',
+  },
+  strongPassword: {
+    en: 'Strong password',
+    ar: 'كلمة مرور قوية',
+    ku: 'وشەی نهێنی بەهێز',
+  },
+  passwordRequirementStrong: {
+    en: 'Min 10 chars, uppercase, lowercase, number, and symbol',
+    ar: 'على الأقل 10 أحرف، حرف كبير، حرف صغير، رقم، ورمز',
+    ku: 'لانیکەم ١٠ پیت، پیتی گەورە، پیتی بچووک، ژمارە و هێما',
+  },
+  youCanNowLogin: {
+    en: 'You can now login with your credentials',
+    ar: 'يمكنك الآن تسجيل الدخول بحسابك',
+    ku: 'ئێستا دەتوانیت بچیتە ناوەوە بە هەژمارەکەت',
+  },
+  // Audit Log
+  auditLog: {
+    en: 'Audit Log',
+    ar: 'سجل التدقيق',
+    ku: 'تۆماری پشکنین',
+  },
+  viewAuditLog: {
+    en: 'View Audit Log',
+    ar: 'عرض سجل التدقيق',
+    ku: 'بینینی تۆماری پشکنین',
+  },
+  invoiceCreatedLog: {
+    en: 'Invoice Created',
+    ar: 'تم إنشاء الفاتورة',
+    ku: 'پسوولە دروستکرا',
+  },
+  invoiceUpdatedLog: {
+    en: 'Invoice Updated',
+    ar: 'تم تحديث الفاتورة',
+    ku: 'پسوولە نوێکرایەوە',
+  },
+  invoiceDeletedLog: {
+    en: 'Invoice Deleted',
+    ar: 'تم حذف الفاتورة',
+    ku: 'پسوولە سڕایەوە',
+  },
+  noAuditLogs: {
+    en: 'No audit logs found',
+    ar: 'لا توجد سجلات تدقيق',
+    ku: 'هیچ تۆمارێکی پشکنین نەدۆزرایەوە',
+  },
 };
 
 interface LanguageContextType {
