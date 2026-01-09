@@ -9,6 +9,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { useSoundEffects } from '@/hooks/useSoundEffects';
 import { format } from 'date-fns';
 import { CalendarIcon, DollarSign, Hash, User, Plus, Landmark, LayoutDashboard, Package } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -32,6 +33,7 @@ const NewInvoice: React.FC = () => {
   const { addInvoice, dashboards, currentDashboardId } = useInvoice();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { playWinSound } = useSoundEffects();
 
   useEffect(() => {
     if (currentDashboardId) {
@@ -63,6 +65,9 @@ const NewInvoice: React.FC = () => {
       containerNumber: containerNumber || undefined,
       dashboardId,
     });
+
+    // Play winning sound effect
+    playWinSound();
 
     toast({
       title: t('invoiceAdded'),

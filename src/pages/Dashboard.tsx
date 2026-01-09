@@ -2,6 +2,7 @@ import React, { useState, useRef, useMemo } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useInvoice, Invoice } from '@/contexts/InvoiceContext';
 import { useSettings } from '@/contexts/SettingsContext';
+import { useSoundEffects } from '@/hooks/useSoundEffects';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -37,6 +38,7 @@ const Dashboard: React.FC = () => {
   const {
     toast
   } = useToast();
+  const { playWhooshSound } = useSoundEffects();
   const [sortKey, setSortKey] = useState<SortKey>('date');
   const [sortAsc, setSortAsc] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -82,12 +84,14 @@ const Dashboard: React.FC = () => {
     deleteMultipleInvoices(selectedIds);
     setSelectedIds([]);
     setShowDeleteDialog(false);
+    playWhooshSound();
     toast({
       title: t('invoicesDeleted')
     });
   };
   const handleDeleteSingle = (id: string) => {
     deleteInvoice(id);
+    playWhooshSound();
     toast({
       title: t('invoiceDeleted')
     });
