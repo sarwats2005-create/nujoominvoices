@@ -17,6 +17,7 @@ import DashboardSelector from '@/components/DashboardSelector';
 import { MagicCard } from '@/components/MagicCard';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import CountUp from '@/components/CountUp';
 type SortKey = 'invoiceNumber' | 'amount' | 'date' | 'beneficiary' | 'bank' | 'status' | 'containerNumber' | 'swiftDate';
 const Dashboard: React.FC = () => {
   const {
@@ -270,7 +271,9 @@ const Dashboard: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground font-medium">{t('totalInvoices')}</p>
-                  <p className="text-2xl font-bold">{sortedInvoices.length}</p>
+                  <p className="text-2xl font-bold">
+                    <CountUp to={sortedInvoices.length} duration={1.5} separator="," />
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -285,7 +288,9 @@ const Dashboard: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground font-medium">{t('totalAmount')}</p>
-                  <p className="text-2xl font-bold">{formatAmount(totalAmount)}</p>
+                  <p className="text-2xl font-bold">
+                    {currency.symbol}<CountUp to={Math.round(totalAmount)} duration={1.5} separator="," />
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -300,7 +305,9 @@ const Dashboard: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground font-medium">{t('received')}</p>
-                  <p className="text-2xl font-bold">{receivedCount} / {sortedInvoices.length}</p>
+                  <p className="text-2xl font-bold">
+                    <CountUp to={receivedCount} duration={1.5} separator="," /> / <CountUp to={sortedInvoices.length} duration={1.5} separator="," />
+                  </p>
                 </div>
               </div>
             </CardContent>

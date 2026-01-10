@@ -1,12 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useInvoice } from '@/contexts/InvoiceContext';
+import { useSettings } from '@/contexts/SettingsContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { BarChart, Bar, XAxis, YAxis, PieChart, Pie, Cell, LineChart, Line, Sector } from 'recharts';
 import { TrendingUp, DollarSign, FileText, Building, Calendar, CheckCircle, Clock } from 'lucide-react';
 import { format, parseISO, startOfMonth, endOfMonth, eachMonthOfInterval, subMonths } from 'date-fns';
 import { gsap } from 'gsap';
+import CountUp from '@/components/CountUp';
 
 // Custom animated active shape for pie chart
 const renderActiveShape = (props: any) => {
@@ -64,6 +66,7 @@ const BANK_COLORS = [
 const Insights: React.FC = () => {
   const { t } = useLanguage();
   const { invoices, banks } = useInvoice();
+  const { currency } = useSettings();
   const [activeIndex, setActiveIndex] = useState(0);
   const bankChartRef = useRef<HTMLDivElement>(null);
   const statsRef = useRef<HTMLDivElement>(null);
@@ -173,7 +176,9 @@ const Insights: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">{t('totalAmount')}</p>
-                <p className="text-2xl font-bold text-primary">${totalAmount.toLocaleString()}</p>
+                <p className="text-2xl font-bold text-primary">
+                  {currency.symbol}<CountUp to={Math.round(totalAmount)} duration={2} separator="," />
+                </p>
               </div>
               <DollarSign className="h-10 w-10 text-primary/50" />
             </div>
@@ -185,7 +190,9 @@ const Insights: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">{t('totalInvoices')}</p>
-                <p className="text-2xl font-bold text-success">{totalInvoices}</p>
+                <p className="text-2xl font-bold text-success">
+                  <CountUp to={totalInvoices} duration={2} separator="," />
+                </p>
               </div>
               <FileText className="h-10 w-10 text-success/50" />
             </div>
@@ -197,7 +204,9 @@ const Insights: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">{t('pending')}</p>
-                <p className="text-2xl font-bold text-warning">{pendingInvoices}</p>
+                <p className="text-2xl font-bold text-warning">
+                  <CountUp to={pendingInvoices} duration={2} separator="," />
+                </p>
               </div>
               <Clock className="h-10 w-10 text-warning/50" />
             </div>
@@ -209,7 +218,9 @@ const Insights: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">{t('received')}</p>
-                <p className="text-2xl font-bold text-success">{receivedInvoices}</p>
+                <p className="text-2xl font-bold text-success">
+                  <CountUp to={receivedInvoices} duration={2} separator="," />
+                </p>
               </div>
               <CheckCircle className="h-10 w-10 text-success/50" />
             </div>
