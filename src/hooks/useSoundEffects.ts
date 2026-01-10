@@ -1,7 +1,9 @@
 import { useCallback, useRef } from 'react';
+import { useSettings } from '@/contexts/SettingsContext';
 
 export const useSoundEffects = () => {
   const audioContextRef = useRef<AudioContext | null>(null);
+  const { soundVolume } = useSettings();
 
   const getAudioContext = useCallback(() => {
     if (!audioContextRef.current) {
@@ -12,13 +14,15 @@ export const useSoundEffects = () => {
 
   // Winning/Success sound - triumphant ascending tones
   const playWinSound = useCallback(() => {
+    if (soundVolume === 0) return;
+    
     const ctx = getAudioContext();
     const now = ctx.currentTime;
 
-    // Create master gain
+    // Create master gain with volume control
     const masterGain = ctx.createGain();
     masterGain.connect(ctx.destination);
-    masterGain.gain.setValueAtTime(0.3, now);
+    masterGain.gain.setValueAtTime(0.3 * soundVolume, now);
     masterGain.gain.exponentialRampToValueAtTime(0.01, now + 1.2);
 
     // Ascending chord sequence
@@ -61,12 +65,19 @@ export const useSoundEffects = () => {
       sparkleOsc.start(now + 0.3 + j * 0.05);
       sparkleOsc.stop(now + 0.6 + j * 0.05);
     }
-  }, [getAudioContext]);
+  }, [getAudioContext, soundVolume]);
 
   // Whoosh sound for deletion
   const playWhooshSound = useCallback(() => {
+    if (soundVolume === 0) return;
+    
     const ctx = getAudioContext();
     const now = ctx.currentTime;
+    
+    // Create master gain for volume control
+    const masterGain = ctx.createGain();
+    masterGain.connect(ctx.destination);
+    masterGain.gain.setValueAtTime(soundVolume, now);
     
     // Create noise buffer
     const bufferSize = ctx.sampleRate * 0.4;
@@ -95,7 +106,7 @@ export const useSoundEffects = () => {
     
     noise.connect(filter);
     filter.connect(gain);
-    gain.connect(ctx.destination);
+    gain.connect(masterGain);
     
     noise.start(now);
     noise.stop(now + 0.4);
@@ -113,11 +124,11 @@ export const useSoundEffects = () => {
     lowGain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
     
     lowOsc.connect(lowGain);
-    lowGain.connect(ctx.destination);
+    lowGain.connect(masterGain);
     
     lowOsc.start(now);
     lowOsc.stop(now + 0.35);
-  }, [getAudioContext]);
+  }, [getAudioContext, soundVolume]);
 
   return { playWinSound, playWhooshSound };
 };

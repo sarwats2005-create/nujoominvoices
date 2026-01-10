@@ -593,6 +593,16 @@ export const translations: Translations = {
     ar: 'اختر العملة',
     ku: 'دراو هەڵبژێرە',
   },
+  soundVolume: {
+    en: 'Sound Effects Volume',
+    ar: 'مستوى صوت المؤثرات',
+    ku: 'ئاستی دەنگی کاریگەرییەکان',
+  },
+  soundVolumeDescription: {
+    en: 'Adjust the volume for success and delete sounds',
+    ar: 'ضبط مستوى صوت تأثيرات النجاح والحذف',
+    ku: 'ڕێکخستنی ئاستی دەنگ بۆ کاریگەرییەکانی سەرکەوتن و سڕینەوە',
+  },
   importCSV: {
     en: 'Import CSV',
     ar: 'استيراد CSV',
