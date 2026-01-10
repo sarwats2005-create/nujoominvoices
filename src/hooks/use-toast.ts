@@ -5,6 +5,30 @@ import type { ToastActionElement, ToastProps } from "@/components/ui/toast";
 const TOAST_LIMIT = 1;
 const TOAST_REMOVE_DELAY = 1000000;
 
+// Audio element for notification sound
+let notificationAudio: HTMLAudioElement | null = null;
+
+function playNotificationSound() {
+  try {
+    // Get volume from localStorage (default 0.5)
+    const savedVolume = localStorage.getItem('invoice_app_sound_volume');
+    const volume = savedVolume !== null ? parseFloat(savedVolume) : 0.5;
+    
+    if (volume === 0) return;
+    
+    if (!notificationAudio) {
+      notificationAudio = new Audio('/sounds/notification.mp3');
+    }
+    notificationAudio.volume = volume;
+    notificationAudio.currentTime = 0;
+    notificationAudio.play().catch(() => {
+      // Ignore autoplay errors
+    });
+  } catch {
+    // Ignore audio errors
+  }
+}
+
 type ToasterToast = ToastProps & {
   id: string;
   title?: React.ReactNode;
@@ -143,6 +167,9 @@ function toast({ ...props }: Toast) {
       toast: { ...props, id },
     });
   const dismiss = () => dispatch({ type: "DISMISS_TOAST", toastId: id });
+
+  // Play notification sound when toast is added
+  playNotificationSound();
 
   dispatch({
     type: "ADD_TOAST",
