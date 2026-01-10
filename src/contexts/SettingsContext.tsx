@@ -31,6 +31,8 @@ interface SettingsContextType {
   setContactInfo: (info: ContactInfo) => void;
   currency: Currency;
   setCurrency: (currency: Currency) => void;
+  soundVolume: number;
+  setSoundVolume: (volume: number) => void;
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -39,6 +41,7 @@ const LOGO_KEY = 'invoice_app_logo';
 const THEME_KEY = 'invoice_app_theme';
 const CONTACT_INFO_KEY = 'invoice_app_contact_info';
 const CURRENCY_KEY = 'invoice_app_currency';
+const SOUND_VOLUME_KEY = 'invoice_app_sound_volume';
 
 const defaultContactInfo: ContactInfo = {
   email: 'support@nujoom.com',
@@ -53,12 +56,14 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [contactInfo, setContactInfoState] = useState<ContactInfo>(defaultContactInfo);
   const [currency, setCurrencyState] = useState<Currency>(defaultCurrency);
+  const [soundVolume, setSoundVolumeState] = useState<number>(0.5);
 
   useEffect(() => {
     const savedLogo = localStorage.getItem(LOGO_KEY);
     const savedTheme = localStorage.getItem(THEME_KEY);
     const savedContactInfo = localStorage.getItem(CONTACT_INFO_KEY);
     const savedCurrency = localStorage.getItem(CURRENCY_KEY);
+    const savedSoundVolume = localStorage.getItem(SOUND_VOLUME_KEY);
     
     if (savedLogo) {
       setLogoState(savedLogo);
@@ -75,6 +80,10 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
 
     if (savedCurrency) {
       setCurrencyState(JSON.parse(savedCurrency));
+    }
+
+    if (savedSoundVolume !== null) {
+      setSoundVolumeState(parseFloat(savedSoundVolume));
     }
   }, []);
 
@@ -104,8 +113,13 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     localStorage.setItem(CURRENCY_KEY, JSON.stringify(curr));
   };
 
+  const setSoundVolume = (volume: number) => {
+    setSoundVolumeState(volume);
+    localStorage.setItem(SOUND_VOLUME_KEY, volume.toString());
+  };
+
   return (
-    <SettingsContext.Provider value={{ logo, setLogo, isDarkMode, toggleDarkMode, contactInfo, setContactInfo, currency, setCurrency }}>
+    <SettingsContext.Provider value={{ logo, setLogo, isDarkMode, toggleDarkMode, contactInfo, setContactInfo, currency, setCurrency, soundVolume, setSoundVolume }}>
       {children}
     </SettingsContext.Provider>
   );

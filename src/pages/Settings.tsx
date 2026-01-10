@@ -8,13 +8,16 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Slider } from '@/components/ui/slider';
 import { useToast } from '@/hooks/use-toast';
-import { Settings as SettingsIcon, Languages, Image, Building2, Trash2, LayoutDashboard, Mail, Phone, MapPin, Coins, Download, Smartphone, Check } from 'lucide-react';
+import { useSoundEffects } from '@/hooks/useSoundEffects';
+import { Settings as SettingsIcon, Languages, Image, Building2, Trash2, LayoutDashboard, Mail, Phone, MapPin, Coins, Download, Smartphone, Check, Volume2 } from 'lucide-react';
 import DashboardSelector from '@/components/DashboardSelector';
 
 const Settings: React.FC = () => {
   const { t, language, setLanguage } = useLanguage();
-  const { logo, setLogo, contactInfo, setContactInfo, currency, setCurrency } = useSettings();
+  const { logo, setLogo, contactInfo, setContactInfo, currency, setCurrency, soundVolume, setSoundVolume } = useSettings();
+  const { playWinSound } = useSoundEffects();
   const { banks, deleteBank, currentDashboardId, setCurrentDashboardId } = useInvoice();
   const { canInstall, isInstalled, isIOS, promptInstall } = usePWAInstall();
   const { toast } = useToast();
@@ -115,6 +118,23 @@ const Settings: React.FC = () => {
                 ))}
               </SelectContent>
             </Select>
+          </div>
+
+          {/* Sound Volume */}
+          <div className="space-y-2">
+            <Label className="flex items-center gap-2"><Volume2 className="h-4 w-4" />{t('soundVolume')}</Label>
+            <div className="flex items-center gap-4">
+              <Slider
+                value={[soundVolume * 100]}
+                onValueChange={(value) => setSoundVolume(value[0] / 100)}
+                onValueCommit={() => playWinSound()}
+                max={100}
+                step={1}
+                className="flex-1"
+              />
+              <span className="text-sm text-muted-foreground w-12 text-right">{Math.round(soundVolume * 100)}%</span>
+            </div>
+            <p className="text-xs text-muted-foreground">{t('soundVolumeDescription')}</p>
           </div>
 
           {/* Logo Upload */}
