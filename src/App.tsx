@@ -14,6 +14,7 @@ import Settings from "@/pages/Settings";
 import Insights from "@/pages/Insights";
 import Contact from "@/pages/Contact";
 import Auth from "@/pages/Auth";
+import ResetPassword from "@/pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 import Install from "@/pages/Install";
 import AdminPanel from "@/pages/AdminPanel";
@@ -55,6 +56,7 @@ const AppRoutes = () => {
   return (
     <Routes>
       <Route path="/auth" element={user ? <Navigate to="/dashboard" replace /> : <Auth />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/install" element={<Install />} />
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route element={

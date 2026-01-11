@@ -1002,6 +1002,77 @@ export const translations: Translations = {
     ar: 'لا توجد سجلات تدقيق',
     ku: 'هیچ تۆمارێکی پشکنین نەدۆزرایەوە',
   },
+  // Reset Password Page
+  resetPasswordDescription: {
+    en: 'Enter your new password below. Make sure it meets the security requirements.',
+    ar: 'أدخل كلمة المرور الجديدة أدناه. تأكد من استيفاء متطلبات الأمان.',
+    ku: 'وشەی نهێنی نوێت لە خوارەوە بنووسە. دڵنیابەوە پێداویستییەکانی ئاسایشی تێدایە.',
+  },
+  newPassword: {
+    en: 'New Password',
+    ar: 'كلمة المرور الجديدة',
+    ku: 'وشەی نهێنی نوێ',
+  },
+  passwordsMatch: {
+    en: 'Passwords match',
+    ar: 'كلمات المرور متطابقة',
+    ku: 'وشە نهێنییەکان یەکن',
+  },
+  passwordsDoNotMatch: {
+    en: 'Passwords do not match',
+    ar: 'كلمات المرور غير متطابقة',
+    ku: 'وشە نهێنییەکان یەک ناگرنەوە',
+  },
+  passwordResetSuccess: {
+    en: 'Password Reset Successful',
+    ar: 'تم إعادة تعيين كلمة المرور بنجاح',
+    ku: 'وشەی نهێنی بە سەرکەوتوویی ڕێکخرایەوە',
+  },
+  passwordResetSuccessDescription: {
+    en: 'Your password has been updated. You can now log in with your new password.',
+    ar: 'تم تحديث كلمة المرور الخاصة بك. يمكنك الآن تسجيل الدخول بكلمة المرور الجديدة.',
+    ku: 'وشەی نهێنیت نوێ کرایەوە. ئێستا دەتوانیت بە وشەی نهێنی نوێ بچیتە ژوورەوە.',
+  },
+  invalidLink: {
+    en: 'Invalid or Expired Link',
+    ar: 'رابط غير صالح أو منتهي الصلاحية',
+    ku: 'لینک نادروست یان بەسەرچوو',
+  },
+  invalidResetToken: {
+    en: 'This password reset link is invalid or has already been used.',
+    ar: 'رابط إعادة تعيين كلمة المرور هذا غير صالح أو تم استخدامه بالفعل.',
+    ku: 'ئەم لینکی ڕێکخستنەوەی وشەی نهێنی نادروستە یان پێشتر بەکارهاتووە.',
+  },
+  expiredResetToken: {
+    en: 'This password reset link has expired. Please request a new one.',
+    ar: 'انتهت صلاحية رابط إعادة تعيين كلمة المرور. يرجى طلب رابط جديد.',
+    ku: 'ماوەی ئەم لینکی ڕێکخستنەوەی وشەی نهێنی تەواو بووە. تکایە داوای لینکێکی نوێ بکە.',
+  },
+  resetLinkExpiredDescription: {
+    en: 'Password reset links expire after 15 minutes for security. Please request a new link from the login page.',
+    ar: 'تنتهي صلاحية روابط إعادة تعيين كلمة المرور بعد 15 دقيقة للأمان. يرجى طلب رابط جديد من صفحة تسجيل الدخول.',
+    ku: 'لینکەکانی ڕێکخستنەوەی وشەی نهێنی بۆ ئاسایش لە ماوەی ١٥ خولەکدا بەسەردەچن. تکایە داوای لینکێکی نوێ لە پەڕەی چوونەژوورەوە بکە.',
+  },
+  validatingResetToken: {
+    en: 'Validating reset link...',
+    ar: 'جاري التحقق من رابط إعادة التعيين...',
+    ku: 'پشتڕاستکردنەوەی لینکی ڕێکخستنەوە...',
+  },
+  resetPasswordSecurityNotice: {
+    en: 'For your security, all active sessions will be logged out after changing your password.',
+    ar: 'لأمانك، سيتم تسجيل الخروج من جميع الجلسات النشطة بعد تغيير كلمة المرور.',
+    ku: 'بۆ ئاسایشت، هەموو دانیشتنە چالاکەکان دەرچوون دەکرێت دوای گۆڕینی وشەی نهێنی.',
+  },
+  goToLogin: {
+    en: 'Go to Login',
+    ar: 'الذهاب إلى تسجيل الدخول',
+    ku: 'بڕۆ بۆ چوونەژوورەوە',
+  },
+  somethingWentWrong: {
+    en: 'Something went wrong. Please try again.',
+    ar: 'حدث خطأ ما. يرجى المحاولة مرة أخرى.',
+    ku: 'هەڵەیەک ڕوویدا. تکایە دووبارە هەوڵ بدەوە.',
+  },
 };
 
 interface LanguageContextType {
