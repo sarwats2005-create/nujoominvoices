@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Input } from '@/components/ui/input';
+import { PasswordInput } from '@/components/ui/password-input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -389,9 +390,8 @@ const Auth: React.FC = () => {
                     <Lock className="h-4 w-4 text-muted-foreground" />
                     {t('password')}
                   </Label>
-                  <Input
+                  <PasswordInput
                     id="login-password"
-                    type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
@@ -443,9 +443,8 @@ const Auth: React.FC = () => {
                       <Lock className="h-4 w-4 text-muted-foreground" />
                       {t('password')}
                     </Label>
-                    <Input
+                    <PasswordInput
                       id="signup-password"
-                      type="password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="••••••••"
