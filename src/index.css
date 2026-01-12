@@ -656,3 +656,168 @@
 .counter.updated {
   animation: countUp var(--transition-base) ease-out;
 }
+
+/* =====================================================
+   16. PREMIUM HOVER EFFECTS
+   ===================================================== */
+
+/* Floating effect on hover */
+.hover-float {
+  transition: transform var(--transition-base), box-shadow var(--transition-base);
+}
+
+.hover-float:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px -8px hsl(var(--primary) / 0.2);
+}
+
+/* Glow effect */
+.hover-glow {
+  transition: box-shadow var(--transition-base);
+}
+
+.hover-glow:hover {
+  box-shadow: 0 0 20px hsl(var(--primary) / 0.3), 0 0 40px hsl(var(--primary) / 0.1);
+}
+
+/* Scale with spring */
+.hover-spring {
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.hover-spring:hover {
+  transform: scale(1.02);
+}
+
+/* =====================================================
+   17. FOCUS STATES (Accessibility)
+   ===================================================== */
+
+/* Visible focus for keyboard navigation */
+*:focus-visible {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Remove default outline when not using keyboard */
+*:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* =====================================================
+   18. STAGGERED GRID ANIMATIONS
+   ===================================================== */
+
+@keyframes gridFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.grid-item {
+  animation: gridFadeIn 0.4s ease-out both;
+}
+
+.grid-item:nth-child(1) { animation-delay: 0ms; }
+.grid-item:nth-child(2) { animation-delay: 60ms; }
+.grid-item:nth-child(3) { animation-delay: 120ms; }
+.grid-item:nth-child(4) { animation-delay: 180ms; }
+.grid-item:nth-child(5) { animation-delay: 240ms; }
+.grid-item:nth-child(6) { animation-delay: 300ms; }
+
+/* =====================================================
+   19. SUCCESS & ERROR STATES
+   ===================================================== */
+
+@keyframes successPop {
+  0% {
+    transform: scale(0);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes errorShake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  20%, 60% {
+    transform: translateX(-6px);
+  }
+  40%, 80% {
+    transform: translateX(6px);
+  }
+}
+
+.success-enter {
+  animation: successPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.error-shake {
+  animation: errorShake 0.5s ease-in-out;
+}
+
+/* =====================================================
+   20. PREMIUM GRADIENTS & BACKGROUNDS
+   ===================================================== */
+
+.gradient-mesh {
+  background: 
+    radial-gradient(at 40% 20%, hsl(var(--primary) / 0.1) 0px, transparent 50%),
+    radial-gradient(at 80% 0%, hsl(var(--accent) / 0.1) 0px, transparent 50%),
+    radial-gradient(at 0% 50%, hsl(var(--success) / 0.05) 0px, transparent 50%);
+}
+
+.noise-overlay {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  opacity: 0.02;
+  pointer-events: none;
+}
+
+/* =====================================================
+   21. REDUCED MOTION SUPPORT
+   ===================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* =====================================================
+   22. LOADING PULSE SKELETON
+   ===================================================== */
+
+@keyframes skeletonPulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.skeleton-pulse {
+  animation: skeletonPulse 1.5s ease-in-out infinite;
+  background: linear-gradient(
+    90deg,
+    hsl(var(--muted)) 0%,
+    hsl(var(--muted-foreground) / 0.1) 50%,
+    hsl(var(--muted)) 100%
+  );
+}
