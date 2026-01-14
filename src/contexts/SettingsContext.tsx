@@ -4,7 +4,6 @@ export interface ContactInfo {
   email: string;
   phone: string;
   address: string;
-  web3formsAccessKey?: string;
 }
 
 export interface Currency {
@@ -34,8 +33,6 @@ interface SettingsContextType {
   setCurrency: (currency: Currency) => void;
   soundVolume: number;
   setSoundVolume: (volume: number) => void;
-  web3formsAccessKey: string;
-  setWeb3formsAccessKey: (key: string) => void;
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -45,7 +42,6 @@ const THEME_KEY = 'invoice_app_theme';
 const CONTACT_INFO_KEY = 'invoice_app_contact_info';
 const CURRENCY_KEY = 'invoice_app_currency';
 const SOUND_VOLUME_KEY = 'invoice_app_sound_volume';
-const WEB3FORMS_KEY = 'invoice_app_web3forms_key';
 
 const defaultContactInfo: ContactInfo = {
   email: 'support@nujoom.com',
@@ -61,7 +57,6 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
   const [contactInfo, setContactInfoState] = useState<ContactInfo>(defaultContactInfo);
   const [currency, setCurrencyState] = useState<Currency>(defaultCurrency);
   const [soundVolume, setSoundVolumeState] = useState<number>(0.5);
-  const [web3formsAccessKey, setWeb3formsAccessKeyState] = useState<string>('');
 
   useEffect(() => {
     const savedLogo = localStorage.getItem(LOGO_KEY);
@@ -69,7 +64,6 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     const savedContactInfo = localStorage.getItem(CONTACT_INFO_KEY);
     const savedCurrency = localStorage.getItem(CURRENCY_KEY);
     const savedSoundVolume = localStorage.getItem(SOUND_VOLUME_KEY);
-    const savedWeb3formsKey = localStorage.getItem(WEB3FORMS_KEY);
     
     if (savedLogo) {
       setLogoState(savedLogo);
@@ -90,10 +84,6 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
 
     if (savedSoundVolume !== null) {
       setSoundVolumeState(parseFloat(savedSoundVolume));
-    }
-
-    if (savedWeb3formsKey) {
-      setWeb3formsAccessKeyState(savedWeb3formsKey);
     }
   }, []);
 
@@ -128,13 +118,8 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     localStorage.setItem(SOUND_VOLUME_KEY, volume.toString());
   };
 
-  const setWeb3formsAccessKey = (key: string) => {
-    setWeb3formsAccessKeyState(key);
-    localStorage.setItem(WEB3FORMS_KEY, key);
-  };
-
   return (
-    <SettingsContext.Provider value={{ logo, setLogo, isDarkMode, toggleDarkMode, contactInfo, setContactInfo, currency, setCurrency, soundVolume, setSoundVolume, web3formsAccessKey, setWeb3formsAccessKey }}>
+    <SettingsContext.Provider value={{ logo, setLogo, isDarkMode, toggleDarkMode, contactInfo, setContactInfo, currency, setCurrency, soundVolume, setSoundVolume }}>
       {children}
     </SettingsContext.Provider>
   );

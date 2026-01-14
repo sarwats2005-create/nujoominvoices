@@ -7,13 +7,11 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Mail, Phone, MapPin, Send, MessageSquare, AlertTriangle, Settings } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { contactFormSchema } from '@/lib/validation';
+import { Mail, Phone, MapPin, Send, MessageSquare } from 'lucide-react';
 
 const Contact: React.FC = () => {
   const { t } = useLanguage();
-  const { contactInfo, web3formsAccessKey } = useSettings();
+  const { contactInfo } = useSettings();
   const { toast } = useToast();
   const [formData, setFormData] = useState({
     name: '',
@@ -22,82 +20,21 @@ const Contact: React.FC = () => {
     message: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
-    // Clear error when user starts typing
-    if (errors[e.target.name]) {
-      setErrors(prev => ({ ...prev, [e.target.name]: '' }));
-    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Validate form data
-    const validation = contactFormSchema.safeParse(formData);
-    if (!validation.success) {
-      const fieldErrors: Record<string, string> = {};
-      validation.error.errors.forEach(err => {
-        if (err.path[0]) {
-          fieldErrors[err.path[0] as string] = err.message;
-        }
-      });
-      setErrors(fieldErrors);
-      return;
-    }
-    
-    if (!web3formsAccessKey) {
-      toast({ 
-        title: t('error'), 
-        description: t('accessKeyRequired'), 
-        variant: 'destructive' 
-      });
-      return;
-    }
-    
     setIsSubmitting(true);
-    setErrors({});
     
-    try {
-      const response = await fetch('https://api.web3forms.com/submit', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-        },
-        body: JSON.stringify({
-          access_key: web3formsAccessKey,
-          name: formData.name,
-          email: formData.email,
-          subject: formData.subject,
-          message: formData.message,
-          from_name: 'Nujoom Contact Form',
-        }),
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        toast({ title: t('messageSent'), description: t('messageSentDesc') });
-        setFormData({ name: '', email: '', subject: '', message: '' });
-      } else {
-        toast({ 
-          title: t('error'), 
-          description: t('messageFailed'), 
-          variant: 'destructive' 
-        });
-      }
-    } catch (error) {
-      toast({ 
-        title: t('error'), 
-        description: t('messageFailed'), 
-        variant: 'destructive' 
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
+    // Simulate sending message
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    toast({ title: t('messageSent'), description: t('messageSentDesc') });
+    setFormData({ name: '', email: '', subject: '', message: '' });
+    setIsSubmitting(false);
   };
 
   return (
@@ -139,25 +76,6 @@ const Contact: React.FC = () => {
         </Card>
       </div>
 
-      {!web3formsAccessKey && (
-        <Card className="border-warning bg-warning/5">
-          <CardContent className="pt-6">
-            <div className="flex items-start gap-3">
-              <AlertTriangle className="h-5 w-5 text-warning shrink-0 mt-0.5" />
-              <div className="flex-1">
-                <p className="text-sm text-warning-foreground">{t('accessKeyRequired')}</p>
-                <Link to="/settings">
-                  <Button variant="outline" size="sm" className="mt-3 gap-2">
-                    <Settings className="h-4 w-4" />
-                    {t('settings')}
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -178,9 +96,7 @@ const Contact: React.FC = () => {
                   onChange={handleChange}
                   required
                   placeholder={t('enterYourName')}
-                  className={errors.name ? 'border-destructive' : ''}
                 />
-                {errors.name && <p className="text-xs text-destructive">{errors.name}</p>}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="email">{t('yourEmail')}</Label>
@@ -192,9 +108,7 @@ const Contact: React.FC = () => {
                   onChange={handleChange}
                   required
                   placeholder={t('enterYourEmail')}
-                  className={errors.email ? 'border-destructive' : ''}
                 />
-                {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
               </div>
             </div>
 
@@ -207,9 +121,7 @@ const Contact: React.FC = () => {
                 onChange={handleChange}
                 required
                 placeholder={t('enterSubject')}
-                className={errors.subject ? 'border-destructive' : ''}
               />
-              {errors.subject && <p className="text-xs text-destructive">{errors.subject}</p>}
             </div>
 
             <div className="space-y-2">
@@ -222,16 +134,10 @@ const Contact: React.FC = () => {
                 required
                 rows={5}
                 placeholder={t('enterMessage')}
-                className={errors.message ? 'border-destructive' : ''}
               />
-              {errors.message && <p className="text-xs text-destructive">{errors.message}</p>}
             </div>
 
-            <Button 
-              type="submit" 
-              className="w-full" 
-              disabled={isSubmitting || !web3formsAccessKey}
-            >
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
               <Send className="h-4 w-4 mr-2" />
               {isSubmitting ? t('sending') : t('sendMessage')}
             </Button>

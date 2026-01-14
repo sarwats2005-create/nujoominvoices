@@ -11,12 +11,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Slider } from '@/components/ui/slider';
 import { useToast } from '@/hooks/use-toast';
 import { useSoundEffects } from '@/hooks/useSoundEffects';
-import { Settings as SettingsIcon, Languages, Image, Building2, Trash2, LayoutDashboard, Mail, Phone, MapPin, Coins, Download, Smartphone, Check, Volume2, Key, ExternalLink } from 'lucide-react';
+import { Settings as SettingsIcon, Languages, Image, Building2, Trash2, LayoutDashboard, Mail, Phone, MapPin, Coins, Download, Smartphone, Check, Volume2 } from 'lucide-react';
 import DashboardSelector from '@/components/DashboardSelector';
 
 const Settings: React.FC = () => {
   const { t, language, setLanguage } = useLanguage();
-  const { logo, setLogo, contactInfo, setContactInfo, currency, setCurrency, soundVolume, setSoundVolume, web3formsAccessKey, setWeb3formsAccessKey } = useSettings();
+  const { logo, setLogo, contactInfo, setContactInfo, currency, setCurrency, soundVolume, setSoundVolume } = useSettings();
   const { playWinSound } = useSoundEffects();
   const { banks, deleteBank, currentDashboardId, setCurrentDashboardId } = useInvoice();
   const { canInstall, isInstalled, isIOS, promptInstall } = usePWAInstall();
@@ -170,29 +170,6 @@ const Settings: React.FC = () => {
                   </Button>
                 </div>
               ))}
-            </div>
-          </div>
-
-          {/* Web3Forms Access Key */}
-          <div className="space-y-2">
-            <Label className="flex items-center gap-2"><Key className="h-4 w-4" />{t('web3formsAccessKey')}</Label>
-            <div className="space-y-3 border rounded-md p-4">
-              <Input
-                value={web3formsAccessKey}
-                onChange={(e) => setWeb3formsAccessKey(e.target.value)}
-                placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-                type="password"
-              />
-              <p className="text-xs text-muted-foreground">{t('web3formsDescription')}</p>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => window.open('https://web3forms.com', '_blank')}
-                className="gap-2"
-              >
-                <ExternalLink className="h-3 w-3" />
-                {t('getAccessKey')}
-              </Button>
             </div>
           </div>
 

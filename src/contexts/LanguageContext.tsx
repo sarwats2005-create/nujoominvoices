@@ -1073,31 +1073,6 @@ export const translations: Translations = {
     ar: 'حدث خطأ ما. يرجى المحاولة مرة أخرى.',
     ku: 'هەڵەیەک ڕوویدا. تکایە دووبارە هەوڵ بدەوە.',
   },
-  web3formsAccessKey: {
-    en: 'Web3Forms Access Key',
-    ar: 'مفتاح الوصول Web3Forms',
-    ku: 'کلیلی دەستگەیشتن بە Web3Forms',
-  },
-  web3formsDescription: {
-    en: 'Enter your Web3Forms access key to enable the contact form. Get a free key at web3forms.com',
-    ar: 'أدخل مفتاح الوصول Web3Forms لتفعيل نموذج الاتصال. احصل على مفتاح مجاني من web3forms.com',
-    ku: 'کلیلی دەستگەیشتنی Web3Forms بنووسە بۆ چالاککردنی فۆڕمی پەیوەندی. کلیلێکی بەخۆڕایی لە web3forms.com وەربگرە',
-  },
-  getAccessKey: {
-    en: 'Get Free Access Key',
-    ar: 'احصل على مفتاح مجاني',
-    ku: 'کلیلی بەخۆڕایی وەربگرە',
-  },
-  accessKeyRequired: {
-    en: 'Please configure Web3Forms access key in Settings to enable contact form.',
-    ar: 'يرجى تكوين مفتاح الوصول Web3Forms في الإعدادات لتفعيل نموذج الاتصال.',
-    ku: 'تکایە کلیلی دەستگەیشتنی Web3Forms لە ڕێکخستنەکان ڕێکبخە بۆ چالاککردنی فۆڕمی پەیوەندی.',
-  },
-  messageFailed: {
-    en: 'Failed to send message. Please try again.',
-    ar: 'فشل إرسال الرسالة. يرجى المحاولة مرة أخرى.',
-    ku: 'ناردنی نامە سەرنەکەوت. تکایە دووبارە هەوڵ بدەوە.',
-  },
 };
 
 interface LanguageContextType {
