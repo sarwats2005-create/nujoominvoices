@@ -7,7 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Mail, Phone, MapPin, Send, MessageSquare } from 'lucide-react';
+import { Mail, Phone, MapPin, Send, MessageSquare, Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 const Contact: React.FC = () => {
   const { t } = useLanguage();
@@ -29,12 +30,36 @@ const Contact: React.FC = () => {
     e.preventDefault();
     setIsSubmitting(true);
     
-    // Simulate sending message
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    toast({ title: t('messageSent'), description: t('messageSentDesc') });
-    setFormData({ name: '', email: '', subject: '', message: '' });
-    setIsSubmitting(false);
+    try {
+      const { data, error } = await supabase.functions.invoke('send-feedback', {
+        body: {
+          name: formData.name,
+          email: formData.email,
+          subject: formData.subject,
+          message: formData.message,
+          recipientEmail: contactInfo.email,
+        },
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      toast({ 
+        title: t('messageSent'), 
+        description: t('messageSentDesc'),
+      });
+      setFormData({ name: '', email: '', subject: '', message: '' });
+    } catch (error: any) {
+      console.error('Error sending feedback:', error);
+      toast({ 
+        title: 'Error', 
+        description: error.message || 'Failed to send message. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -138,7 +163,11 @@ const Contact: React.FC = () => {
             </div>
 
             <Button type="submit" className="w-full" disabled={isSubmitting}>
-              <Send className="h-4 w-4 mr-2" />
+              {isSubmitting ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Send className="h-4 w-4 mr-2" />
+              )}
               {isSubmitting ? t('sending') : t('sendMessage')}
             </Button>
           </form>
