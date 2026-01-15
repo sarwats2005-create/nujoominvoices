@@ -7,6 +7,7 @@ export interface Invoice {
   userId: string;
   dashboardId: string;
   amount: number;
+  currency: string;
   date: string;
   invoiceNumber: string;
   beneficiary: string;
@@ -129,6 +130,7 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
       userId: inv.user_id,
       dashboardId: inv.dashboard_id,
       amount: Number(inv.amount),
+      currency: inv.currency,
       date: inv.date,
       invoiceNumber: inv.invoice_number,
       beneficiary: inv.beneficiary,
@@ -239,6 +241,7 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
         user_id: user.id,
         dashboard_id: invoiceData.dashboardId,
         amount: invoiceData.amount,
+        currency: invoiceData.currency || 'USD',
         date: invoiceData.date,
         invoice_number: invoiceData.invoiceNumber,
         beneficiary: invoiceData.beneficiary,
@@ -256,6 +259,7 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
         userId: data.user_id,
         dashboardId: data.dashboard_id,
         amount: Number(data.amount),
+        currency: data.currency,
         date: data.date,
         invoiceNumber: data.invoice_number,
         beneficiary: data.beneficiary,
@@ -276,6 +280,7 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
       user_id: user.id,
       dashboard_id: inv.dashboardId,
       amount: inv.amount,
+      currency: inv.currency || 'USD',
       date: inv.date,
       invoice_number: inv.invoiceNumber,
       beneficiary: inv.beneficiary,
@@ -296,6 +301,7 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
         userId: d.user_id,
         dashboardId: d.dashboard_id,
         amount: Number(d.amount),
+        currency: d.currency,
         date: d.date,
         invoiceNumber: d.invoice_number,
         beneficiary: d.beneficiary,
@@ -314,6 +320,7 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
 
     const updateData: Record<string, unknown> = {};
     if (data.amount !== undefined) updateData.amount = data.amount;
+    if (data.currency !== undefined) updateData.currency = data.currency;
     if (data.date !== undefined) updateData.date = data.date;
     if (data.invoiceNumber !== undefined) updateData.invoice_number = data.invoiceNumber;
     if (data.beneficiary !== undefined) updateData.beneficiary = data.beneficiary;

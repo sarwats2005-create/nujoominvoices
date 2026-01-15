@@ -132,6 +132,7 @@ export type Database = {
           beneficiary: string
           container_number: string | null
           created_at: string
+          currency: string
           dashboard_id: string
           date: string
           id: string
@@ -147,6 +148,7 @@ export type Database = {
           beneficiary: string
           container_number?: string | null
           created_at?: string
+          currency?: string
           dashboard_id: string
           date: string
           id?: string
@@ -162,6 +164,7 @@ export type Database = {
           beneficiary?: string
           container_number?: string | null
           created_at?: string
+          currency?: string
           dashboard_id?: string
           date?: string
           id?: string

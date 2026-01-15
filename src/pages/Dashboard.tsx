@@ -123,6 +123,7 @@ const Dashboard: React.FC = () => {
             newInvoices.push({
               invoiceNumber: cells[0] || '',
               amount: parseFloat(cells[1]?.replace(/[^0-9.-]/g, '')) || 0,
+              currency: cells[6] || 'USD',
               date: cells[2] || new Date().toISOString(),
               beneficiary: cells[3] || '',
               bank: cells[4] || '',
