@@ -63,13 +63,14 @@ const Contact: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in max-w-4xl mx-auto">
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-foreground mb-2">{t('getInTouch')}</h1>
-        <p className="text-muted-foreground">{t('getInTouchDesc')}</p>
-      </div>
+    <div className="min-h-[calc(100vh-200px)] relative">
+      {/* Contact Info Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 max-w-4xl mx-auto animate-fade-in">
+        <div className="text-center mb-8 col-span-full">
+          <h1 className="text-3xl font-bold text-foreground mb-2">{t('getInTouch')}</h1>
+          <p className="text-muted-foreground">{t('getInTouchDesc')}</p>
+        </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <Card className="text-center">
           <CardContent className="pt-6">
             <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
@@ -101,78 +102,85 @@ const Contact: React.FC = () => {
         </Card>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <MessageSquare className="h-5 w-5 text-primary" />
-            {t('sendMessage')}
-          </CardTitle>
-          <CardDescription>{t('sendMessageDesc')}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">{t('yourName')}</Label>
+      {/* Floating Message Form - Bottom Right */}
+      <div className="fixed bottom-6 right-6 z-50 w-full max-w-md animate-slide-in-right">
+        <Card className="shadow-xl border-2">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <MessageSquare className="h-5 w-5 text-primary" />
+              {t('sendMessage')}
+            </CardTitle>
+            <CardDescription className="text-sm">{t('sendMessageDesc')}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label htmlFor="name" className="text-sm">{t('yourName')}</Label>
+                  <Input
+                    id="name"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    required
+                    placeholder={t('enterYourName')}
+                    className="h-9"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="email" className="text-sm">{t('yourEmail')}</Label>
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                    placeholder={t('enterYourEmail')}
+                    className="h-9"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <Label htmlFor="subject" className="text-sm">{t('subject')}</Label>
                 <Input
-                  id="name"
-                  name="name"
-                  value={formData.name}
+                  id="subject"
+                  name="subject"
+                  value={formData.subject}
                   onChange={handleChange}
                   required
-                  placeholder={t('enterYourName')}
+                  placeholder={t('enterSubject')}
+                  className="h-9"
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">{t('yourEmail')}</Label>
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  value={formData.email}
+
+              <div className="space-y-1">
+                <Label htmlFor="message" className="text-sm">{t('message')}</Label>
+                <Textarea
+                  id="message"
+                  name="message"
+                  value={formData.message}
                   onChange={handleChange}
                   required
-                  placeholder={t('enterYourEmail')}
+                  rows={3}
+                  placeholder={t('enterMessage')}
+                  className="resize-none"
                 />
               </div>
-            </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="subject">{t('subject')}</Label>
-              <Input
-                id="subject"
-                name="subject"
-                value={formData.subject}
-                onChange={handleChange}
-                required
-                placeholder={t('enterSubject')}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="message">{t('message')}</Label>
-              <Textarea
-                id="message"
-                name="message"
-                value={formData.message}
-                onChange={handleChange}
-                required
-                rows={5}
-                placeholder={t('enterMessage')}
-              />
-            </div>
-
-            <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <Send className="h-4 w-4 mr-2" />
-              )}
-              {isSubmitting ? t('sending') : t('sendMessage')}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+              <Button type="submit" className="w-full h-9" disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Send className="h-4 w-4 mr-2" />
+                )}
+                {isSubmitting ? t('sending') : t('sendMessage')}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };
