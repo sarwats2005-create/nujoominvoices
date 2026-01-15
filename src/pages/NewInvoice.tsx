@@ -2,14 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useInvoice } from '@/contexts/InvoiceContext';
-import { useSettings, currencies } from '@/contexts/SettingsContext';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { useSoundEffects } from '@/hooks/useSoundEffects';
 import { format } from 'date-fns';
@@ -33,7 +31,6 @@ const NewInvoice: React.FC = () => {
 
   const { t } = useLanguage();
   const { addInvoice, dashboards, currentDashboardId } = useInvoice();
-  const { currency, setCurrency } = useSettings();
   const navigate = useNavigate();
   const { toast } = useToast();
   const { playWinSound } = useSoundEffects();
@@ -107,25 +104,8 @@ const NewInvoice: React.FC = () => {
                 <DollarSign className="h-4 w-4 text-muted-foreground" />
                 {t('invoiceAmount')}
               </Label>
-              <div className="flex gap-2">
-                <Select 
-                  value={currency.code} 
-                  onValueChange={(code) => {
-                    const selected = currencies.find(c => c.code === code);
-                    if (selected) setCurrency(selected);
-                  }}
-                >
-                  <SelectTrigger className="w-24 shrink-0">
-                    <SelectValue>{currency.symbol}</SelectValue>
-                  </SelectTrigger>
-                  <SelectContent className="bg-popover">
-                    {currencies.map((c) => (
-                      <SelectItem key={c.code} value={c.code}>
-                        {c.symbol} {c.code}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className="relative">
+                <DollarSign className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   id="amount"
                   type="number"
@@ -133,6 +113,7 @@ const NewInvoice: React.FC = () => {
                   min="0"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
+                  className="pl-10"
                   placeholder="0.00"
                   required
                 />
