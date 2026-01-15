@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { useSoundEffects } from '@/hooks/useSoundEffects';
 import { format } from 'date-fns';
@@ -18,8 +19,20 @@ import DashboardSelector from '@/components/DashboardSelector';
 import { MagicCard } from '@/components/MagicCard';
 import ElectricBorder from '@/components/ElectricBorder';
 
+const CURRENCIES = [
+  { code: 'USD', symbol: '$', name: 'US Dollar' },
+  { code: 'EUR', symbol: '€', name: 'Euro' },
+  { code: 'GBP', symbol: '£', name: 'British Pound' },
+  { code: 'IQD', symbol: 'د.ع', name: 'Iraqi Dinar' },
+  { code: 'TRY', symbol: '₺', name: 'Turkish Lira' },
+  { code: 'SAR', symbol: '﷼', name: 'Saudi Riyal' },
+  { code: 'AED', symbol: 'د.إ', name: 'UAE Dirham' },
+  { code: 'RMB', symbol: '¥', name: 'Chinese Yuan' },
+];
+
 const NewInvoice: React.FC = () => {
   const [amount, setAmount] = useState('');
+  const [currency, setCurrency] = useState('USD');
   const [date, setDate] = useState<Date>();
   const [invoiceNumber, setInvoiceNumber] = useState('');
   const [beneficiary, setBeneficiary] = useState('');
@@ -58,6 +71,7 @@ const NewInvoice: React.FC = () => {
 
     addInvoice({
       amount: parseFloat(amount),
+      currency,
       date: date.toISOString(),
       invoiceNumber,
       beneficiary,
@@ -98,25 +112,37 @@ const NewInvoice: React.FC = () => {
               <DashboardSelector value={dashboardId} onChange={setDashboardId} />
             </div>
 
-            {/* Invoice Amount */}
+            {/* Invoice Amount with Currency */}
             <div className="space-y-2">
               <Label htmlFor="amount" className="flex items-center gap-2">
                 <DollarSign className="h-4 w-4 text-muted-foreground" />
                 {t('invoiceAmount')}
               </Label>
-              <div className="relative">
-                <DollarSign className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  id="amount"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  className="pl-10"
-                  placeholder="0.00"
-                  required
-                />
+              <div className="flex gap-2">
+                <Select value={currency} onValueChange={setCurrency}>
+                  <SelectTrigger className="w-24 bg-background">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-popover z-50">
+                    {CURRENCIES.map((curr) => (
+                      <SelectItem key={curr.code} value={curr.code}>
+                        {curr.symbol} {curr.code}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <div className="relative flex-1">
+                  <Input
+                    id="amount"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    placeholder="0.00"
+                    required
+                  />
+                </div>
               </div>
             </div>
 
