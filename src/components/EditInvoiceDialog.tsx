@@ -23,6 +23,7 @@ const EditInvoiceDialog: React.FC<EditInvoiceDialogProps> = ({ invoice, open, on
 
   const [formData, setFormData] = useState({
     amount: '',
+    currency: 'USD',
     date: '',
     invoiceNumber: '',
     beneficiary: '',
@@ -31,10 +32,22 @@ const EditInvoiceDialog: React.FC<EditInvoiceDialogProps> = ({ invoice, open, on
     swiftDate: '',
   });
 
+  const currencies = [
+    { code: 'USD', symbol: '$', name: 'US Dollar' },
+    { code: 'EUR', symbol: '€', name: 'Euro' },
+    { code: 'GBP', symbol: '£', name: 'British Pound' },
+    { code: 'IQD', symbol: 'د.ع', name: 'Iraqi Dinar' },
+    { code: 'TRY', symbol: '₺', name: 'Turkish Lira' },
+    { code: 'SAR', symbol: '﷼', name: 'Saudi Riyal' },
+    { code: 'AED', symbol: 'د.إ', name: 'UAE Dirham' },
+    { code: 'RMB', symbol: '¥', name: 'Chinese Yuan' },
+  ];
+
   useEffect(() => {
     if (invoice) {
       setFormData({
         amount: invoice.amount.toString(),
+        currency: invoice.currency || 'USD',
         date: format(new Date(invoice.date), 'yyyy-MM-dd'),
         invoiceNumber: invoice.invoiceNumber,
         beneficiary: invoice.beneficiary,
@@ -51,6 +64,7 @@ const EditInvoiceDialog: React.FC<EditInvoiceDialogProps> = ({ invoice, open, on
 
     updateInvoice(invoice.id, {
       amount: parseFloat(formData.amount),
+      currency: formData.currency,
       date: formData.date,
       invoiceNumber: formData.invoiceNumber,
       beneficiary: formData.beneficiary,
@@ -88,14 +102,29 @@ const EditInvoiceDialog: React.FC<EditInvoiceDialogProps> = ({ invoice, open, on
                 <DollarSign className="h-3 w-3" />
                 {t('invoiceAmount')}
               </Label>
-              <Input
-                id="amount"
-                type="number"
-                step="0.01"
-                value={formData.amount}
-                onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                required
-              />
+              <div className="flex gap-2">
+                <Input
+                  id="amount"
+                  type="number"
+                  step="0.01"
+                  value={formData.amount}
+                  onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                  required
+                  className="flex-1"
+                />
+                <Select value={formData.currency} onValueChange={(value) => setFormData({ ...formData, currency: value })}>
+                  <SelectTrigger className="w-24">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {currencies.map((curr) => (
+                      <SelectItem key={curr.code} value={curr.code}>
+                        {curr.symbol} {curr.code}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
 
