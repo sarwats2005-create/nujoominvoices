@@ -49,7 +49,25 @@ const Dashboard: React.FC = () => {
   const printRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const currentDashboard = dashboards.find(d => d.id === currentDashboardId);
-  const formatAmount = (amount: number) => `${currency.symbol}${Math.round(amount).toLocaleString()}`;
+  
+  const getCurrencySymbol = (currencyCode: string) => {
+    const symbols: Record<string, string> = {
+      USD: '$',
+      EUR: '€',
+      GBP: '£',
+      IQD: 'د.ع',
+      TRY: '₺',
+      SAR: '﷼',
+      AED: 'د.إ',
+      RMB: '¥',
+    };
+    return symbols[currencyCode] || currencyCode;
+  };
+  
+  const formatAmount = (amount: number, currencyCode?: string) => {
+    const symbol = currencyCode ? getCurrencySymbol(currencyCode) : currency.symbol;
+    return `${symbol}${Math.round(amount).toLocaleString()}`;
+  };
   const filteredInvoices = useMemo(() => {
     if (!searchQuery.trim()) return invoices;
     const query = searchQuery.toLowerCase();
@@ -98,7 +116,7 @@ const Dashboard: React.FC = () => {
     });
   };
   const copyTableToClipboard = () => {
-    const rows = sortedInvoices.map(inv => [inv.invoiceNumber, formatAmount(inv.amount), format(new Date(inv.date), 'dd/MM/yyyy'), inv.beneficiary, inv.bank, inv.containerNumber || '', inv.swiftDate ? format(new Date(inv.swiftDate), 'dd/MM/yyyy') : '', inv.status === 'received' ? t('received') : t('pending')]);
+    const rows = sortedInvoices.map(inv => [inv.invoiceNumber, formatAmount(inv.amount, inv.currency), format(new Date(inv.date), 'dd/MM/yyyy'), inv.beneficiary, inv.bank, inv.containerNumber || '', inv.swiftDate ? format(new Date(inv.swiftDate), 'dd/MM/yyyy') : '', inv.status === 'received' ? t('received') : t('pending')]);
     const text = rows.map(row => row.join('\t')).join('\n');
     navigator.clipboard.writeText(text);
     toast({
@@ -212,7 +230,7 @@ const Dashboard: React.FC = () => {
             ${sortedInvoices.map(inv => `
               <tr class="${inv.status === 'received' ? 'received' : ''}">
                 <td>${inv.invoiceNumber}</td>
-                <td>${formatAmount(inv.amount)}</td>
+                <td>${formatAmount(inv.amount, inv.currency)}</td>
                 <td>${format(new Date(inv.date), 'dd/MM/yyyy')}</td>
                 <td>${inv.beneficiary}</td>
                 <td>${inv.bank}</td>
@@ -480,7 +498,7 @@ const Dashboard: React.FC = () => {
                           />
                         </TableCell>
                         <TableCell className="font-semibold text-primary">{inv.invoiceNumber}</TableCell>
-                        <TableCell className="font-medium">{formatAmount(inv.amount)}</TableCell>
+                        <TableCell className="font-medium">{formatAmount(inv.amount, inv.currency)}</TableCell>
                         <TableCell className="text-muted-foreground">{format(new Date(inv.date), 'dd/MM/yyyy')}</TableCell>
                         <TableCell>{inv.beneficiary}</TableCell>
                         <TableCell>{inv.bank}</TableCell>
