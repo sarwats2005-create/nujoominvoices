@@ -18,6 +18,9 @@ import { MagicCard } from '@/components/MagicCard';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import CountUp from '@/components/CountUp';
+import PrintSettingsDialog, { PrintSettings } from '@/components/PrintSettingsDialog';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 type SortKey = 'invoiceNumber' | 'amount' | 'date' | 'beneficiary' | 'bank' | 'status' | 'containerNumber' | 'swiftDate';
 const Dashboard: React.FC = () => {
   const {
@@ -45,6 +48,7 @@ const Dashboard: React.FC = () => {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showPrintDialog, setShowPrintDialog] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const printRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -189,30 +193,39 @@ const Dashboard: React.FC = () => {
       title: t('csvExported')
     });
   };
-  const handlePrint = () => {
+  const handlePrint = (settings: PrintSettings) => {
     const printContent = printRef.current;
     if (!printContent) return;
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
+    
+    const isLandscape = settings.orientation === 'landscape';
+    const margins = settings.margins;
+    
     printWindow.document.write(`
       <!DOCTYPE html>
       <html>
       <head>
         <title>${currentDashboard?.name || t('allInvoices')}</title>
         <style>
-          body { font-family: Arial, sans-serif; padding: 20px; }
-          table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-          th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+          @page {
+            size: ${settings.paperSize} ${settings.orientation};
+            margin: ${margins.top}mm ${margins.right}mm ${margins.bottom}mm ${margins.left}mm;
+          }
+          body { font-family: Arial, sans-serif; padding: 20px; margin: 0; }
+          table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: ${isLandscape ? '11px' : '10px'}; }
+          th, td { border: 1px solid #ddd; padding: 6px 8px; text-align: left; }
           th { background-color: #1e3a5f; color: white; }
           tr:nth-child(even) { background-color: #f9f9f9; }
           .received { background-color: #d4edda; }
-          h1 { color: #1e3a5f; }
+          h1 { color: #1e3a5f; margin-bottom: 5px; }
+          .print-info { color: #666; font-size: 12px; margin-bottom: 10px; }
           @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
         </style>
       </head>
       <body>
         <h1>${currentDashboard?.name || t('allInvoices')}</h1>
-        <p>${t('printDate')}: ${format(new Date(), 'PPP')}</p>
+        <p class="print-info">${t('printDate')}: ${format(new Date(), 'PPP')} | ${t('totalInvoices')}: ${sortedInvoices.length}</p>
         <table>
           <thead>
             <tr>
@@ -246,6 +259,82 @@ const Dashboard: React.FC = () => {
     `);
     printWindow.document.close();
     printWindow.print();
+  };
+
+  const handleExportPDF = (settings: PrintSettings) => {
+    const isLandscape = settings.orientation === 'landscape';
+    const doc = new jsPDF({
+      orientation: settings.orientation,
+      unit: 'mm',
+      format: settings.paperSize,
+    });
+
+    const margins = settings.margins;
+
+    // Add title
+    doc.setFontSize(18);
+    doc.setTextColor(30, 58, 95);
+    doc.text(currentDashboard?.name || t('allInvoices'), margins.left, margins.top);
+
+    // Add date and count
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100);
+    doc.text(`${t('printDate')}: ${format(new Date(), 'PPP')} | ${t('totalInvoices')}: ${sortedInvoices.length}`, margins.left, margins.top + 8);
+
+    // Table headers
+    const headers = [
+      t('invoiceNumber'),
+      t('invoiceAmount'),
+      t('invoiceDate'),
+      t('beneficiary'),
+      t('bank'),
+      t('containerNumber'),
+      t('swiftDate'),
+      t('status'),
+    ];
+
+    // Table data
+    const data = sortedInvoices.map(inv => [
+      inv.invoiceNumber,
+      formatAmount(inv.amount, inv.currency),
+      format(new Date(inv.date), 'dd/MM/yyyy'),
+      inv.beneficiary,
+      inv.bank,
+      inv.containerNumber || '-',
+      inv.swiftDate ? format(new Date(inv.swiftDate), 'dd/MM/yyyy') : '-',
+      inv.status === 'received' ? t('received') : t('pending'),
+    ]);
+
+    autoTable(doc, {
+      head: [headers],
+      body: data,
+      startY: margins.top + 15,
+      margin: { left: margins.left, right: margins.right },
+      styles: {
+        fontSize: isLandscape ? 9 : 8,
+        cellPadding: 2,
+      },
+      headStyles: {
+        fillColor: [30, 58, 95],
+        textColor: [255, 255, 255],
+        fontStyle: 'bold',
+      },
+      alternateRowStyles: {
+        fillColor: [249, 249, 249],
+      },
+      didParseCell: (data) => {
+        // Highlight received rows
+        if (data.section === 'body') {
+          const rowData = sortedInvoices[data.row.index];
+          if (rowData?.status === 'received') {
+            data.cell.styles.fillColor = [212, 237, 218];
+          }
+        }
+      },
+    });
+
+    doc.save(`${currentDashboard?.name || 'invoices'}-${format(new Date(), 'yyyy-MM-dd')}.pdf`);
+    toast({ title: t('pdfExported') || 'PDF exported successfully' });
   };
   const SortHeader = ({
     label,
@@ -412,7 +501,7 @@ const Dashboard: React.FC = () => {
             <Button onClick={handleCSVExport} variant="outline" size="sm" disabled={!invoices.length} className="border-primary/20 hover:bg-primary/5 hover:border-primary/40 transition-all">
               <Download className="h-4 w-4 mr-2" />{t('exportCSV')}
             </Button>
-            <Button onClick={handlePrint} variant="outline" size="sm" disabled={!invoices.length} className="border-primary/20 hover:bg-primary/5 hover:border-primary/40 transition-all">
+            <Button onClick={() => setShowPrintDialog(true)} variant="outline" size="sm" disabled={!invoices.length} className="border-primary/20 hover:bg-primary/5 hover:border-primary/40 transition-all">
               <Printer className="h-4 w-4 mr-2" />{t('print')}
             </Button>
             <Button onClick={copyTableToClipboard} variant="outline" size="sm" disabled={!invoices.length} className="border-primary/20 hover:bg-primary/5 hover:border-primary/40 transition-all">
@@ -575,6 +664,13 @@ const Dashboard: React.FC = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <PrintSettingsDialog
+        open={showPrintDialog}
+        onOpenChange={setShowPrintDialog}
+        onPrint={handlePrint}
+        onExportPDF={handleExportPDF}
+      />
     </div>;
 };
 export default Dashboard;
