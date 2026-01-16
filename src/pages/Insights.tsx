@@ -10,6 +10,25 @@ import { format, parseISO, startOfMonth, endOfMonth, eachMonthOfInterval, subMon
 import { gsap } from 'gsap';
 import CountUp from '@/components/CountUp';
 
+const getCurrencySymbol = (currencyCode: string) => {
+  const symbols: Record<string, string> = {
+    USD: '$',
+    EUR: '€',
+    GBP: '£',
+    IQD: 'د.ع',
+    TRY: '₺',
+    SAR: '﷼',
+    AED: 'د.إ',
+    RMB: '¥',
+  };
+  return symbols[currencyCode] || currencyCode;
+};
+
+const formatAmountWithCurrency = (amount: number, currencyCode?: string) => {
+  const symbol = currencyCode ? getCurrencySymbol(currencyCode) : '$';
+  return `${symbol}${Math.round(amount).toLocaleString()}`;
+};
+
 // Custom animated active shape for pie chart
 const renderActiveShape = (props: any) => {
   const {
@@ -23,7 +42,7 @@ const renderActiveShape = (props: any) => {
         {payload.name}
       </text>
       <text x={cx} y={cy + 15} textAnchor="middle" className="fill-muted-foreground text-sm">
-        ${value.toLocaleString()}
+        {formatAmountWithCurrency(value, payload.currency)}
       </text>
       <text x={cx} y={cy + 35} textAnchor="middle" className="fill-muted-foreground text-xs">
         {`${(percent * 100).toFixed(1)}%`}
@@ -97,13 +116,21 @@ const Insights: React.FC = () => {
     };
   });
 
-  // Bank distribution
+  // Bank distribution with currency info
   const bankData = banks.map(bank => {
     const bankInvoices = invoices.filter(inv => inv.bank === bank.name);
+    // Get the most common currency for this bank
+    const currencyCounts: Record<string, number> = {};
+    bankInvoices.forEach(inv => {
+      currencyCounts[inv.currency] = (currencyCounts[inv.currency] || 0) + 1;
+    });
+    const mostCommonCurrency = Object.entries(currencyCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || 'USD';
+    
     return {
       name: bank.name,
       count: bankInvoices.length,
       amount: bankInvoices.reduce((sum, inv) => sum + inv.amount, 0),
+      currency: mostCommonCurrency,
     };
   }).filter(b => b.count > 0);
 
@@ -341,7 +368,7 @@ const Insights: React.FC = () => {
                   <div className="flex-1 min-w-0">
                     <p className="font-medium truncate">{entry.name}</p>
                     <p className="text-sm text-muted-foreground">
-                      {entry.count} {t('invoiceCount').toLowerCase()} • ${entry.amount.toLocaleString()}
+                      {entry.count} {t('invoiceCount').toLowerCase()} • {formatAmountWithCurrency(entry.amount, entry.currency)}
                     </p>
                   </div>
                 </div>
