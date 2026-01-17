@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Mail, Phone, MapPin, Send, MessageSquare, Loader2 } from 'lucide-react';
+import { Mail, Phone, MapPin, Send, Loader2, Headphones, MessageCircle, Newspaper } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
 const Contact: React.FC = () => {
@@ -15,9 +15,10 @@ const Contact: React.FC = () => {
   const { contactInfo } = useSettings();
   const { toast } = useToast();
   const [formData, setFormData] = useState({
-    name: '',
+    firstName: '',
+    lastName: '',
     email: '',
-    subject: '',
+    phone: '',
     message: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -33,9 +34,9 @@ const Contact: React.FC = () => {
     try {
       const { data, error } = await supabase.functions.invoke('send-feedback', {
         body: {
-          name: formData.name,
+          name: `${formData.firstName} ${formData.lastName}`.trim(),
           email: formData.email,
-          subject: formData.subject,
+          subject: `Contact Form - ${formData.phone || 'No phone'}`,
           message: formData.message,
           recipientEmail: contactInfo.email,
         },
@@ -49,7 +50,7 @@ const Contact: React.FC = () => {
         title: t('messageSent'), 
         description: t('messageSentDesc'),
       });
-      setFormData({ name: '', email: '', subject: '', message: '' });
+      setFormData({ firstName: '', lastName: '', email: '', phone: '', message: '' });
     } catch (error: any) {
       console.error('Error sending feedback:', error);
       toast({ 
@@ -63,72 +64,78 @@ const Contact: React.FC = () => {
   };
 
   return (
-    <div className="min-h-[calc(100vh-200px)] relative">
-      {/* Contact Info Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 max-w-4xl mx-auto animate-fade-in">
-        <div className="text-center mb-8 col-span-full">
-          <h1 className="text-3xl font-bold text-foreground mb-2">{t('getInTouch')}</h1>
-          <p className="text-muted-foreground">{t('getInTouchDesc')}</p>
+    <div className="min-h-[calc(100vh-200px)] pb-12">
+      {/* Hero Section - Split Layout */}
+      <section className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 mb-16 animate-fade-in">
+        {/* Left Side - Contact Info */}
+        <div className="space-y-6">
+          <div>
+            <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">{t('contactUs')}</h1>
+            <p className="text-muted-foreground text-lg max-w-md">
+              {t('contactUsDesc')}
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            <a 
+              href={`mailto:${contactInfo.email}`} 
+              className="flex items-center gap-2 text-foreground hover:text-primary transition-colors"
+            >
+              <Mail className="h-4 w-4 text-muted-foreground" />
+              {contactInfo.email}
+            </a>
+            <a 
+              href={`tel:${contactInfo.phone}`} 
+              className="flex items-center gap-2 text-foreground hover:text-primary transition-colors"
+            >
+              <Phone className="h-4 w-4 text-muted-foreground" />
+              {contactInfo.phone}
+            </a>
+            <div className="flex items-center gap-2 text-foreground">
+              <MapPin className="h-4 w-4 text-muted-foreground" />
+              {contactInfo.address}
+            </div>
+          </div>
         </div>
 
-        <Card className="text-center">
-          <CardContent className="pt-6">
-            <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-              <Mail className="h-6 w-6 text-primary" />
-            </div>
-            <h3 className="font-semibold mb-1">{t('emailUs')}</h3>
-            <p className="text-sm text-muted-foreground">{contactInfo.email}</p>
-          </CardContent>
-        </Card>
-
-        <Card className="text-center">
-          <CardContent className="pt-6">
-            <div className="h-12 w-12 rounded-full bg-success/10 flex items-center justify-center mx-auto mb-4">
-              <Phone className="h-6 w-6 text-success" />
-            </div>
-            <h3 className="font-semibold mb-1">{t('callUs')}</h3>
-            <p className="text-sm text-muted-foreground">{contactInfo.phone}</p>
-          </CardContent>
-        </Card>
-
-        <Card className="text-center">
-          <CardContent className="pt-6">
-            <div className="h-12 w-12 rounded-full bg-warning/10 flex items-center justify-center mx-auto mb-4">
-              <MapPin className="h-6 w-6 text-warning" />
-            </div>
-            <h3 className="font-semibold mb-1">{t('visitUs')}</h3>
-            <p className="text-sm text-muted-foreground">{contactInfo.address}</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Floating Message Form - Bottom Right */}
-      <div className="fixed bottom-6 right-6 z-50 w-full max-w-md animate-slide-in-right">
-        <Card className="shadow-xl border-2">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <MessageSquare className="h-5 w-5 text-primary" />
-              {t('sendMessage')}
-            </CardTitle>
-            <CardDescription className="text-sm">{t('sendMessageDesc')}</CardDescription>
+        {/* Right Side - Contact Form Card */}
+        <Card className="shadow-xl border bg-card">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-xl">{t('getInTouch')}</CardTitle>
+            <CardDescription>{t('reachUsAnytime')}</CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-3">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <Label htmlFor="name" className="text-sm">{t('yourName')}</Label>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="firstName" className="text-sm">{t('firstName')}</Label>
                   <Input
-                    id="name"
-                    name="name"
-                    value={formData.name}
+                    id="firstName"
+                    name="firstName"
+                    value={formData.firstName}
                     onChange={handleChange}
                     required
-                    placeholder={t('enterYourName')}
-                    className="h-9"
+                    placeholder={t('firstName')}
+                    className="h-10"
                   />
                 </div>
-                <div className="space-y-1">
-                  <Label htmlFor="email" className="text-sm">{t('yourEmail')}</Label>
+                <div className="space-y-2">
+                  <Label htmlFor="lastName" className="text-sm">{t('lastName')}</Label>
+                  <Input
+                    id="lastName"
+                    name="lastName"
+                    value={formData.lastName}
+                    onChange={handleChange}
+                    placeholder={t('lastName')}
+                    className="h-10"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-sm">{t('yourEmail')}</Label>
+                <div className="relative">
+                  <Mail className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="email"
                     name="email"
@@ -137,50 +144,156 @@ const Contact: React.FC = () => {
                     onChange={handleChange}
                     required
                     placeholder={t('enterYourEmail')}
-                    className="h-9"
+                    className="h-10 ps-10"
                   />
                 </div>
               </div>
 
-              <div className="space-y-1">
-                <Label htmlFor="subject" className="text-sm">{t('subject')}</Label>
-                <Input
-                  id="subject"
-                  name="subject"
-                  value={formData.subject}
-                  onChange={handleChange}
-                  required
-                  placeholder={t('enterSubject')}
-                  className="h-9"
-                />
+              <div className="space-y-2">
+                <Label htmlFor="phone" className="text-sm">{t('phoneNumber')}</Label>
+                <div className="relative">
+                  <Phone className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="phone"
+                    name="phone"
+                    type="tel"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    placeholder={t('phoneNumber')}
+                    className="h-10 ps-10"
+                  />
+                </div>
               </div>
 
-              <div className="space-y-1">
-                <Label htmlFor="message" className="text-sm">{t('message')}</Label>
+              <div className="space-y-2">
+                <Label htmlFor="message" className="text-sm flex items-center gap-2">
+                  <span className="h-2 w-2 rounded-full bg-destructive"></span>
+                  {t('howCanWeHelp')}
+                </Label>
                 <Textarea
                   id="message"
                   name="message"
                   value={formData.message}
                   onChange={handleChange}
                   required
-                  rows={3}
+                  rows={4}
                   placeholder={t('enterMessage')}
                   className="resize-none"
                 />
+                <div className="text-xs text-muted-foreground text-end">
+                  {formData.message.length}/500
+                </div>
               </div>
 
-              <Button type="submit" className="w-full h-9" disabled={isSubmitting}>
+              <Button type="submit" className="w-full h-11" disabled={isSubmitting}>
                 {isSubmitting ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  <>
+                    <Loader2 className="h-4 w-4 me-2 animate-spin" />
+                    {t('sending')}
+                  </>
                 ) : (
-                  <Send className="h-4 w-4 mr-2" />
+                  <>
+                    <Send className="h-4 w-4 me-2" />
+                    {t('submit')}
+                  </>
                 )}
-                {isSubmitting ? t('sending') : t('sendMessage')}
               </Button>
+
+              <p className="text-xs text-muted-foreground text-center">
+                {t('termsAgreement')}
+              </p>
             </form>
           </CardContent>
         </Card>
-      </div>
+      </section>
+
+      {/* Support Categories */}
+      <section className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16 animate-fade-in" style={{ animationDelay: '0.1s' }}>
+        <div className="space-y-3">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+              <Headphones className="h-5 w-5 text-primary" />
+            </div>
+            <h3 className="font-semibold text-foreground">{t('customerSupport')}</h3>
+          </div>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            {t('customerSupportDesc')}
+          </p>
+        </div>
+
+        <div className="space-y-3">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+              <MessageCircle className="h-5 w-5 text-primary" />
+            </div>
+            <h3 className="font-semibold text-foreground">{t('feedbackSuggestions')}</h3>
+          </div>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            {t('feedbackSuggestionsDesc')}
+          </p>
+        </div>
+
+        <div className="space-y-3">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+              <Newspaper className="h-5 w-5 text-primary" />
+            </div>
+            <h3 className="font-semibold text-foreground">{t('mediaInquiries')}</h3>
+          </div>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            {t('mediaInquiriesDesc')}
+          </p>
+        </div>
+      </section>
+
+      {/* Location Section */}
+      <section className="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-fade-in" style={{ animationDelay: '0.2s' }}>
+        {/* Map Placeholder */}
+        <div className="relative rounded-xl overflow-hidden bg-muted min-h-[300px] lg:min-h-[400px]">
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-primary/10 flex items-center justify-center">
+            <div className="text-center">
+              <MapPin className="h-12 w-12 text-primary mx-auto mb-3" />
+              <p className="text-muted-foreground">{contactInfo.address}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Location Info */}
+        <div className="flex flex-col justify-center space-y-6">
+          <div>
+            <p className="text-sm text-muted-foreground mb-2">{t('ourLocation')}</p>
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground">{t('connectingNearFar')}</h2>
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <h3 className="font-semibold text-foreground mb-1">{t('headquarters')}</h3>
+              <p className="text-sm text-muted-foreground">{contactInfo.address}</p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm font-medium text-foreground">{t('emailUs')}</p>
+                <a 
+                  href={`mailto:${contactInfo.email}`}
+                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                >
+                  {contactInfo.email}
+                </a>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-foreground">{t('callUs')}</p>
+                <a 
+                  href={`tel:${contactInfo.phone}`}
+                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                >
+                  {contactInfo.phone}
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   );
 };
