@@ -1073,6 +1073,97 @@ export const translations: Translations = {
     ar: 'حدث خطأ ما. يرجى المحاولة مرة أخرى.',
     ku: 'هەڵەیەک ڕوویدا. تکایە دووبارە هەوڵ بدەوە.',
   },
+  // Contact Page - New design
+  contactUs: {
+    en: 'Contact Us',
+    ar: 'اتصل بنا',
+    ku: 'پەیوەندیمان پێوە بکە',
+  },
+  contactUsDesc: {
+    en: 'Email, call, or complete the form to learn how we can help you.',
+    ar: 'أرسل بريداً إلكترونياً أو اتصل أو أكمل النموذج لمعرفة كيف يمكننا مساعدتك.',
+    ku: 'ئیمەیل، پەیوەندی، یان فۆڕمەکە پڕ بکەرەوە بۆ زانینی چۆنیەتی یارمەتیدانت.',
+  },
+  customerSupport: {
+    en: 'Customer Support',
+    ar: 'دعم العملاء',
+    ku: 'پشتیوانی کڕیار',
+  },
+  customerSupportDesc: {
+    en: 'Our support team is available around the clock to address any concerns or queries you may have.',
+    ar: 'فريق الدعم لدينا متاح على مدار الساعة لمعالجة أي مخاوف أو استفسارات قد تكون لديك.',
+    ku: 'تیمی پشتیوانیمان بە شەوورۆژ ئامادەیە بۆ وەڵامدانەوەی هەر پرسیارێک.',
+  },
+  feedbackSuggestions: {
+    en: 'Feedback and Suggestions',
+    ar: 'الملاحظات والاقتراحات',
+    ku: 'ڕاوبۆچوون و پێشنیارەکان',
+  },
+  feedbackSuggestionsDesc: {
+    en: 'We value your feedback and are continuously working to improve. Your input is crucial in shaping the future.',
+    ar: 'نقدر ملاحظاتك ونعمل باستمرار على التحسين. مدخلاتك ضرورية في تشكيل المستقبل.',
+    ku: 'ڕاوبۆچوونەکانت بەنرخە و بەردەوام کار دەکەین بۆ باشترکردن. کارتێکردنت گرنگە لە داڕشتنی داهاتوو.',
+  },
+  mediaInquiries: {
+    en: 'Media Inquiries',
+    ar: 'الاستفسارات الإعلامية',
+    ku: 'پرسیارەکانی میدیا',
+  },
+  mediaInquiriesDesc: {
+    en: 'For media-related questions or press inquiries, please contact us at the provided email.',
+    ar: 'للأسئلة المتعلقة بوسائل الإعلام أو استفسارات الصحافة، يرجى التواصل معنا عبر البريد الإلكتروني المقدم.',
+    ku: 'بۆ پرسیارەکانی پەیوەندیدار بە میدیا یان ڕۆژنامەوانی، تکایە پەیوەندیمان پێوە بکە لە ئیمەیلی دیاریکراو.',
+  },
+  ourLocation: {
+    en: 'Our Location',
+    ar: 'موقعنا',
+    ku: 'شوێنمان',
+  },
+  connectingNearFar: {
+    en: 'Connecting Near and Far',
+    ar: 'نربط القريب والبعيد',
+    ku: 'بەستنەوەی نزیک و دوور',
+  },
+  headquarters: {
+    en: 'Headquarters',
+    ar: 'المقر الرئيسي',
+    ku: 'بارەگای سەرەکی',
+  },
+  reachUsAnytime: {
+    en: 'You can reach us anytime',
+    ar: 'يمكنك التواصل معنا في أي وقت',
+    ku: 'دەتوانیت هەر کاتێک پەیوەندیمان پێوە بکەیت',
+  },
+  firstName: {
+    en: 'First name',
+    ar: 'الاسم الأول',
+    ku: 'ناوی یەکەم',
+  },
+  lastName: {
+    en: 'Last name',
+    ar: 'اسم العائلة',
+    ku: 'ناوی خێزان',
+  },
+  phoneNumber: {
+    en: 'Phone number',
+    ar: 'رقم الهاتف',
+    ku: 'ژمارەی تەلەفۆن',
+  },
+  howCanWeHelp: {
+    en: 'How can we help?',
+    ar: 'كيف يمكننا مساعدتك؟',
+    ku: 'چۆن دەتوانین یارمەتیت بدەین؟',
+  },
+  submit: {
+    en: 'Submit',
+    ar: 'إرسال',
+    ku: 'ناردن',
+  },
+  termsAgreement: {
+    en: 'By contacting us, you agree to our Terms of Service and Privacy Policy',
+    ar: 'بالتواصل معنا، أنت توافق على شروط الخدمة وسياسة الخصوصية',
+    ku: 'بە پەیوەندیکردن، ڕازی دەبیت بە مەرجەکانی خزمەتگوزاری و سیاسەتی تایبەتمەندی',
+  },
 };
 
 interface LanguageContextType {
