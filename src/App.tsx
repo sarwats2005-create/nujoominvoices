@@ -77,26 +77,28 @@ const AppRoutes = () => {
   );
 };
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <LanguageProvider>
-      <SettingsProvider>
-        <AuthProvider>
-          <InvoiceProvider>
-            <TooltipProvider>
-              <Toaster />
-              <Sonner />
-              <BrowserRouter>
-                <AppRoutes />
-                <NetworkStatusIndicator />
-                <PWAUpdateBanner />
-              </BrowserRouter>
-            </TooltipProvider>
-          </InvoiceProvider>
-        </AuthProvider>
-      </SettingsProvider>
-    </LanguageProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <LanguageProvider>
+        <SettingsProvider>
+          <AuthProvider>
+            <InvoiceProvider>
+              <TooltipProvider>
+                <Toaster />
+                <Sonner />
+                <BrowserRouter>
+                  <AppRoutes />
+                  <NetworkStatusIndicator />
+                  <PWAUpdateBanner />
+                </BrowserRouter>
+              </TooltipProvider>
+            </InvoiceProvider>
+          </AuthProvider>
+        </SettingsProvider>
+      </LanguageProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;
