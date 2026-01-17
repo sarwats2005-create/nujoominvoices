@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useSettings } from '@/contexts/SettingsContext';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -7,13 +7,25 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Mail, Phone, MapPin, Send, Loader2, Headphones, MessageCircle, Newspaper } from 'lucide-react';
+import { Mail, Phone, MapPin, Send, Loader2, Headphones, MessageCircle, Newspaper, Edit2, Save, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAdmin } from '@/hooks/useAdmin';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+
+interface MapLocation {
+  id: string;
+  latitude: number;
+  longitude: number;
+  address: string;
+  zoom_level: number;
+}
 
 const Contact: React.FC = () => {
   const { t } = useLanguage();
   const { contactInfo } = useSettings();
   const { toast } = useToast();
+  const { isAdmin } = useAdmin();
+  
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -22,6 +34,71 @@ const Contact: React.FC = () => {
     message: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Map state
+  const [mapLocation, setMapLocation] = useState<MapLocation | null>(null);
+  const [mapEmbedUrl, setMapEmbedUrl] = useState<string | null>(null);
+  const [mapLoading, setMapLoading] = useState(true);
+  
+  // Admin edit state
+  const [isEditingLocation, setIsEditingLocation] = useState(false);
+  const [editForm, setEditForm] = useState({
+    latitude: '',
+    longitude: '',
+    address: '',
+    zoom_level: '12',
+  });
+  const [isSavingLocation, setIsSavingLocation] = useState(false);
+
+  // Fetch map location
+  useEffect(() => {
+    const fetchMapLocation = async () => {
+      setMapLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('map_location')
+          .select('*')
+          .limit(1)
+          .maybeSingle();
+        
+        if (error) throw error;
+        
+        if (data) {
+          setMapLocation(data);
+          setEditForm({
+            latitude: data.latitude.toString(),
+            longitude: data.longitude.toString(),
+            address: data.address || '',
+            zoom_level: data.zoom_level.toString(),
+          });
+          
+          // Get embed URL
+          await fetchMapEmbed(data.latitude, data.longitude, data.zoom_level);
+        }
+      } catch (error) {
+        console.error('Error fetching map location:', error);
+      } finally {
+        setMapLoading(false);
+      }
+    };
+    
+    fetchMapLocation();
+  }, []);
+
+  const fetchMapEmbed = async (lat: number, lng: number, zoom: number) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('get-map-embed', {
+        body: { latitude: lat, longitude: lng, zoom },
+      });
+      
+      if (error) throw error;
+      if (data?.embedUrl) {
+        setMapEmbedUrl(data.embedUrl);
+      }
+    } catch (error) {
+      console.error('Error fetching map embed:', error);
+    }
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -63,6 +140,76 @@ const Contact: React.FC = () => {
     }
   };
 
+  const handleEditLocation = () => {
+    setIsEditingLocation(true);
+  };
+
+  const handleCancelEdit = () => {
+    if (mapLocation) {
+      setEditForm({
+        latitude: mapLocation.latitude.toString(),
+        longitude: mapLocation.longitude.toString(),
+        address: mapLocation.address || '',
+        zoom_level: mapLocation.zoom_level.toString(),
+      });
+    }
+    setIsEditingLocation(false);
+  };
+
+  const handleSaveLocation = async () => {
+    if (!mapLocation) return;
+    
+    setIsSavingLocation(true);
+    try {
+      const newLat = parseFloat(editForm.latitude);
+      const newLng = parseFloat(editForm.longitude);
+      const newZoom = parseInt(editForm.zoom_level);
+
+      if (isNaN(newLat) || isNaN(newLng) || isNaN(newZoom)) {
+        throw new Error('Invalid coordinates or zoom level');
+      }
+
+      const { error } = await supabase
+        .from('map_location')
+        .update({
+          latitude: newLat,
+          longitude: newLng,
+          address: editForm.address,
+          zoom_level: newZoom,
+        })
+        .eq('id', mapLocation.id);
+
+      if (error) throw error;
+
+      setMapLocation({
+        ...mapLocation,
+        latitude: newLat,
+        longitude: newLng,
+        address: editForm.address,
+        zoom_level: newZoom,
+      });
+
+      // Refresh embed URL
+      await fetchMapEmbed(newLat, newLng, newZoom);
+
+      toast({
+        title: t('save'),
+        description: 'Location updated successfully!',
+      });
+      
+      setIsEditingLocation(false);
+    } catch (error: any) {
+      console.error('Error saving location:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to save location.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSavingLocation(false);
+    }
+  };
+
   return (
     <div className="min-h-[calc(100vh-200px)] pb-12">
       {/* Hero Section - Split Layout */}
@@ -93,7 +240,7 @@ const Contact: React.FC = () => {
             </a>
             <div className="flex items-center gap-2 text-foreground">
               <MapPin className="h-4 w-4 text-muted-foreground" />
-              {contactInfo.address}
+              {mapLocation?.address || contactInfo.address}
             </div>
           </div>
         </div>
@@ -248,14 +395,44 @@ const Contact: React.FC = () => {
 
       {/* Location Section */}
       <section className="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-fade-in" style={{ animationDelay: '0.2s' }}>
-        {/* Map Placeholder */}
+        {/* Map */}
         <div className="relative rounded-xl overflow-hidden bg-muted min-h-[300px] lg:min-h-[400px]">
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-primary/10 flex items-center justify-center">
-            <div className="text-center">
-              <MapPin className="h-12 w-12 text-primary mx-auto mb-3" />
-              <p className="text-muted-foreground">{contactInfo.address}</p>
+          {mapLoading ? (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
-          </div>
+          ) : mapEmbedUrl ? (
+            <iframe
+              src={mapEmbedUrl}
+              width="100%"
+              height="100%"
+              style={{ border: 0, minHeight: '300px' }}
+              allowFullScreen
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              title="Location Map"
+            />
+          ) : (
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-primary/10 flex items-center justify-center">
+              <div className="text-center">
+                <MapPin className="h-12 w-12 text-primary mx-auto mb-3" />
+                <p className="text-muted-foreground">{mapLocation?.address || contactInfo.address}</p>
+              </div>
+            </div>
+          )}
+          
+          {/* Admin Edit Button */}
+          {isAdmin && (
+            <Button
+              variant="secondary"
+              size="sm"
+              className="absolute top-3 end-3 shadow-lg"
+              onClick={handleEditLocation}
+            >
+              <Edit2 className="h-4 w-4 me-1" />
+              {t('edit')}
+            </Button>
+          )}
         </div>
 
         {/* Location Info */}
@@ -268,7 +445,7 @@ const Contact: React.FC = () => {
           <div className="space-y-4">
             <div>
               <h3 className="font-semibold text-foreground mb-1">{t('headquarters')}</h3>
-              <p className="text-sm text-muted-foreground">{contactInfo.address}</p>
+              <p className="text-sm text-muted-foreground">{mapLocation?.address || contactInfo.address}</p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -294,6 +471,86 @@ const Contact: React.FC = () => {
           </div>
         </div>
       </section>
+
+      {/* Admin Location Edit Dialog */}
+      <Dialog open={isEditingLocation} onOpenChange={setIsEditingLocation}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <MapPin className="h-5 w-5" />
+              Edit Location
+            </DialogTitle>
+            <DialogDescription>
+              Update the map pin location. Changes will be visible to all users.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-address">Address</Label>
+              <Input
+                id="edit-address"
+                value={editForm.address}
+                onChange={(e) => setEditForm(prev => ({ ...prev, address: e.target.value }))}
+                placeholder="e.g., Baghdad, Iraq"
+              />
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-latitude">Latitude</Label>
+                <Input
+                  id="edit-latitude"
+                  type="number"
+                  step="any"
+                  value={editForm.latitude}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, latitude: e.target.value }))}
+                  placeholder="e.g., 33.3152"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-longitude">Longitude</Label>
+                <Input
+                  id="edit-longitude"
+                  type="number"
+                  step="any"
+                  value={editForm.longitude}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, longitude: e.target.value }))}
+                  placeholder="e.g., 44.3661"
+                />
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="edit-zoom">Zoom Level (1-20)</Label>
+              <Input
+                id="edit-zoom"
+                type="number"
+                min="1"
+                max="20"
+                value={editForm.zoom_level}
+                onChange={(e) => setEditForm(prev => ({ ...prev, zoom_level: e.target.value }))}
+                placeholder="e.g., 12"
+              />
+            </div>
+          </div>
+          
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={handleCancelEdit}>
+              <X className="h-4 w-4 me-1" />
+              {t('cancel')}
+            </Button>
+            <Button onClick={handleSaveLocation} disabled={isSavingLocation}>
+              {isSavingLocation ? (
+                <Loader2 className="h-4 w-4 me-1 animate-spin" />
+              ) : (
+                <Save className="h-4 w-4 me-1" />
+              )}
+              {t('save')}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

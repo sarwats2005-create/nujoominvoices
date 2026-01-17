@@ -184,6 +184,36 @@ export type Database = {
           },
         ]
       }
+      map_location: {
+        Row: {
+          address: string | null
+          created_at: string | null
+          id: string
+          latitude: number
+          longitude: number
+          updated_at: string | null
+          zoom_level: number | null
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string | null
+          id?: string
+          latitude?: number
+          longitude?: number
+          updated_at?: string | null
+          zoom_level?: number | null
+        }
+        Update: {
+          address?: string | null
+          created_at?: string | null
+          id?: string
+          latitude?: number
+          longitude?: number
+          updated_at?: string | null
+          zoom_level?: number | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
