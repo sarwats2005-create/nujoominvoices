@@ -93,10 +93,10 @@
     --destructive: 0 62% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --success: 142 70% 40%;
+    --success: 142 70% 45%;
     --success-foreground: 0 0% 100%;
 
-    --warning: 205 100% 85%;
+    --warning: 38 92% 50%;
     --warning-foreground: 216 71% 12%;
 
     --border: 216 50% 28%;
@@ -154,6 +154,57 @@
 
   .btn-glow {
     @apply shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-shadow duration-300;
+  }
+
+  /* Text contrast utilities for colored backgrounds */
+  .text-on-primary {
+    @apply text-primary-foreground;
+  }
+
+  .text-on-success {
+    @apply text-success-foreground;
+  }
+
+  .text-on-warning {
+    @apply text-warning-foreground;
+  }
+
+  .text-on-destructive {
+    @apply text-destructive-foreground;
+  }
+
+  .text-on-card {
+    @apply text-card-foreground;
+  }
+
+  .text-on-muted {
+    @apply text-foreground;
+  }
+
+  /* Semantic text colors that adapt to their background context */
+  .stat-value {
+    @apply text-foreground font-bold;
+  }
+
+  .stat-label {
+    @apply text-muted-foreground font-medium;
+  }
+
+  /* Colored text that maintains readability */
+  .text-primary-readable {
+    @apply text-primary dark:text-primary;
+  }
+
+  .text-success-readable {
+    @apply text-success dark:text-success;
+  }
+
+  .text-warning-readable {
+    @apply text-warning dark:text-[hsl(38,92%,50%)];
+  }
+
+  .text-destructive-readable {
+    @apply text-destructive dark:text-destructive;
   }
 }
 
