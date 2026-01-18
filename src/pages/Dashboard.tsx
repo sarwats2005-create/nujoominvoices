@@ -403,8 +403,16 @@ const Dashboard: React.FC = () => {
       </div>
     </TableHead>;
   const allSelected = sortedInvoices.length > 0 && selectedIds.length === sortedInvoices.length;
-  const totalAmount = sortedInvoices.reduce((sum, inv) => sum + inv.amount, 0);
   const receivedCount = sortedInvoices.filter(inv => inv.status === 'received').length;
+
+  // Calculate totals grouped by currency (only currencies that exist in invoices)
+  const amountsByCurrency = useMemo(() => {
+    return sortedInvoices.reduce((acc, inv) => {
+      const curr = inv.currency || 'USD';
+      acc[curr] = (acc[curr] || 0) + inv.amount;
+      return acc;
+    }, {} as Record<string, number>);
+  }, [sortedInvoices]);
 
   // Bank chart data
   const bankChartData = useMemo(() => {
@@ -420,7 +428,7 @@ const Dashboard: React.FC = () => {
   const chartColors = ['hsl(var(--primary))', 'hsl(var(--success))', 'hsl(var(--warning))', 'hsl(210, 70%, 50%)', 'hsl(280, 60%, 55%)', 'hsl(340, 65%, 50%)', 'hsl(160, 55%, 45%)', 'hsl(30, 70%, 50%)'];
   return <div className="animate-fade-in space-y-6">
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <MagicCard className="rounded-xl" glowColor="99, 102, 241">
           <Card className="card-hover gradient-subtle border-0 shadow-md h-full">
             <CardContent className="pt-6">
@@ -438,23 +446,29 @@ const Dashboard: React.FC = () => {
             </CardContent>
           </Card>
         </MagicCard>
-        <MagicCard className="rounded-xl" glowColor="34, 197, 94">
-          <Card className="card-hover gradient-subtle border-0 shadow-md h-full">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 rounded-xl bg-success/10">
-                  <DollarSign className="h-6 w-6 text-success" />
+        
+        {/* Currency-based Amount Cards */}
+        {Object.entries(amountsByCurrency).map(([curr, amount]) => (
+          <MagicCard key={curr} className="rounded-xl" glowColor="34, 197, 94">
+            <Card className="card-hover gradient-subtle border-0 shadow-md h-full">
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 rounded-xl bg-success/10">
+                    <span className="text-xl font-bold text-success">{getCurrencySymbol(curr)}</span>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground font-medium">{t('totalAmount')} ({curr})</p>
+                    <p className="text-2xl font-bold flex items-center gap-1">
+                      <span className="text-lg">{getCurrencySymbol(curr)}</span>
+                      <CountUp to={Math.round(amount)} duration={1.5} separator="," />
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground font-medium">{t('totalAmount')}</p>
-                  <p className="text-2xl font-bold">
-                    {currency.symbol}<CountUp to={Math.round(totalAmount)} duration={1.5} separator="," />
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </MagicCard>
+              </CardContent>
+            </Card>
+          </MagicCard>
+        ))}
+        
         <MagicCard className="rounded-xl" glowColor="234, 179, 8">
           <Card className="card-hover gradient-subtle border-0 shadow-md h-full">
             <CardContent className="pt-6">
