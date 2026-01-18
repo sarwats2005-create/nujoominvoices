@@ -91,10 +91,16 @@ const Insights: React.FC = () => {
   const statsRef = useRef<HTMLDivElement>(null);
 
   // Calculate statistics
-  const totalAmount = invoices.reduce((sum, inv) => sum + inv.amount, 0);
   const totalInvoices = invoices.length;
   const receivedInvoices = invoices.filter(inv => inv.status === 'received').length;
   const pendingInvoices = invoices.filter(inv => inv.status === 'pending').length;
+  
+  // Calculate totals grouped by currency (only currencies that exist in invoices)
+  const amountsByCurrency = invoices.reduce((acc, inv) => {
+    const curr = inv.currency || 'USD';
+    acc[curr] = (acc[curr] || 0) + inv.amount;
+    return acc;
+  }, {} as Record<string, number>);
 
   // Monthly data (last 6 months)
   const last6Months = eachMonthOfInterval({
@@ -198,19 +204,23 @@ const Insights: React.FC = () => {
     <div className="space-y-6 animate-fade-in">
       {/* Stats Cards */}
       <div ref={statsRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="stat-card bg-gradient-to-br from-primary/10 to-primary/5 hover:scale-105 transition-transform duration-300">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">{t('totalAmount')}</p>
-                <p className="text-2xl font-bold text-primary">
-                  {currency.symbol}<CountUp to={Math.round(totalAmount)} duration={2} separator="," />
-                </p>
+        {/* Currency-based Amount Cards */}
+        {Object.entries(amountsByCurrency).map(([curr, amount], index) => (
+          <Card key={curr} className="stat-card bg-gradient-to-br from-primary/10 to-primary/5 hover:scale-105 transition-transform duration-300">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">{t('totalAmount')} ({curr})</p>
+                  <p className="text-2xl font-bold text-primary flex items-center gap-1">
+                    <span className="text-lg">{getCurrencySymbol(curr)}</span>
+                    <CountUp to={Math.round(amount)} duration={2} separator="," />
+                  </p>
+                </div>
+                <DollarSign className="h-10 w-10 text-primary/50" />
               </div>
-              <DollarSign className="h-10 w-10 text-primary/50" />
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        ))}
 
         <Card className="stat-card bg-gradient-to-br from-success/10 to-success/5 hover:scale-105 transition-transform duration-300">
           <CardContent className="pt-6">
