@@ -438,7 +438,7 @@ const Dashboard: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground font-medium">{t('totalInvoices')}</p>
-                  <p className="text-2xl font-bold">
+                  <p className="text-2xl font-bold text-card-foreground">
                     <CountUp to={sortedInvoices.length} duration={1.5} separator="," />
                   </p>
                 </div>
@@ -458,8 +458,8 @@ const Dashboard: React.FC = () => {
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground font-medium">{t('totalAmount')} ({curr})</p>
-                    <p className="text-2xl font-bold flex items-center gap-1">
-                      <span className="text-lg">{getCurrencySymbol(curr)}</span>
+                    <p className="text-2xl font-bold text-card-foreground flex items-center gap-1">
+                      <span className="text-lg text-success">{getCurrencySymbol(curr)}</span>
                       <CountUp to={Math.round(amount)} duration={1.5} separator="," />
                     </p>
                   </div>
@@ -474,11 +474,11 @@ const Dashboard: React.FC = () => {
             <CardContent className="pt-6">
               <div className="flex items-center gap-4">
                 <div className="p-3 rounded-xl bg-warning/10">
-                  <CheckCircle className="h-6 w-6 text-warning" />
+                  <CheckCircle className="h-6 w-6 text-warning-readable" />
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground font-medium">{t('received')}</p>
-                  <p className="text-2xl font-bold">
+                  <p className="text-2xl font-bold text-card-foreground">
                     <CountUp to={receivedCount} duration={1.5} separator="," /> / <CountUp to={sortedInvoices.length} duration={1.5} separator="," />
                   </p>
                 </div>

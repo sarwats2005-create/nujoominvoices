@@ -5,7 +5,7 @@ import { useSettings } from '@/contexts/SettingsContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { BarChart, Bar, XAxis, YAxis, PieChart, Pie, Cell, LineChart, Line, Sector } from 'recharts';
-import { TrendingUp, DollarSign, FileText, Building, Calendar, CheckCircle, Clock } from 'lucide-react';
+import { TrendingUp, FileText, Building, Calendar, CheckCircle, Clock } from 'lucide-react';
 import { format, parseISO, startOfMonth, endOfMonth, eachMonthOfInterval, subMonths } from 'date-fns';
 import { gsap } from 'gsap';
 import CountUp from '@/components/CountUp';
@@ -211,12 +211,12 @@ const Insights: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">{t('totalAmount')} ({curr})</p>
-                  <p className="text-2xl font-bold text-primary flex items-center gap-1">
-                    <span className="text-lg">{getCurrencySymbol(curr)}</span>
+                  <p className="text-2xl font-bold text-card-foreground flex items-center gap-1">
+                    <span className="text-lg text-primary">{getCurrencySymbol(curr)}</span>
                     <CountUp to={Math.round(amount)} duration={2} separator="," />
                   </p>
                 </div>
-                <DollarSign className="h-10 w-10 text-primary/50" />
+                <span className="text-3xl text-primary/50">{getCurrencySymbol(curr)}</span>
               </div>
             </CardContent>
           </Card>
@@ -227,7 +227,7 @@ const Insights: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">{t('totalInvoices')}</p>
-                <p className="text-2xl font-bold text-success">
+                <p className="text-2xl font-bold text-card-foreground">
                   <CountUp to={totalInvoices} duration={2} separator="," />
                 </p>
               </div>
@@ -241,11 +241,11 @@ const Insights: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">{t('pending')}</p>
-                <p className="text-2xl font-bold text-warning">
+                <p className="text-2xl font-bold text-card-foreground">
                   <CountUp to={pendingInvoices} duration={2} separator="," />
                 </p>
               </div>
-              <Clock className="h-10 w-10 text-warning/50" />
+              <Clock className="h-10 w-10 text-warning-readable opacity-50" />
             </div>
           </CardContent>
         </Card>
@@ -255,7 +255,7 @@ const Insights: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">{t('received')}</p>
-                <p className="text-2xl font-bold text-success">
+                <p className="text-2xl font-bold text-card-foreground">
                   <CountUp to={receivedInvoices} duration={2} separator="," />
                 </p>
               </div>
