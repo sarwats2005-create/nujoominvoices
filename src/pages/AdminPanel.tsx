@@ -80,23 +80,20 @@ const AdminPanel: React.FC = () => {
   };
 
   const handleDeleteUser = async (userId: string) => {
-    const { error } = await supabase.auth.admin.deleteUser(userId);
-    
-    if (error) {
-      // If admin API not available, delete profile (cascade will handle the rest)
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .delete()
-        .eq('id', userId);
+    // Delete user profile (RLS policy ensures only admins can do this)
+    // Cascade will handle related data cleanup
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .delete()
+      .eq('id', userId);
 
-      if (profileError) {
-        toast({
-          title: t('error'),
-          description: t('errorDeletingUser'),
-          variant: 'destructive',
-        });
-        return;
-      }
+    if (profileError) {
+      toast({
+        title: t('error'),
+        description: t('errorDeletingUser'),
+        variant: 'destructive',
+      });
+      return;
     }
 
     toast({

@@ -130,39 +130,90 @@ const Dashboard: React.FC = () => {
   const handleCSVImport = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file || !currentDashboardId) return;
+    
+    // File size validation (5MB max)
+    const MAX_FILE_SIZE = 5 * 1024 * 1024;
+    if (file.size > MAX_FILE_SIZE) {
+      toast({
+        title: t('csvImportError'),
+        description: 'File too large. Maximum size is 5MB.',
+        variant: 'destructive'
+      });
+      event.target.value = '';
+      return;
+    }
+    
     const reader = new FileReader();
     reader.onload = e => {
       try {
         const text = e.target?.result as string;
         const lines = text.split('\n').filter(line => line.trim());
 
+        // Row count validation (max 10,000 rows)
+        const MAX_ROWS = 10000;
+        if (lines.length > MAX_ROWS) {
+          toast({
+            title: t('csvImportError'),
+            description: `Too many rows. Maximum is ${MAX_ROWS.toLocaleString()} rows.`,
+            variant: 'destructive'
+          });
+          return;
+        }
+
         // Skip header row if it exists (check if first cell looks like a header)
         const startIndex = lines[0]?.toLowerCase().includes('invoice') ? 1 : 0;
         const newInvoices: Omit<Invoice, 'id' | 'userId' | 'status' | 'createdAt'>[] = [];
+        const validationErrors: string[] = [];
+        
         for (let i = startIndex; i < lines.length; i++) {
           const cells = lines[i].split(',').map(cell => cell.trim().replace(/^"|"$/g, ''));
           if (cells.length >= 5) {
+            const invoiceNumber = (cells[0] || '').slice(0, 50);
+            const rawAmount = parseFloat(cells[1]?.replace(/[^0-9.-]/g, ''));
+            const beneficiary = (cells[3] || '').slice(0, 200);
+            const bank = (cells[4] || '').slice(0, 100);
+            const containerNumber = (cells[5] || '').slice(0, 30);
+            
+            // Validate amount
+            if (isNaN(rawAmount) || rawAmount <= 0 || rawAmount > 999999999999) {
+              validationErrors.push(`Row ${i + 1}: Invalid amount`);
+              continue;
+            }
+            
+            // Validate required fields
+            if (!invoiceNumber || !beneficiary || !bank) {
+              validationErrors.push(`Row ${i + 1}: Missing required fields`);
+              continue;
+            }
+            
             newInvoices.push({
-              invoiceNumber: cells[0] || '',
-              amount: parseFloat(cells[1]?.replace(/[^0-9.-]/g, '')) || 0,
+              invoiceNumber,
+              amount: rawAmount,
               currency: cells[6] || 'USD',
               date: cells[2] || new Date().toISOString(),
-              beneficiary: cells[3] || '',
-              bank: cells[4] || '',
-              containerNumber: cells[5] || '',
+              beneficiary,
+              bank,
+              containerNumber,
               dashboardId: currentDashboardId
             });
           }
         }
+        
         if (newInvoices.length > 0) {
           addMultipleInvoices(newInvoices);
+          const errorSummary = validationErrors.length > 0 
+            ? ` (${validationErrors.length} rows skipped due to validation errors)` 
+            : '';
           toast({
             title: t('csvImported'),
-            description: `${newInvoices.length} invoices imported`
+            description: `${newInvoices.length} invoices imported${errorSummary}`
           });
         } else {
           toast({
             title: t('csvImportError'),
+            description: validationErrors.length > 0 
+              ? `All rows failed validation: ${validationErrors.slice(0, 3).join(', ')}${validationErrors.length > 3 ? '...' : ''}`
+              : 'No valid data found',
             variant: 'destructive'
           });
         }
