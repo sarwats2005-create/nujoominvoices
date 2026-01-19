@@ -872,3 +872,11 @@
     hsl(var(--muted)) 100%
   );
 }
+
+/* Emoji flag styling - ensures flags render with proper emoji font */
+.emoji-flag {
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "Twemoji Mozilla", sans-serif;
+  font-style: normal;
+  font-weight: normal;
+  line-height: 1;
+}

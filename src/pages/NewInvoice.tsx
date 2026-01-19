@@ -127,7 +127,7 @@ const NewInvoice: React.FC = () => {
                     <SelectValue>
                       {(() => {
                         const curr = CURRENCIES.find(c => c.code === currency);
-                        return curr ? `${curr.flag} ${curr.symbol}` : currency;
+                        return curr ? <span className="flex items-center gap-1"><span className="emoji-flag">{curr.flag}</span> {curr.symbol}</span> : currency;
                       })()}
                     </SelectValue>
                   </SelectTrigger>
@@ -135,7 +135,7 @@ const NewInvoice: React.FC = () => {
                     {CURRENCIES.map((curr) => (
                       <SelectItem key={curr.code} value={curr.code}>
                         <span className="flex items-center gap-2">
-                          <span>{curr.flag}</span>
+                          <span className="emoji-flag">{curr.flag}</span>
                           <span>{curr.symbol}</span>
                           <span className="text-muted-foreground">{curr.code}</span>
                         </span>
