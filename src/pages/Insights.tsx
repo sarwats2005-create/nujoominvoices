@@ -201,87 +201,87 @@ const Insights: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-4 sm:space-y-6 animate-fade-in px-1 sm:px-0">
       {/* Stats Cards */}
-      <div ref={statsRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div ref={statsRef} className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
         {/* Currency-based Amount Cards */}
         {Object.entries(amountsByCurrency).map(([curr, amount], index) => (
-          <Card key={curr} className="stat-card bg-gradient-to-br from-primary/10 to-primary/5 hover:scale-105 transition-transform duration-300">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">{t('totalAmount')} ({curr})</p>
-                  <p className="text-2xl font-bold text-card-foreground flex items-center gap-1">
-                    <span className="text-lg text-primary">{getCurrencySymbol(curr)}</span>
+          <Card key={curr} className="stat-card bg-gradient-to-br from-primary/10 to-primary/5 hover:scale-[1.02] sm:hover:scale-105 transition-transform duration-300">
+            <CardContent className="p-3 sm:pt-6 sm:px-6">
+              <div className="flex items-center justify-between gap-1">
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs sm:text-sm text-muted-foreground truncate">{t('totalAmount')} ({curr})</p>
+                  <p className="text-lg sm:text-2xl font-bold text-card-foreground flex items-center gap-0.5 sm:gap-1">
+                    <span className="text-sm sm:text-lg text-primary">{getCurrencySymbol(curr)}</span>
                     <CountUp to={Math.round(amount)} duration={2} separator="," />
                   </p>
                 </div>
-                <span className="text-3xl text-primary/50">{getCurrencySymbol(curr)}</span>
+                <span className="text-xl sm:text-3xl text-primary/50 shrink-0">{getCurrencySymbol(curr)}</span>
               </div>
             </CardContent>
           </Card>
         ))}
 
-        <Card className="stat-card bg-gradient-to-br from-success/10 to-success/5 hover:scale-105 transition-transform duration-300">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">{t('totalInvoices')}</p>
-                <p className="text-2xl font-bold text-card-foreground">
+        <Card className="stat-card bg-gradient-to-br from-success/10 to-success/5 hover:scale-[1.02] sm:hover:scale-105 transition-transform duration-300">
+          <CardContent className="p-3 sm:pt-6 sm:px-6">
+            <div className="flex items-center justify-between gap-1">
+              <div className="min-w-0 flex-1">
+                <p className="text-xs sm:text-sm text-muted-foreground truncate">{t('totalInvoices')}</p>
+                <p className="text-lg sm:text-2xl font-bold text-card-foreground">
                   <CountUp to={totalInvoices} duration={2} separator="," />
                 </p>
               </div>
-              <FileText className="h-10 w-10 text-success/50" />
+              <FileText className="h-6 w-6 sm:h-10 sm:w-10 text-success/50 shrink-0" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="stat-card bg-gradient-to-br from-warning/10 to-warning/5 hover:scale-105 transition-transform duration-300">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">{t('pending')}</p>
-                <p className="text-2xl font-bold text-card-foreground">
+        <Card className="stat-card bg-gradient-to-br from-warning/10 to-warning/5 hover:scale-[1.02] sm:hover:scale-105 transition-transform duration-300">
+          <CardContent className="p-3 sm:pt-6 sm:px-6">
+            <div className="flex items-center justify-between gap-1">
+              <div className="min-w-0 flex-1">
+                <p className="text-xs sm:text-sm text-muted-foreground truncate">{t('pending')}</p>
+                <p className="text-lg sm:text-2xl font-bold text-card-foreground">
                   <CountUp to={pendingInvoices} duration={2} separator="," />
                 </p>
               </div>
-              <Clock className="h-10 w-10 text-warning-readable opacity-50" />
+              <Clock className="h-6 w-6 sm:h-10 sm:w-10 text-warning-readable opacity-50 shrink-0" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="stat-card bg-gradient-to-br from-success/10 to-success/5 hover:scale-105 transition-transform duration-300">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">{t('received')}</p>
-                <p className="text-2xl font-bold text-card-foreground">
+        <Card className="stat-card bg-gradient-to-br from-success/10 to-success/5 hover:scale-[1.02] sm:hover:scale-105 transition-transform duration-300">
+          <CardContent className="p-3 sm:pt-6 sm:px-6">
+            <div className="flex items-center justify-between gap-1">
+              <div className="min-w-0 flex-1">
+                <p className="text-xs sm:text-sm text-muted-foreground truncate">{t('received')}</p>
+                <p className="text-lg sm:text-2xl font-bold text-card-foreground">
                   <CountUp to={receivedInvoices} duration={2} separator="," />
                 </p>
               </div>
-              <CheckCircle className="h-10 w-10 text-success/50" />
+              <CheckCircle className="h-6 w-6 sm:h-10 sm:w-10 text-success/50 shrink-0" />
             </div>
           </CardContent>
         </Card>
       </div>
 
       {/* Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Monthly Trend */}
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-primary" />
+          <CardHeader className="p-3 sm:p-6 pb-2 sm:pb-2">
+            <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
+              <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
               {t('monthlyTrend')}
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <ChartContainer config={chartConfig} className="h-[300px]">
+          <CardContent className="p-2 sm:p-6 pt-0 sm:pt-0">
+            <ChartContainer config={chartConfig} className="h-[200px] sm:h-[300px] w-full">
               <LineChart data={monthlyData}>
-                <XAxis dataKey="month" />
-                <YAxis />
+                <XAxis dataKey="month" tick={{ fontSize: 10 }} />
+                <YAxis tick={{ fontSize: 10 }} width={40} />
                 <ChartTooltip content={<ChartTooltipContent />} />
-                <Line type="monotone" dataKey="amount" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ fill: 'hsl(var(--primary))' }} />
+                <Line type="monotone" dataKey="amount" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ fill: 'hsl(var(--primary))', r: 3 }} />
               </LineChart>
             </ChartContainer>
           </CardContent>
@@ -289,23 +289,24 @@ const Insights: React.FC = () => {
 
         {/* Status Distribution */}
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CheckCircle className="h-5 w-5 text-success" />
+          <CardHeader className="p-3 sm:p-6 pb-2 sm:pb-2">
+            <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
+              <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-success" />
               {t('statusDistribution')}
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <ChartContainer config={chartConfig} className="h-[300px]">
+          <CardContent className="p-2 sm:p-6 pt-0 sm:pt-0">
+            <ChartContainer config={chartConfig} className="h-[200px] sm:h-[300px] w-full">
               <PieChart>
                 <Pie
                   data={statusData}
                   cx="50%"
                   cy="50%"
-                  innerRadius={60}
-                  outerRadius={100}
+                  innerRadius={40}
+                  outerRadius={70}
                   dataKey="value"
                   label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  labelLine={{ strokeWidth: 1 }}
                 >
                   {statusData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
@@ -320,15 +321,15 @@ const Insights: React.FC = () => {
 
       {/* Bank Distribution - Animated Pie Chart */}
       <Card ref={bankChartRef} className="overflow-hidden">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Building className="h-5 w-5 text-primary animate-pulse" />
+        <CardHeader className="p-3 sm:p-6 pb-2 sm:pb-2">
+          <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
+            <Building className="h-4 w-4 sm:h-5 sm:w-5 text-primary animate-pulse" />
             {t('bankDistribution')}
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <ChartContainer config={chartConfig} className="h-[350px]">
+        <CardContent className="p-2 sm:p-6 pt-0 sm:pt-0">
+          <div className="flex flex-col lg:grid lg:grid-cols-2 gap-4 sm:gap-6">
+            <ChartContainer config={chartConfig} className="h-[250px] sm:h-[350px] w-full">
               <PieChart>
                 <Pie
                   activeIndex={activeIndex}
@@ -336,8 +337,8 @@ const Insights: React.FC = () => {
                   data={bankData}
                   cx="50%"
                   cy="50%"
-                  innerRadius={70}
-                  outerRadius={110}
+                  innerRadius={50}
+                  outerRadius={80}
                   dataKey="amount"
                   onMouseEnter={onPieEnter}
                   animationBegin={0}
@@ -357,36 +358,36 @@ const Insights: React.FC = () => {
             </ChartContainer>
             
             {/* Legend with animations */}
-            <div className="flex flex-col justify-center space-y-3">
+            <div className="flex flex-col justify-center space-y-2 sm:space-y-3 max-h-[200px] sm:max-h-none overflow-y-auto">
               {bankData.map((entry, index) => (
                 <div
                   key={entry.name}
-                  className={`flex items-center gap-3 p-3 rounded-lg transition-all duration-300 cursor-pointer
+                  className={`flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg transition-all duration-300 cursor-pointer
                     ${activeIndex === index 
-                      ? 'bg-accent scale-105 shadow-lg' 
+                      ? 'bg-accent scale-[1.02] sm:scale-105 shadow-lg' 
                       : 'hover:bg-muted/50'
                     }`}
                   onMouseEnter={() => setActiveIndex(index)}
                 >
                   <div 
-                    className="w-4 h-4 rounded-full shrink-0 shadow-md"
+                    className="w-3 h-3 sm:w-4 sm:h-4 rounded-full shrink-0 shadow-md"
                     style={{ 
                       backgroundColor: BANK_COLORS[index % BANK_COLORS.length],
                       boxShadow: `0 0 0 2px var(--background), 0 0 0 4px ${BANK_COLORS[index % BANK_COLORS.length]}`
                     }}
                   />
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium truncate">{entry.name}</p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="font-medium truncate text-sm sm:text-base">{entry.name}</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">
                       {entry.count} {t('invoiceCount').toLowerCase()} • {formatAmountWithCurrency(entry.amount, entry.currency)}
                     </p>
                   </div>
                 </div>
               ))}
               {bankData.length === 0 && (
-                <div className="text-center text-muted-foreground py-8">
-                  <Building className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                  <p>No bank data available</p>
+                <div className="text-center text-muted-foreground py-4 sm:py-8">
+                  <Building className="h-8 w-8 sm:h-12 sm:w-12 mx-auto mb-2 opacity-50" />
+                  <p className="text-sm">No bank data available</p>
                 </div>
               )}
             </div>
@@ -396,17 +397,17 @@ const Insights: React.FC = () => {
 
       {/* Monthly Invoice Count */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Calendar className="h-5 w-5 text-primary" />
+        <CardHeader className="p-3 sm:p-6 pb-2 sm:pb-2">
+          <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
+            <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
             {t('invoicesByMonth')}
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <ChartContainer config={chartConfig} className="h-[300px]">
+        <CardContent className="p-2 sm:p-6 pt-0 sm:pt-0">
+          <ChartContainer config={chartConfig} className="h-[200px] sm:h-[300px] w-full">
             <BarChart data={monthlyData}>
-              <XAxis dataKey="month" />
-              <YAxis />
+              <XAxis dataKey="month" tick={{ fontSize: 10 }} />
+              <YAxis tick={{ fontSize: 10 }} width={40} />
               <ChartTooltip content={<ChartTooltipContent />} />
               <Bar dataKey="count" fill="hsl(var(--success))" radius={[4, 4, 0, 0]} />
             </BarChart>
