@@ -33,14 +33,14 @@ const EditInvoiceDialog: React.FC<EditInvoiceDialogProps> = ({ invoice, open, on
   });
 
   const currencies = [
-    { code: 'USD', symbol: '$', name: 'US Dollar' },
-    { code: 'EUR', symbol: '€', name: 'Euro' },
-    { code: 'GBP', symbol: '£', name: 'British Pound' },
-    { code: 'IQD', symbol: 'د.ع', name: 'Iraqi Dinar' },
-    { code: 'TRY', symbol: '₺', name: 'Turkish Lira' },
-    { code: 'SAR', symbol: '﷼', name: 'Saudi Riyal' },
-    { code: 'AED', symbol: 'د.إ', name: 'UAE Dirham' },
-    { code: 'RMB', symbol: '¥', name: 'Chinese Yuan' },
+    { code: 'USD', symbol: '$', name: 'US Dollar', flag: '🇺🇸' },
+    { code: 'EUR', symbol: '€', name: 'Euro', flag: '🇪🇺' },
+    { code: 'GBP', symbol: '£', name: 'British Pound', flag: '🇬🇧' },
+    { code: 'IQD', symbol: 'د.ع', name: 'Iraqi Dinar', flag: '🇮🇶' },
+    { code: 'TRY', symbol: '₺', name: 'Turkish Lira', flag: '🇹🇷' },
+    { code: 'SAR', symbol: '﷼', name: 'Saudi Riyal', flag: '🇸🇦' },
+    { code: 'AED', symbol: 'د.إ', name: 'UAE Dirham', flag: '🇦🇪' },
+    { code: 'RMB', symbol: '¥', name: 'Chinese Yuan', flag: '🇨🇳' },
   ];
 
   useEffect(() => {
@@ -113,13 +113,22 @@ const EditInvoiceDialog: React.FC<EditInvoiceDialogProps> = ({ invoice, open, on
                   className="flex-1"
                 />
                 <Select value={formData.currency} onValueChange={(value) => setFormData({ ...formData, currency: value })}>
-                  <SelectTrigger className="w-24">
-                    <SelectValue />
+                  <SelectTrigger className="w-28">
+                    <SelectValue>
+                      {(() => {
+                        const curr = currencies.find(c => c.code === formData.currency);
+                        return curr ? `${curr.flag} ${curr.symbol}` : formData.currency;
+                      })()}
+                    </SelectValue>
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-popover z-50">
                     {currencies.map((curr) => (
                       <SelectItem key={curr.code} value={curr.code}>
-                        {curr.symbol} {curr.code}
+                        <span className="flex items-center gap-2">
+                          <span>{curr.flag}</span>
+                          <span>{curr.symbol}</span>
+                          <span className="text-muted-foreground">{curr.code}</span>
+                        </span>
                       </SelectItem>
                     ))}
                   </SelectContent>

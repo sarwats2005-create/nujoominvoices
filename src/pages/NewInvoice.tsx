@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { useSoundEffects } from '@/hooks/useSoundEffects';
 import { format } from 'date-fns';
-import { CalendarIcon, DollarSign, Hash, User, Plus, Landmark, LayoutDashboard, Package } from 'lucide-react';
+import { CalendarIcon, DollarSign, Hash, User, Plus, Landmark, LayoutDashboard, Package, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import BankSelector from '@/components/BankSelector';
 import DashboardSelector from '@/components/DashboardSelector';
@@ -20,20 +20,21 @@ import { MagicCard } from '@/components/MagicCard';
 import ElectricBorder from '@/components/ElectricBorder';
 
 const CURRENCIES = [
-  { code: 'USD', symbol: '$', name: 'US Dollar' },
-  { code: 'EUR', symbol: '€', name: 'Euro' },
-  { code: 'GBP', symbol: '£', name: 'British Pound' },
-  { code: 'IQD', symbol: 'د.ع', name: 'Iraqi Dinar' },
-  { code: 'TRY', symbol: '₺', name: 'Turkish Lira' },
-  { code: 'SAR', symbol: '﷼', name: 'Saudi Riyal' },
-  { code: 'AED', symbol: 'د.إ', name: 'UAE Dirham' },
-  { code: 'RMB', symbol: '¥', name: 'Chinese Yuan' },
+  { code: 'USD', symbol: '$', name: 'US Dollar', flag: '🇺🇸' },
+  { code: 'EUR', symbol: '€', name: 'Euro', flag: '🇪🇺' },
+  { code: 'GBP', symbol: '£', name: 'British Pound', flag: '🇬🇧' },
+  { code: 'IQD', symbol: 'د.ع', name: 'Iraqi Dinar', flag: '🇮🇶' },
+  { code: 'TRY', symbol: '₺', name: 'Turkish Lira', flag: '🇹🇷' },
+  { code: 'SAR', symbol: '﷼', name: 'Saudi Riyal', flag: '🇸🇦' },
+  { code: 'AED', symbol: 'د.إ', name: 'UAE Dirham', flag: '🇦🇪' },
+  { code: 'RMB', symbol: '¥', name: 'Chinese Yuan', flag: '🇨🇳' },
 ];
 
 const NewInvoice: React.FC = () => {
   const [amount, setAmount] = useState('');
   const [currency, setCurrency] = useState('USD');
   const [date, setDate] = useState<Date>();
+  const [swiftDate, setSwiftDate] = useState<Date>();
   const [invoiceNumber, setInvoiceNumber] = useState('');
   const [beneficiary, setBeneficiary] = useState('');
   const [bank, setBank] = useState('');
@@ -41,6 +42,7 @@ const NewInvoice: React.FC = () => {
   const [dashboardId, setDashboardId] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [calendarOpen, setCalendarOpen] = useState(false);
+  const [swiftCalendarOpen, setSwiftCalendarOpen] = useState(false);
 
   const { t } = useLanguage();
   const { addInvoice, dashboards, currentDashboardId } = useInvoice();
@@ -77,6 +79,7 @@ const NewInvoice: React.FC = () => {
       beneficiary,
       bank,
       containerNumber: containerNumber || undefined,
+      swiftDate: swiftDate ? swiftDate.toISOString() : undefined,
       dashboardId,
     });
 
@@ -120,13 +123,22 @@ const NewInvoice: React.FC = () => {
               </Label>
               <div className="flex gap-2">
                 <Select value={currency} onValueChange={setCurrency}>
-                  <SelectTrigger className="w-24 bg-background">
-                    <SelectValue />
+                  <SelectTrigger className="w-32 bg-background">
+                    <SelectValue>
+                      {(() => {
+                        const curr = CURRENCIES.find(c => c.code === currency);
+                        return curr ? `${curr.flag} ${curr.symbol}` : currency;
+                      })()}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent className="bg-popover z-50">
                     {CURRENCIES.map((curr) => (
                       <SelectItem key={curr.code} value={curr.code}>
-                        {curr.symbol} {curr.code}
+                        <span className="flex items-center gap-2">
+                          <span>{curr.flag}</span>
+                          <span>{curr.symbol}</span>
+                          <span className="text-muted-foreground">{curr.code}</span>
+                        </span>
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -218,6 +230,41 @@ const NewInvoice: React.FC = () => {
                   placeholder="CONT-001"
                 />
               </div>
+            </div>
+
+            {/* Swift Date (Optional) */}
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <Clock className="h-4 w-4 text-muted-foreground" />
+                {t('swiftDate')}
+                <span className="text-xs text-muted-foreground">({t('optional')})</span>
+              </Label>
+              <Popover open={swiftCalendarOpen} onOpenChange={setSwiftCalendarOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      'w-full justify-start text-left font-normal',
+                      !swiftDate && 'text-muted-foreground'
+                    )}
+                  >
+                    <Clock className="mr-2 h-4 w-4" />
+                    {swiftDate ? format(swiftDate, 'PPP') : <span>{t('swiftDate')}</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0 bg-popover" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={swiftDate}
+                    onSelect={(newDate) => {
+                      setSwiftDate(newDate);
+                      setSwiftCalendarOpen(false);
+                    }}
+                    initialFocus
+                    className="pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
 
             {/* Beneficiary */}
