@@ -117,7 +117,7 @@ const EditInvoiceDialog: React.FC<EditInvoiceDialogProps> = ({ invoice, open, on
                     <SelectValue>
                       {(() => {
                         const curr = currencies.find(c => c.code === formData.currency);
-                        return curr ? `${curr.flag} ${curr.symbol}` : formData.currency;
+                        return curr ? <span className="flex items-center gap-1"><span className="emoji-flag">{curr.flag}</span> {curr.symbol}</span> : formData.currency;
                       })()}
                     </SelectValue>
                   </SelectTrigger>
@@ -125,7 +125,7 @@ const EditInvoiceDialog: React.FC<EditInvoiceDialogProps> = ({ invoice, open, on
                     {currencies.map((curr) => (
                       <SelectItem key={curr.code} value={curr.code}>
                         <span className="flex items-center gap-2">
-                          <span>{curr.flag}</span>
+                          <span className="emoji-flag">{curr.flag}</span>
                           <span>{curr.symbol}</span>
                           <span className="text-muted-foreground">{curr.code}</span>
                         </span>
