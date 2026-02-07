@@ -426,19 +426,19 @@ const Dashboard: React.FC = () => {
     })).sort((a, b) => b.count - a.count);
   }, [sortedInvoices]);
   const chartColors = ['hsl(var(--primary))', 'hsl(var(--success))', 'hsl(var(--warning))', 'hsl(210, 70%, 50%)', 'hsl(280, 60%, 55%)', 'hsl(340, 65%, 50%)', 'hsl(160, 55%, 45%)', 'hsl(30, 70%, 50%)'];
-  return <div className="animate-fade-in space-y-6">
+  return <div className="animate-fade-in space-y-4 sm:space-y-6 px-1 sm:px-0">
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
         <MagicCard className="rounded-xl" glowColor="99, 102, 241">
           <Card className="card-hover gradient-subtle border-0 shadow-md h-full">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 rounded-xl bg-primary/10">
-                  <FileText className="h-6 w-6 text-primary" />
+            <CardContent className="p-3 sm:pt-6 sm:px-6">
+              <div className="flex items-center gap-2 sm:gap-4">
+                <div className="p-2 sm:p-3 rounded-xl bg-primary/10">
+                  <FileText className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground font-medium">{t('totalInvoices')}</p>
-                  <p className="text-2xl font-bold text-card-foreground">
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs sm:text-sm text-muted-foreground font-medium truncate">{t('totalInvoices')}</p>
+                  <p className="text-lg sm:text-2xl font-bold text-card-foreground">
                     <CountUp to={sortedInvoices.length} duration={1.5} separator="," />
                   </p>
                 </div>
@@ -451,15 +451,15 @@ const Dashboard: React.FC = () => {
         {Object.entries(amountsByCurrency).map(([curr, amount]) => (
           <MagicCard key={curr} className="rounded-xl" glowColor="34, 197, 94">
             <Card className="card-hover gradient-subtle border-0 shadow-md h-full">
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 rounded-xl bg-success/10">
-                    <span className="text-xl font-bold text-success">{getCurrencySymbol(curr)}</span>
+              <CardContent className="p-3 sm:pt-6 sm:px-6">
+                <div className="flex items-center gap-2 sm:gap-4">
+                  <div className="p-2 sm:p-3 rounded-xl bg-success/10">
+                    <span className="text-base sm:text-xl font-bold text-success">{getCurrencySymbol(curr)}</span>
                   </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground font-medium">{t('totalAmount')} ({curr})</p>
-                    <p className="text-2xl font-bold text-card-foreground flex items-center gap-1">
-                      <span className="text-lg text-success">{getCurrencySymbol(curr)}</span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs sm:text-sm text-muted-foreground font-medium truncate">{t('totalAmount')} ({curr})</p>
+                    <p className="text-lg sm:text-2xl font-bold text-card-foreground flex items-center gap-0.5 sm:gap-1">
+                      <span className="text-sm sm:text-lg text-success">{getCurrencySymbol(curr)}</span>
                       <CountUp to={Math.round(amount)} duration={1.5} separator="," />
                     </p>
                   </div>
@@ -471,14 +471,14 @@ const Dashboard: React.FC = () => {
         
         <MagicCard className="rounded-xl" glowColor="234, 179, 8">
           <Card className="card-hover gradient-subtle border-0 shadow-md h-full">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 rounded-xl bg-warning/10">
-                  <CheckCircle className="h-6 w-6 text-warning-readable" />
+            <CardContent className="p-3 sm:pt-6 sm:px-6">
+              <div className="flex items-center gap-2 sm:gap-4">
+                <div className="p-2 sm:p-3 rounded-xl bg-warning/10">
+                  <CheckCircle className="h-5 w-5 sm:h-6 sm:w-6 text-warning-readable" />
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground font-medium">{t('received')}</p>
-                  <p className="text-2xl font-bold text-card-foreground">
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs sm:text-sm text-muted-foreground font-medium truncate">{t('received')}</p>
+                  <p className="text-lg sm:text-2xl font-bold text-card-foreground">
                     <CountUp to={receivedCount} duration={1.5} separator="," /> / <CountUp to={sortedInvoices.length} duration={1.5} separator="," />
                   </p>
                 </div>
@@ -490,28 +490,28 @@ const Dashboard: React.FC = () => {
 
       {/* Bank Chart */}
       {bankChartData.length > 0 && <Card className="shadow-lg border-0 overflow-hidden">
-          <CardHeader className="bg-gradient-to-r from-card to-muted/20 border-b">
-            <CardTitle className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-primary/10">
-                <BarChart3 className="h-5 w-5 text-primary" />
+          <CardHeader className="p-3 sm:p-6 bg-gradient-to-r from-card to-muted/20 border-b">
+            <CardTitle className="flex items-center gap-2 sm:gap-3 text-sm sm:text-base">
+              <div className="p-1.5 sm:p-2 rounded-lg bg-primary/10">
+                <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
               </div>
-              <span className="text-xl">{t('invoicesByBank')}</span>
+              <span className="sm:text-xl">{t('invoicesByBank')}</span>
             </CardTitle>
           </CardHeader>
-          <CardContent className="pt-6">
-            <div className="h-64">
+          <CardContent className="p-2 sm:p-6 pt-4 sm:pt-6">
+            <div className="h-[180px] sm:h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={bankChartData} margin={{
-              top: 10,
-              right: 30,
+              top: 5,
+              right: 10,
               left: 0,
-              bottom: 40
+              bottom: 20
             }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" className="border-black" />
                   <XAxis dataKey="name" tick={{
                 fill: 'hsl(var(--muted-foreground))',
-                fontSize: 12
-              }} angle={-45} textAnchor="end" height={60} />
+                fontSize: 10
+              }} angle={-45} textAnchor="end" height={50} />
                   <YAxis tick={{
                 fill: 'hsl(var(--muted-foreground))',
                 fontSize: 12
@@ -536,50 +536,50 @@ const Dashboard: React.FC = () => {
 
       {/* Dashboard Selector */}
       <Card className="shadow-lg border-0 overflow-hidden">
-        <CardContent className="pt-6">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="p-2 rounded-lg bg-primary/10">
-              <LayoutDashboard className="h-5 w-5 text-primary" />
+        <CardContent className="p-3 sm:pt-6 sm:px-6">
+          <div className="flex items-center gap-2 sm:gap-3 mb-3">
+            <div className="p-1.5 sm:p-2 rounded-lg bg-primary/10">
+              <LayoutDashboard className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
             </div>
-            <span className="font-semibold text-lg">{t('selectDashboard')}</span>
+            <span className="font-semibold text-sm sm:text-lg">{t('selectDashboard')}</span>
           </div>
           <DashboardSelector value={currentDashboardId || ''} onChange={setCurrentDashboardId} />
         </CardContent>
       </Card>
 
       <Card className="shadow-lg border-0 overflow-hidden">
-        <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-gradient-to-r from-card to-muted/20 border-b">
-          <CardTitle className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-primary/10">
-              <FileText className="h-5 w-5 text-primary" />
+        <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-4 p-3 sm:p-6 bg-gradient-to-r from-card to-muted/20 border-b">
+          <CardTitle className="flex items-center gap-2 sm:gap-3 text-sm sm:text-base">
+            <div className="p-1.5 sm:p-2 rounded-lg bg-primary/10">
+              <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
             </div>
-            <span className="text-xl">{currentDashboard?.name || t('allInvoices')}</span>
+            <span className="sm:text-xl">{currentDashboard?.name || t('allInvoices')}</span>
           </CardTitle>
-          <div className="flex flex-wrap items-center gap-2">
-            {selectedIds.length > 0 && <Button onClick={() => setShowDeleteDialog(true)} variant="destructive" size="sm" className="btn-glow">
-                <Trash2 className="h-4 w-4 mr-2" />{t('deleteSelected')} ({selectedIds.length})
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+            {selectedIds.length > 0 && <Button onClick={() => setShowDeleteDialog(true)} variant="destructive" size="sm" className="btn-glow h-8 text-xs sm:text-sm">
+                <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 sm:mr-2" />{t('deleteSelected')} ({selectedIds.length})
               </Button>}
             <input type="file" ref={fileInputRef} accept=".csv" onChange={handleCSVImport} className="hidden" />
-            <Button onClick={() => fileInputRef.current?.click()} variant="outline" size="sm" className="border-primary/20 hover:bg-primary/5 hover:border-primary/40 transition-all">
-              <Upload className="h-4 w-4 mr-2" />{t('importCSV')}
+            <Button onClick={() => fileInputRef.current?.click()} variant="outline" size="sm" className="border-primary/20 hover:bg-primary/5 hover:border-primary/40 transition-all h-8 text-xs sm:text-sm">
+              <Upload className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 sm:mr-2" /><span className="hidden xs:inline">{t('importCSV')}</span><span className="xs:hidden">Import</span>
             </Button>
-            <Button onClick={handleCSVExport} variant="outline" size="sm" disabled={!invoices.length} className="border-primary/20 hover:bg-primary/5 hover:border-primary/40 transition-all">
-              <Download className="h-4 w-4 mr-2" />{t('exportCSV')}
+            <Button onClick={handleCSVExport} variant="outline" size="sm" disabled={!invoices.length} className="border-primary/20 hover:bg-primary/5 hover:border-primary/40 transition-all h-8 text-xs sm:text-sm">
+              <Download className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 sm:mr-2" /><span className="hidden xs:inline">{t('exportCSV')}</span><span className="xs:hidden">Export</span>
             </Button>
-            <Button onClick={() => setShowPrintDialog(true)} variant="outline" size="sm" disabled={!invoices.length} className="border-primary/20 hover:bg-primary/5 hover:border-primary/40 transition-all">
-              <Printer className="h-4 w-4 mr-2" />{t('print')}
+            <Button onClick={() => setShowPrintDialog(true)} variant="outline" size="sm" disabled={!invoices.length} className="border-primary/20 hover:bg-primary/5 hover:border-primary/40 transition-all h-8 text-xs sm:text-sm">
+              <Printer className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 sm:mr-2" />{t('print')}
             </Button>
-            <Button onClick={copyTableToClipboard} variant="outline" size="sm" disabled={!invoices.length} className="border-primary/20 hover:bg-primary/5 hover:border-primary/40 transition-all">
-              <Copy className="h-4 w-4 mr-2" />{t('copyTable')}
+            <Button onClick={copyTableToClipboard} variant="outline" size="sm" disabled={!invoices.length} className="border-primary/20 hover:bg-primary/5 hover:border-primary/40 transition-all h-8 text-xs sm:text-sm">
+              <Copy className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 sm:mr-2" />{t('copyTable')}
             </Button>
           </div>
         </CardHeader>
-        <CardContent className="p-6">
+        <CardContent className="p-3 sm:p-6">
           {/* Search Bar */}
-          <div className="mb-6">
+          <div className="mb-4 sm:mb-6">
             <div className="relative max-w-md">
-              <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input placeholder={t('searchInvoices')} value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-11 h-11 border-muted bg-muted/30 focus:bg-card input-focus rounded-xl" />
+              <Search className="absolute left-3 sm:left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input placeholder={t('searchInvoices')} value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-9 sm:pl-11 h-9 sm:h-11 border-muted bg-muted/30 focus:bg-card input-focus rounded-xl text-sm" />
             </div>
           </div>
 
