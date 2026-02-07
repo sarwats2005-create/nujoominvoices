@@ -14,6 +14,7 @@ import { useSoundEffects } from '@/hooks/useSoundEffects';
 import { format } from 'date-fns';
 import { CalendarIcon, DollarSign, Hash, User, Plus, Landmark, LayoutDashboard, Package, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { formatDateToString } from '@/lib/dateUtils';
 import BankSelector from '@/components/BankSelector';
 import DashboardSelector from '@/components/DashboardSelector';
 import { MagicCard } from '@/components/MagicCard';
@@ -74,12 +75,12 @@ const NewInvoice: React.FC = () => {
     addInvoice({
       amount: parseFloat(amount),
       currency,
-      date: date.toISOString(),
+      date: formatDateToString(date),
       invoiceNumber,
       beneficiary,
       bank,
       containerNumber: containerNumber || undefined,
-      swiftDate: swiftDate ? swiftDate.toISOString() : undefined,
+      swiftDate: swiftDate ? formatDateToString(swiftDate) : undefined,
       dashboardId,
     });
 

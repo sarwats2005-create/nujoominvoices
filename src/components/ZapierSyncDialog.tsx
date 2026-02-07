@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
+import { parseDateString } from '@/lib/dateUtils';
 import { Sheet, Cloud, Loader2, ExternalLink, CheckCircle } from 'lucide-react';
 import {
   Dialog,
@@ -59,8 +60,8 @@ const ZapierSyncDialog: React.FC<ZapierSyncDialogProps> = ({ open, onOpenChange 
         invoice_number: inv.invoiceNumber,
         amount: inv.amount,
         amount_formatted: `${currency.symbol}${Math.round(inv.amount).toLocaleString()}`,
-        date: format(new Date(inv.date), 'yyyy-MM-dd'),
-        date_formatted: format(new Date(inv.date), 'dd/MM/yyyy'),
+        date: format(parseDateString(inv.date), 'yyyy-MM-dd'),
+        date_formatted: format(parseDateString(inv.date), 'dd/MM/yyyy'),
         beneficiary: inv.beneficiary,
         bank: inv.bank,
         container_number: inv.containerNumber || '',
