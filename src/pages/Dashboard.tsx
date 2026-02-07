@@ -12,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { format, differenceInDays } from 'date-fns';
 import { Copy, FileText, ArrowUpDown, Trash2, Printer, Edit, AlertTriangle, LayoutDashboard, Search, Hash, DollarSign, CalendarIcon, User, Landmark, Package, CheckCircle, Upload, Download, BarChart3, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { parseDateString } from '@/lib/dateUtils';
 import EditInvoiceDialog from '@/components/EditInvoiceDialog';
 import DashboardSelector from '@/components/DashboardSelector';
 import { MagicCard } from '@/components/MagicCard';
@@ -75,13 +76,13 @@ const Dashboard: React.FC = () => {
   const filteredInvoices = useMemo(() => {
     if (!searchQuery.trim()) return invoices;
     const query = searchQuery.toLowerCase();
-    return invoices.filter(inv => inv.invoiceNumber.toLowerCase().includes(query) || inv.beneficiary.toLowerCase().includes(query) || inv.bank.toLowerCase().includes(query) || inv.amount.toString().includes(query) || inv.containerNumber && inv.containerNumber.toLowerCase().includes(query) || format(new Date(inv.date), 'dd/MM/yyyy').includes(query) || (inv.status === 'received' ? t('received') : t('pending')).toLowerCase().includes(query));
+    return invoices.filter(inv => inv.invoiceNumber.toLowerCase().includes(query) || inv.beneficiary.toLowerCase().includes(query) || inv.bank.toLowerCase().includes(query) || inv.amount.toString().includes(query) || inv.containerNumber && inv.containerNumber.toLowerCase().includes(query) || format(parseDateString(inv.date), 'dd/MM/yyyy').includes(query) || (inv.status === 'received' ? t('received') : t('pending')).toLowerCase().includes(query));
   }, [invoices, searchQuery, t]);
   const sortedInvoices = useMemo(() => {
     return [...filteredInvoices].sort((a, b) => {
       let comparison = 0;
       if (sortKey === 'amount') comparison = a.amount - b.amount;
-      else if (sortKey === 'date') comparison = new Date(a.date).getTime() - new Date(b.date).getTime();
+      else if (sortKey === 'date') comparison = parseDateString(a.date).getTime() - parseDateString(b.date).getTime();
       else if (sortKey === 'containerNumber') comparison = (a.containerNumber || '').localeCompare(b.containerNumber || '');
       else if (sortKey === 'swiftDate') comparison = (a.swiftDate || '').localeCompare(b.swiftDate || '');
       else comparison = String(a[sortKey]).localeCompare(String(b[sortKey]));
@@ -120,7 +121,7 @@ const Dashboard: React.FC = () => {
     });
   };
   const copyTableToClipboard = () => {
-    const rows = sortedInvoices.map(inv => [inv.invoiceNumber, formatAmount(inv.amount, inv.currency), format(new Date(inv.date), 'dd/MM/yyyy'), inv.beneficiary, inv.bank, inv.containerNumber || '', inv.swiftDate ? format(new Date(inv.swiftDate), 'dd/MM/yyyy') : '', inv.status === 'received' ? t('received') : t('pending')]);
+    const rows = sortedInvoices.map(inv => [inv.invoiceNumber, formatAmount(inv.amount, inv.currency), format(parseDateString(inv.date), 'dd/MM/yyyy'), inv.beneficiary, inv.bank, inv.containerNumber || '', inv.swiftDate ? format(parseDateString(inv.swiftDate), 'dd/MM/yyyy') : '', inv.status === 'received' ? t('received') : t('pending')]);
     const text = rows.map(row => row.join('\t')).join('\n');
     navigator.clipboard.writeText(text);
     toast({
@@ -229,7 +230,7 @@ const Dashboard: React.FC = () => {
   };
   const handleCSVExport = () => {
     const headers = ['Invoice Number', 'Amount', 'Date', 'Beneficiary', 'Bank', 'Container Number', 'Swift Date', 'Status'];
-    const rows = sortedInvoices.map(inv => [inv.invoiceNumber, inv.amount.toString(), format(new Date(inv.date), 'dd/MM/yyyy'), inv.beneficiary, inv.bank, inv.containerNumber || '', inv.swiftDate ? format(new Date(inv.swiftDate), 'dd/MM/yyyy') : '', inv.status]);
+    const rows = sortedInvoices.map(inv => [inv.invoiceNumber, inv.amount.toString(), format(parseDateString(inv.date), 'dd/MM/yyyy'), inv.beneficiary, inv.bank, inv.containerNumber || '', inv.swiftDate ? format(parseDateString(inv.swiftDate), 'dd/MM/yyyy') : '', inv.status]);
     const csv = [headers.join(','), ...rows.map(row => row.map(cell => `"${cell}"`).join(','))].join('\n');
     const blob = new Blob([csv], {
       type: 'text/csv'
@@ -295,11 +296,11 @@ const Dashboard: React.FC = () => {
               <tr class="${inv.status === 'received' ? 'received' : ''}">
                 <td>${inv.invoiceNumber}</td>
                 <td>${formatAmount(inv.amount, inv.currency)}</td>
-                <td>${format(new Date(inv.date), 'dd/MM/yyyy')}</td>
+                <td>${format(parseDateString(inv.date), 'dd/MM/yyyy')}</td>
                 <td>${inv.beneficiary}</td>
                 <td>${inv.bank}</td>
                 <td>${inv.containerNumber || '-'}</td>
-                <td>${inv.swiftDate ? format(new Date(inv.swiftDate), 'dd/MM/yyyy') : '-'}</td>
+                <td>${inv.swiftDate ? format(parseDateString(inv.swiftDate), 'dd/MM/yyyy') : '-'}</td>
                 <td>${inv.status === 'received' ? t('received') : t('pending')}</td>
               </tr>
             `).join('')}
@@ -348,11 +349,11 @@ const Dashboard: React.FC = () => {
     const data = sortedInvoices.map(inv => [
       inv.invoiceNumber,
       formatAmount(inv.amount, inv.currency),
-      format(new Date(inv.date), 'dd/MM/yyyy'),
+      format(parseDateString(inv.date), 'dd/MM/yyyy'),
       inv.beneficiary,
       inv.bank,
       inv.containerNumber || '-',
-      inv.swiftDate ? format(new Date(inv.swiftDate), 'dd/MM/yyyy') : '-',
+      inv.swiftDate ? format(parseDateString(inv.swiftDate), 'dd/MM/yyyy') : '-',
       inv.status === 'received' ? t('received') : t('pending'),
     ]);
 
@@ -614,7 +615,7 @@ const Dashboard: React.FC = () => {
                 <TableBody>
                   {sortedInvoices.map((inv, index) => {
                     // Calculate days since swift date: TODAY - SWIFT_DATE
-                    const daysSinceSwift = inv.swiftDate ? differenceInDays(new Date(), new Date(inv.swiftDate)) : null;
+                    const daysSinceSwift = inv.swiftDate ? differenceInDays(new Date(), parseDateString(inv.swiftDate)) : null;
                     // 60-day countdown: starts at 60, decreases each day
                     const daysRemaining = daysSinceSwift !== null ? 60 - daysSinceSwift : null;
                     
@@ -653,14 +654,14 @@ const Dashboard: React.FC = () => {
                         </TableCell>
                         <TableCell className="font-semibold text-primary">{inv.invoiceNumber}</TableCell>
                         <TableCell className="font-medium">{formatAmount(inv.amount, inv.currency)}</TableCell>
-                        <TableCell className="text-muted-foreground">{format(new Date(inv.date), 'dd/MM/yyyy')}</TableCell>
+                        <TableCell className="text-muted-foreground">{format(parseDateString(inv.date), 'dd/MM/yyyy')}</TableCell>
                         <TableCell>{inv.beneficiary}</TableCell>
                         <TableCell>{inv.bank}</TableCell>
                         <TableCell className="text-muted-foreground">{inv.containerNumber || '-'}</TableCell>
                         <TableCell>
                           {inv.swiftDate ? (
                             <div className="flex items-center gap-2">
-                              <span className="text-muted-foreground">{format(new Date(inv.swiftDate), 'dd/MM/yyyy')}</span>
+                              <span className="text-muted-foreground">{format(parseDateString(inv.swiftDate), 'dd/MM/yyyy')}</span>
                               {/* Hide warning completely when complete (checkbox checked) */}
                               {!isComplete && (
                                 <>

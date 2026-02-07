@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { format, addDays, isBefore, isAfter } from 'date-fns';
+import { parseDateString } from '@/lib/dateUtils';
 import { Hash, DollarSign, CalendarIcon, User, Landmark, Package, Clock, AlertTriangle } from 'lucide-react';
 
 interface EditInvoiceDialogProps {
@@ -48,12 +49,12 @@ const EditInvoiceDialog: React.FC<EditInvoiceDialogProps> = ({ invoice, open, on
       setFormData({
         amount: invoice.amount.toString(),
         currency: invoice.currency || 'USD',
-        date: format(new Date(invoice.date), 'yyyy-MM-dd'),
+        date: format(parseDateString(invoice.date), 'yyyy-MM-dd'),
         invoiceNumber: invoice.invoiceNumber,
         beneficiary: invoice.beneficiary,
         bank: invoice.bank,
         containerNumber: invoice.containerNumber || '',
-        swiftDate: invoice.swiftDate ? format(new Date(invoice.swiftDate), 'yyyy-MM-dd') : '',
+        swiftDate: invoice.swiftDate ? format(parseDateString(invoice.swiftDate), 'yyyy-MM-dd') : '',
       });
     }
   }, [invoice]);
