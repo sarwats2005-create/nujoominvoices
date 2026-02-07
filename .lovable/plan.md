@@ -1,80 +1,75 @@
 
-# Plan: Fix Dashboard Page Responsiveness
 
-## Summary
-Update the Dashboard page to match the responsive design patterns implemented in the Insights page, ensuring consistent mobile-friendly layouts across both pages.
+# Fix Date Timezone Bug Across the Project
 
-## Changes Required
+## The Problem
+When you enter a date like **07/02/2026** on the New Invoice form, it shows up as **06/02/2026** on the Dashboard. This happens because `toISOString()` converts dates to UTC timezone, which shifts the date backward for users in timezones ahead of UTC (like Iraq, UTC+3).
 
-### 1. Stats Cards Grid Layout
-**File:** `src/pages/Dashboard.tsx`
+## Root Cause
+- **New Invoice page** uses `date.toISOString()` which converts local midnight to UTC (shifting the date back)
+- **Dashboard** then parses these UTC strings, sometimes showing the wrong date
+- The same issue affects Swift Date
 
-Update the stats cards container from:
-```
-grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4
-```
-To:
-```
-grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4
-```
+## The Fix
 
-This ensures 2 columns on mobile instead of 1, matching the Insights page.
+### 1. Create a date utility helper (`src/lib/dateUtils.ts`)
+A new file with two helper functions used everywhere:
+- `formatDateToString(date)` -- Converts a Date object to `YYYY-MM-DD` string using local time (not UTC)
+- `parseDateString(dateStr)` -- Parses a `YYYY-MM-DD` string into a Date using local time components, avoiding UTC interpretation
 
-### 2. Card Content Padding
-Update all stat card `CardContent` components from fixed padding to responsive:
-- From: `pt-6`
-- To: `p-3 sm:pt-6 sm:px-6`
+### 2. Fix New Invoice page (`src/pages/NewInvoice.tsx`)
+Replace `date.toISOString()` with `formatDateToString(date)` for both the invoice date and swift date fields. This stores `2026-02-07` instead of `2026-02-06T21:00:00.000Z`.
 
-### 3. Icon Container Padding
-Update the icon container divs:
-- From: `p-3 rounded-xl`
-- To: `p-2 sm:p-3 rounded-xl`
+### 3. Fix Dashboard page (`src/pages/Dashboard.tsx`)
+Replace all instances of `new Date(inv.date)` and `new Date(inv.swiftDate)` with `parseDateString(...)` across:
+- Table cell display (invoice date and swift date columns)
+- Search filtering
+- Copy to clipboard
+- CSV export
+- Print view
+- PDF export
+- Swift date countdown calculation
+- Date sorting
 
-### 4. Icon Sizes
-Update all stat card icons to use responsive sizing:
-- From: `h-6 w-6`
-- To: `h-5 w-5 sm:h-6 sm:w-6`
+### 4. Fix Edit Invoice dialog (`src/components/EditInvoiceDialog.tsx`)
+Replace `new Date(invoice.date)` and `new Date(invoice.swiftDate)` with `parseDateString(...)` when populating the edit form.
 
-### 5. Text Sizes
-Update labels and values:
-- Labels: From `text-sm` to `text-xs sm:text-sm`
-- Values: From `text-2xl` to `text-lg sm:text-2xl`
-- Currency symbols: From `text-xl` / `text-lg` to `text-base sm:text-xl` / `text-sm sm:text-lg`
-
-### 6. Card Layout Direction
-Change card content layout to be more compact on mobile:
-- From: `flex items-center gap-4`
-- To: `flex items-center gap-2 sm:gap-4`
-
-### 7. Add Container Padding
-Add responsive horizontal padding to the main container:
-- From: `animate-fade-in space-y-6`
-- To: `animate-fade-in space-y-4 sm:space-y-6 px-1 sm:px-0`
-
-### 8. Bank Chart Responsiveness
-Update the bank chart section:
-- Card header padding: Add `p-3 sm:p-6`
-- Chart height: From fixed `h-64` to `h-[180px] sm:h-64`
-- Reduce bottom margin on mobile for XAxis labels
-
-### 9. Dashboard Selector Card
-Update padding from fixed to responsive:
-- From: `pt-6`
-- To: `p-3 sm:pt-6 sm:px-6`
-
-### 10. Table Card Header & Actions
-Make the action buttons wrap better on mobile:
-- Add smaller button sizes on mobile
-- Reduce gaps on smaller screens
+### 5. Fix Zapier Sync dialog (`src/components/ZapierSyncDialog.tsx`)
+Replace `new Date(inv.date)` with `parseDateString(...)` for the date formatting.
 
 ---
 
 ## Technical Details
 
-These changes follow the exact same responsive patterns used in the Insights page:
-- 2-column grid on mobile (vs 4 on desktop)
-- Smaller padding, text, and icons on mobile
-- Reduced gaps and spacing
-- Subtle hover effects that don't cause layout shifts on touch devices
+**New file: `src/lib/dateUtils.ts`**
+```typescript
+// Formats a Date to YYYY-MM-DD using LOCAL time (avoids UTC shift)
+export function formatDateToString(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
 
-All changes use Tailwind's responsive prefixes (`sm:`, `lg:`) to progressively enhance the layout for larger screens.
+// Parses YYYY-MM-DD string to Date using LOCAL time (avoids UTC shift)
+export function parseDateString(dateStr: string): Date {
+  if (!dateStr) return new Date();
+  // If it's already an ISO string with time, extract just the date part
+  const datePart = dateStr.split('T')[0];
+  const [year, month, day] = datePart.split('-').map(Number);
+  return new Date(year, month - 1, day);
+}
+```
+
+**Files modified (4 files):**
+
+| File | What changes |
+|------|-------------|
+| `src/lib/dateUtils.ts` | New file with timezone-safe date helpers |
+| `src/pages/NewInvoice.tsx` | Use `formatDateToString()` instead of `.toISOString()` |
+| `src/pages/Dashboard.tsx` | Use `parseDateString()` instead of `new Date()` in ~12 locations |
+| `src/components/EditInvoiceDialog.tsx` | Use `parseDateString()` instead of `new Date()` for form population |
+| `src/components/ZapierSyncDialog.tsx` | Use `parseDateString()` instead of `new Date()` |
+
+This fix ensures the date you enter is exactly the date that appears on the Dashboard -- no more off-by-one day shifts regardless of your timezone.
+
