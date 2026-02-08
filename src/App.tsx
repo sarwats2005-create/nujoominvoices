@@ -19,6 +19,10 @@ import NotFound from "./pages/NotFound";
 import Install from "@/pages/Install";
 import AdminPanel from "@/pages/AdminPanel";
 import AuditLog from "@/pages/AuditLog";
+import UsedBLDashboard from "@/pages/UsedBLDashboard";
+import UsedBLNew from "@/pages/UsedBLNew";
+import UsedBLDetails from "@/pages/UsedBLDetails";
+import UsedBLEdit from "@/pages/UsedBLEdit";
 import { NetworkStatusIndicator } from "@/components/NetworkStatusIndicator";
 import PWAUpdateBanner from "@/components/PWAUpdateBanner";
 
@@ -66,6 +70,10 @@ const AppRoutes = () => {
       }>
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/new-invoice" element={<NewInvoice />} />
+        <Route path="/used-bl" element={<UsedBLDashboard />} />
+        <Route path="/used-bl/new" element={<UsedBLNew />} />
+        <Route path="/used-bl/:id" element={<UsedBLDetails />} />
+        <Route path="/used-bl/:id/edit" element={<UsedBLEdit />} />
         <Route path="/insights" element={<Insights />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/settings" element={<Settings />} />

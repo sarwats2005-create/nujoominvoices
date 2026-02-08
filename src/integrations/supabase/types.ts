@@ -235,6 +235,54 @@ export type Database = {
         }
         Relationships: []
       }
+      used_bl_counting: {
+        Row: {
+          bank: string
+          bl_no: string
+          container_no: string
+          created_at: string
+          id: string
+          invoice_amount: number
+          invoice_date: string
+          is_active: boolean
+          notes: string | null
+          owner: string
+          updated_at: string
+          used_for: string
+          user_id: string
+        }
+        Insert: {
+          bank: string
+          bl_no: string
+          container_no: string
+          created_at?: string
+          id?: string
+          invoice_amount: number
+          invoice_date: string
+          is_active?: boolean
+          notes?: string | null
+          owner: string
+          updated_at?: string
+          used_for: string
+          user_id: string
+        }
+        Update: {
+          bank?: string
+          bl_no?: string
+          container_no?: string
+          created_at?: string
+          id?: string
+          invoice_amount?: number
+          invoice_date?: string
+          is_active?: boolean
+          notes?: string | null
+          owner?: string
+          updated_at?: string
+          used_for?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
