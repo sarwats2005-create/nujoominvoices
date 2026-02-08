@@ -1164,6 +1164,12 @@ export const translations: Translations = {
     ar: 'بالتواصل معنا، أنت توافق على شروط الخدمة وسياسة الخصوصية',
     ku: 'بە پەیوەندیکردن، ڕازی دەبیت بە مەرجەکانی خزمەتگوزاری و سیاسەتی تایبەتمەندی',
   },
+  // Used B/L Module
+  usedBL: {
+    en: 'Used B/L',
+    ar: 'بوالص مستخدمة',
+    ku: 'B/L بەکارهاتوو',
+  },
 };
 
 interface LanguageContextType {
