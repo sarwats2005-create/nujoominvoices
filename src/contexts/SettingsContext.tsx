@@ -12,6 +12,12 @@ export interface Currency {
   code: string;
 }
 
+export interface BLPresets {
+  banks: string[];
+  owners: string[];
+  usedFor: string[];
+}
+
 export const currencies: Currency[] = [
   { symbol: '$', name: 'US Dollar', code: 'USD' },
   { symbol: '€', name: 'Euro', code: 'EUR' },
@@ -33,6 +39,8 @@ interface SettingsContextType {
   setCurrency: (currency: Currency) => void;
   soundVolume: number;
   setSoundVolume: (volume: number) => void;
+  blPresets: BLPresets;
+  setBLPresets: (presets: BLPresets) => void;
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -42,6 +50,13 @@ const THEME_KEY = 'invoice_app_theme';
 const CONTACT_INFO_KEY = 'invoice_app_contact_info';
 const CURRENCY_KEY = 'invoice_app_currency';
 const SOUND_VOLUME_KEY = 'invoice_app_sound_volume';
+const BL_PRESETS_KEY = 'invoice_app_bl_presets';
+
+const defaultBLPresets: BLPresets = {
+  banks: ['MBI', 'ADIB', 'TBI', 'BGHD', 'ECONOMY'],
+  owners: ['DASHTY', 'WAAD', 'BAZIRGANI DRWST', 'KARZAN'],
+  usedFor: ['SUIZI', 'JIEREN', 'ASNA'],
+};
 
 const defaultContactInfo: ContactInfo = {
   email: 'support@nujoom.com',
@@ -57,6 +72,7 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
   const [contactInfo, setContactInfoState] = useState<ContactInfo>(defaultContactInfo);
   const [currency, setCurrencyState] = useState<Currency>(defaultCurrency);
   const [soundVolume, setSoundVolumeState] = useState<number>(0.5);
+  const [blPresets, setBLPresetsState] = useState<BLPresets>(defaultBLPresets);
 
   useEffect(() => {
     const savedLogo = localStorage.getItem(LOGO_KEY);
@@ -64,6 +80,7 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     const savedContactInfo = localStorage.getItem(CONTACT_INFO_KEY);
     const savedCurrency = localStorage.getItem(CURRENCY_KEY);
     const savedSoundVolume = localStorage.getItem(SOUND_VOLUME_KEY);
+    const savedBLPresets = localStorage.getItem(BL_PRESETS_KEY);
     
     if (savedLogo) {
       setLogoState(savedLogo);
@@ -84,6 +101,10 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
 
     if (savedSoundVolume !== null) {
       setSoundVolumeState(parseFloat(savedSoundVolume));
+    }
+
+    if (savedBLPresets) {
+      setBLPresetsState(JSON.parse(savedBLPresets));
     }
   }, []);
 
@@ -118,8 +139,13 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     localStorage.setItem(SOUND_VOLUME_KEY, volume.toString());
   };
 
+  const setBLPresets = (presets: BLPresets) => {
+    setBLPresetsState(presets);
+    localStorage.setItem(BL_PRESETS_KEY, JSON.stringify(presets));
+  };
+
   return (
-    <SettingsContext.Provider value={{ logo, setLogo, isDarkMode, toggleDarkMode, contactInfo, setContactInfo, currency, setCurrency, soundVolume, setSoundVolume }}>
+    <SettingsContext.Provider value={{ logo, setLogo, isDarkMode, toggleDarkMode, contactInfo, setContactInfo, currency, setCurrency, soundVolume, setSoundVolume, blPresets, setBLPresets }}>
       {children}
     </SettingsContext.Provider>
   );
