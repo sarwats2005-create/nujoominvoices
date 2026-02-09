@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useSettings } from '@/contexts/SettingsContext';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
@@ -12,10 +13,6 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { formatDateToString, parseDateString } from '@/lib/dateUtils';
 import type { UsedBL, UsedBLInsert } from '@/types/usedBL';
-
-const BANKS = ['MBI', 'ADIB', 'TBI', 'BGHD', 'ECONOMY'];
-const OWNERS = ['DASHTY', 'WAAD', 'BAZIRGANI DRWST', 'KARZAN'];
-const USED_FOR_OPTIONS = ['SUIZI', 'JIEREN', 'ASNA'];
 
 interface UsedBLFormProps {
   initialData?: UsedBL | null;
@@ -39,7 +36,7 @@ const UsedBLForm: React.FC<UsedBLFormProps> = ({
   isSubmitting = false,
 }) => {
   const { t } = useLanguage();
-
+  const { blPresets } = useSettings();
   const [blNo, setBlNo] = useState(initialData?.bl_no || '');
   const [containerNo, setContainerNo] = useState(initialData?.container_no || '');
   const [invoiceAmount, setInvoiceAmount] = useState(initialData?.invoice_amount?.toString() || '');
@@ -272,7 +269,7 @@ const UsedBLForm: React.FC<UsedBLFormProps> = ({
                     <SelectValue placeholder="Select bank" />
                   </SelectTrigger>
                   <SelectContent className="bg-popover">
-                    {BANKS.map(b => (
+                    {blPresets.banks.map(b => (
                       <SelectItem key={b} value={b}>{b}</SelectItem>
                     ))}
                   </SelectContent>
@@ -310,7 +307,7 @@ const UsedBLForm: React.FC<UsedBLFormProps> = ({
                     <SelectValue placeholder="Select owner" />
                   </SelectTrigger>
                   <SelectContent className="bg-popover">
-                    {OWNERS.map(o => (
+                    {blPresets.owners.map(o => (
                       <SelectItem key={o} value={o}>{o}</SelectItem>
                     ))}
                   </SelectContent>
@@ -348,7 +345,7 @@ const UsedBLForm: React.FC<UsedBLFormProps> = ({
                     <SelectValue placeholder="Select usage" />
                   </SelectTrigger>
                   <SelectContent className="bg-popover">
-                    {USED_FOR_OPTIONS.map(u => (
+                    {blPresets.usedFor.map(u => (
                       <SelectItem key={u} value={u}>{u}</SelectItem>
                     ))}
                   </SelectContent>

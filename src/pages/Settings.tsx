@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useSoundEffects } from '@/hooks/useSoundEffects';
 import { Settings as SettingsIcon, Languages, Image, Building2, Trash2, LayoutDashboard, Mail, Phone, MapPin, Coins, Download, Smartphone, Check, Volume2 } from 'lucide-react';
 import DashboardSelector from '@/components/DashboardSelector';
+import BLPresetsManager from '@/components/BLPresetsManager';
 
 const Settings: React.FC = () => {
   const { t, language, setLanguage } = useLanguage();
@@ -229,6 +230,9 @@ const Settings: React.FC = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* B/L Presets */}
+      <BLPresetsManager />
     </div>
   );
 };

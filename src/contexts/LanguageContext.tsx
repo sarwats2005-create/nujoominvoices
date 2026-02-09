@@ -1170,6 +1170,52 @@ export const translations: Translations = {
     ar: 'بوالص مستخدمة',
     ku: 'B/L بەکارهاتوو',
   },
+  // B/L Presets
+  blPresets: {
+    en: 'B/L Dropdown Presets',
+    ar: 'إعدادات القوائم المنسدلة للبوالص',
+    ku: 'ڕێکخستنەکانی لیستی B/L',
+  },
+  blPresetsDesc: {
+    en: 'Manage the preset options for Bank, Owner, and Used For dropdowns in the Used B/L form.',
+    ar: 'إدارة خيارات القوائم المنسدلة للبنك والمالك والاستخدام في نموذج البوالص المستخدمة.',
+    ku: 'بەڕێوەبردنی هەڵبژاردنەکانی لیستی بانک و خاوەن و بەکارهاتوو لە فۆڕمی B/L.',
+  },
+  blBankPresets: {
+    en: 'Bank Options',
+    ar: 'خيارات البنوك',
+    ku: 'هەڵبژاردنەکانی بانک',
+  },
+  blOwnerPresets: {
+    en: 'Owner Options',
+    ar: 'خيارات المالكين',
+    ku: 'هەڵبژاردنەکانی خاوەن',
+  },
+  blUsedForPresets: {
+    en: 'Used For Options',
+    ar: 'خيارات الاستخدام',
+    ku: 'هەڵبژاردنەکانی بەکارهاتوو',
+  },
+  addNewBank: {
+    en: 'Add new bank...',
+    ar: 'إضافة بنك جديد...',
+    ku: 'زیادکردنی بانکی نوێ...',
+  },
+  addNewOwner: {
+    en: 'Add new owner...',
+    ar: 'إضافة مالك جديد...',
+    ku: 'زیادکردنی خاوەنی نوێ...',
+  },
+  addNewUsedFor: {
+    en: 'Add new usage...',
+    ar: 'إضافة استخدام جديد...',
+    ku: 'زیادکردنی بەکارهێنانی نوێ...',
+  },
+  presetsUpdated: {
+    en: 'Presets updated!',
+    ar: 'تم تحديث الإعدادات!',
+    ku: 'ڕێکخستنەکان نوێکرانەوە!',
+  },
 };
 
 interface LanguageContextType {
