@@ -1,6 +1,7 @@
 export interface UsedBL {
   id: string;
   user_id: string;
+  dashboard_id: string | null;
   bl_no: string;
   container_no: string;
   invoice_amount: number;
@@ -23,6 +24,7 @@ export interface UsedBLInsert {
   owner: string;
   used_for: string;
   notes?: string | null;
+  dashboard_id?: string | null;
 }
 
 export interface UsedBLUpdate {
@@ -34,4 +36,12 @@ export interface UsedBLUpdate {
   owner?: string;
   used_for?: string;
   notes?: string | null;
+}
+
+export interface BLDashboard {
+  id: string;
+  user_id: string;
+  name: string;
+  created_at: string;
+  updated_at: string;
 }

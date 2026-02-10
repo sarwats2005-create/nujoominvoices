@@ -5,13 +5,14 @@ import type { UsedBL } from '@/types/usedBL';
 
 interface UsedBLCardProps {
   record: UsedBL;
+  dashboardName?: string;
   showActions?: boolean;
   onEdit?: () => void;
   onPrint?: () => void;
   onExportPDF?: () => void;
 }
 
-const UsedBLCard: React.FC<UsedBLCardProps> = ({ record, showActions = true, onEdit, onPrint, onExportPDF }) => {
+const UsedBLCard: React.FC<UsedBLCardProps> = ({ record, dashboardName, showActions = true, onEdit, onPrint, onExportPDF }) => {
   const formatAmount = (amount: number) => `$${Math.round(amount).toLocaleString()}`;
 
   const fields = [
@@ -32,7 +33,7 @@ const UsedBLCard: React.FC<UsedBLCardProps> = ({ record, showActions = true, onE
     <div className="w-full max-w-lg mx-auto" id="bl-card">
       {/* Header */}
       <div className="bg-[hsl(var(--primary))] text-primary-foreground text-center py-4 px-6 rounded-t-xl">
-        <h2 className="text-xl font-bold" dir="rtl">حوالات محمد خاص</h2>
+        <h2 className="text-xl font-bold" dir="rtl">{dashboardName || 'حوالات محمد خاص'}</h2>
       </div>
 
       {/* Fields */}

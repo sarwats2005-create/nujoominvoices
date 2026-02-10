@@ -12,7 +12,7 @@ import type { UsedBL, UsedBLInsert } from '@/types/usedBL';
 const UsedBLEdit: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { getRecord, updateRecord, softDeleteRecord, checkContainerExists } = useUsedBL();
+  const { getRecord, updateRecord, softDeleteRecord, checkContainerExists, currentDashboardName, blDashboards } = useUsedBL();
   const { isAdmin } = useAdmin();
   const { toast } = useToast();
   const [record, setRecord] = useState<UsedBL | null>(null);
@@ -30,6 +30,10 @@ const UsedBLEdit: React.FC = () => {
     };
     load();
   }, [id, getRecord]);
+
+  const recordDashboardName = record?.dashboard_id
+    ? blDashboards.find(d => d.id === record.dashboard_id)?.name || currentDashboardName
+    : currentDashboardName;
 
   const handleContainerCheck = useCallback(async (containerNo: string) => {
     if (containerNo.length > 2 && id) {
@@ -90,6 +94,7 @@ const UsedBLEdit: React.FC = () => {
 
       <UsedBLForm
         initialData={record}
+        dashboardName={recordDashboardName}
         onSubmit={handleSubmit}
         onCancel={() => navigate(`/used-bl/${id}`)}
         onDelete={() => setShowDeleteDialog(true)}
