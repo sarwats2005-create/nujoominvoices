@@ -8,12 +8,11 @@ import type { UsedBLInsert } from '@/types/usedBL';
 const UsedBLNew: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { addRecord, checkContainerExists } = useUsedBL();
+  const { addRecord, checkContainerExists, currentDashboardName } = useUsedBL();
   const { toast } = useToast();
   const [containerWarning, setContainerWarning] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Check for duplicate data passed from the dashboard
   const duplicateData = (location.state as any)?.duplicate;
 
   const handleContainerCheck = useCallback(async (containerNo: string) => {
@@ -52,6 +51,7 @@ const UsedBLNew: React.FC = () => {
     <div className="animate-fade-in py-4">
       <UsedBLForm
         initialData={duplicateData ? { ...duplicateData, bl_no: '', id: '' } : undefined}
+        dashboardName={currentDashboardName}
         onSubmit={handleSubmit}
         onSaveAndNew={handleSaveAndNew}
         onCancel={() => navigate('/used-bl')}

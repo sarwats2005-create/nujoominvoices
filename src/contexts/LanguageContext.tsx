@@ -1216,6 +1216,42 @@ export const translations: Translations = {
     ar: 'تم تحديث الإعدادات!',
     ku: 'ڕێکخستنەکان نوێکرانەوە!',
   },
+  // B/L Dashboard Management
+  manageBLDashboards: {
+    en: 'Manage B/L Dashboards',
+    ar: 'إدارة لوحات البوالص',
+    ku: 'بەڕێوەبردنی داشبۆردەکانی B/L',
+  },
+  selectBLDashboard: {
+    en: 'Select B/L Dashboard',
+    ar: 'اختر لوحة البوالص',
+    ku: 'داشبۆردی B/L هەڵبژێرە',
+  },
+  addBLDashboard: {
+    en: 'Add B/L Dashboard',
+    ar: 'إضافة لوحة بوالص',
+    ku: 'زیادکردنی داشبۆردی B/L',
+  },
+  blDashboardName: {
+    en: 'Dashboard Name',
+    ar: 'اسم اللوحة',
+    ku: 'ناوی داشبۆرد',
+  },
+  blDashboardAdded: {
+    en: 'B/L Dashboard added!',
+    ar: 'تمت إضافة لوحة البوالص!',
+    ku: 'داشبۆردی B/L زیادکرا!',
+  },
+  blDashboardUpdated: {
+    en: 'B/L Dashboard updated!',
+    ar: 'تم تحديث لوحة البوالص!',
+    ku: 'داشبۆردی B/L نوێکرایەوە!',
+  },
+  blDashboardDeleted: {
+    en: 'B/L Dashboard deleted!',
+    ar: 'تم حذف لوحة البوالص!',
+    ku: 'داشبۆردی B/L سڕایەوە!',
+  },
 };
 
 interface LanguageContextType {

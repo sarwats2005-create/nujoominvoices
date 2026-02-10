@@ -65,6 +65,30 @@ export type Database = {
         }
         Relationships: []
       }
+      bl_dashboards: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       dashboards: {
         Row: {
           created_at: string
@@ -241,6 +265,7 @@ export type Database = {
           bl_no: string
           container_no: string
           created_at: string
+          dashboard_id: string | null
           id: string
           invoice_amount: number
           invoice_date: string
@@ -256,6 +281,7 @@ export type Database = {
           bl_no: string
           container_no: string
           created_at?: string
+          dashboard_id?: string | null
           id?: string
           invoice_amount: number
           invoice_date: string
@@ -271,6 +297,7 @@ export type Database = {
           bl_no?: string
           container_no?: string
           created_at?: string
+          dashboard_id?: string | null
           id?: string
           invoice_amount?: number
           invoice_date?: string
@@ -281,7 +308,15 @@ export type Database = {
           used_for?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "used_bl_counting_dashboard_id_fkey"
+            columns: ["dashboard_id"]
+            isOneToOne: false
+            referencedRelation: "bl_dashboards"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {

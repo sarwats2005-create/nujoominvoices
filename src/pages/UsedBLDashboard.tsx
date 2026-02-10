@@ -5,7 +5,7 @@ import { useUsedBL } from '@/hooks/useUsedBL';
 import { useAdmin } from '@/hooks/useAdmin';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -16,6 +16,7 @@ import { Plus, Search, ArrowUpDown, Trash2, Edit, Eye, Copy, Download, Upload, F
 import { cn } from '@/lib/utils';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import BLDashboardSelector from '@/components/BLDashboardSelector';
 import type { UsedBL } from '@/types/usedBL';
 
 type SortKey = 'bl_no' | 'container_no' | 'invoice_amount' | 'invoice_date' | 'bank' | 'owner' | 'used_for';
@@ -23,7 +24,11 @@ type SortKey = 'bl_no' | 'container_no' | 'invoice_amount' | 'invoice_date' | 'b
 const UsedBLDashboard: React.FC = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
-  const { records, loading, softDeleteRecord, addMultipleRecords } = useUsedBL();
+  const {
+    records, loading, softDeleteRecord, addMultipleRecords,
+    blDashboards, currentBLDashboardId, currentDashboardName,
+    setCurrentBLDashboardId, addBLDashboard,
+  } = useUsedBL();
   const { isAdmin } = useAdmin();
   const { toast } = useToast();
 
@@ -37,20 +42,13 @@ const UsedBLDashboard: React.FC = () => {
 
   const formatAmount = (amount: number) => `$${Math.round(amount).toLocaleString()}`;
 
-  // Unique banks and owners for filter chips
   const uniqueBanks = useMemo(() => [...new Set(records.map(r => r.bank))].sort(), [records]);
   const uniqueOwners = useMemo(() => [...new Set(records.map(r => r.owner))].sort(), [records]);
 
-  // Filter
   const filteredRecords = useMemo(() => {
     let result = records;
-
-    if (bankFilter) {
-      result = result.filter(r => r.bank === bankFilter);
-    }
-    if (ownerFilter) {
-      result = result.filter(r => r.owner === ownerFilter);
-    }
+    if (bankFilter) result = result.filter(r => r.bank === bankFilter);
+    if (ownerFilter) result = result.filter(r => r.owner === ownerFilter);
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       result = result.filter(r =>
@@ -62,11 +60,9 @@ const UsedBLDashboard: React.FC = () => {
         r.invoice_amount.toString().includes(q)
       );
     }
-
     return result;
   }, [records, searchQuery, bankFilter, ownerFilter]);
 
-  // Sort
   const sortedRecords = useMemo(() => {
     return [...filteredRecords].sort((a, b) => {
       let comparison = 0;
@@ -91,23 +87,40 @@ const UsedBLDashboard: React.FC = () => {
     setDeleteId(null);
   };
 
+  // CSV parsing helper that handles quoted fields
+  const parseCSVLine = (line: string): string[] => {
+    const result: string[] = [];
+    let current = '';
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '"') {
+        if (inQuotes && line[i + 1] === '"') { current += '"'; i++; }
+        else inQuotes = !inQuotes;
+      } else if (ch === ',' && !inQuotes) {
+        result.push(current.trim());
+        current = '';
+      } else {
+        current += ch;
+      }
+    }
+    result.push(current.trim());
+    return result;
+  };
+
   const handleCSVExport = () => {
-    const headers = ['B/L NO', 'CONTAINER NO', 'INVOICE AMOUNT', 'INVOICE DATE', 'BANK', 'OWNER', 'USED FOR'];
+    const headers = ['B/L NO', 'CONTAINER NO', 'INVOICE AMOUNT', 'INVOICE DATE', 'BANK', 'OWNER', 'USED FOR', 'NOTES'];
     const rows = sortedRecords.map(r => [
-      r.bl_no,
-      r.container_no,
-      r.invoice_amount.toString(),
+      r.bl_no, r.container_no, r.invoice_amount.toString(),
       format(parseDateString(r.invoice_date), 'dd/MM/yyyy'),
-      r.bank,
-      r.owner,
-      r.used_for,
+      r.bank, r.owner, r.used_for, r.notes || '',
     ]);
-    const csv = [headers.join(','), ...rows.map(row => row.map(c => `"${c}"`).join(','))].join('\n');
+    const csv = [headers.join(','), ...rows.map(row => row.map(c => `"${c.replace(/"/g, '""')}"`).join(','))].join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `used-bl-counting-${format(new Date(), 'yyyy-MM-dd')}.csv`;
+    a.download = `${currentDashboardName || 'used-bl'}-${format(new Date(), 'yyyy-MM-dd')}.csv`;
     a.click();
     URL.revokeObjectURL(url);
     toast({ title: 'CSV exported' });
@@ -132,17 +145,24 @@ const UsedBLDashboard: React.FC = () => {
 
         const newRecords = [];
         for (let i = startIndex; i < lines.length; i++) {
-          const cells = lines[i].split(',').map(c => c.trim().replace(/^"|"$/g, ''));
+          const cells = parseCSVLine(lines[i]);
           if (cells.length >= 7) {
             const amount = parseFloat(cells[2]?.replace(/[^0-9.-]/g, '') || '0');
             if (isNaN(amount) || amount <= 0) continue;
             if (!cells[0] || !cells[1]) continue;
 
+            // Parse date - try dd/MM/yyyy first, then ISO
+            let dateStr = cells[3] || new Date().toISOString().split('T')[0];
+            const ddmmMatch = dateStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+            if (ddmmMatch) {
+              dateStr = `${ddmmMatch[3]}-${ddmmMatch[2].padStart(2, '0')}-${ddmmMatch[1].padStart(2, '0')}`;
+            }
+
             newRecords.push({
               bl_no: cells[0].toUpperCase(),
               container_no: cells[1].toUpperCase(),
               invoice_amount: amount,
-              invoice_date: cells[3] || new Date().toISOString().split('T')[0],
+              invoice_date: dateStr,
               bank: (cells[4] || '').toUpperCase(),
               owner: (cells[5] || '').toUpperCase(),
               used_for: (cells[6] || '').toUpperCase(),
@@ -169,7 +189,7 @@ const UsedBLDashboard: React.FC = () => {
     const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
     doc.setFontSize(18);
     doc.setTextColor(30, 58, 95);
-    doc.text('USED B/L COUNTING', 14, 15);
+    doc.text(currentDashboardName || 'USED B/L COUNTING', 14, 15);
     doc.setFontSize(10);
     doc.setTextColor(100, 100, 100);
     doc.text(`Total: ${sortedRecords.length} records | Sum: ${formatAmount(totalAmount)} | Date: ${format(new Date(), 'PPP')}`, 14, 22);
@@ -186,7 +206,7 @@ const UsedBLDashboard: React.FC = () => {
       headStyles: { fillColor: [30, 58, 95], textColor: [255, 255, 255], fontStyle: 'bold' },
       alternateRowStyles: { fillColor: [249, 249, 249] },
     });
-    doc.save(`used-bl-counting-${format(new Date(), 'yyyy-MM-dd')}.pdf`);
+    doc.save(`${currentDashboardName || 'used-bl'}-${format(new Date(), 'yyyy-MM-dd')}.pdf`);
     toast({ title: 'PDF exported' });
   };
 
@@ -212,13 +232,21 @@ const UsedBLDashboard: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <h1 className="text-xl sm:text-2xl font-bold text-foreground">USED B/L COUNTING</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">{currentDashboardName || 'USED B/L COUNTING'}</h1>
           <Badge variant="secondary" className="text-sm font-bold">{records.length}</Badge>
         </div>
         <Button onClick={() => navigate('/used-bl/new')} className="gap-2">
           <Plus className="h-4 w-4" /> New Entry
         </Button>
       </div>
+
+      {/* Dashboard Selector */}
+      <BLDashboardSelector
+        dashboards={blDashboards}
+        currentDashboardId={currentBLDashboardId}
+        onSelect={setCurrentBLDashboardId}
+        onAdd={addBLDashboard}
+      />
 
       {/* Search + Filters */}
       <Card>
@@ -233,42 +261,22 @@ const UsedBLDashboard: React.FC = () => {
             />
           </div>
 
-          {/* Bank filter chips */}
           {uniqueBanks.length > 1 && (
             <div className="flex flex-wrap gap-1.5">
               <span className="text-xs text-muted-foreground self-center mr-1">Bank:</span>
-              <Badge
-                variant={bankFilter === null ? "default" : "outline"}
-                className="cursor-pointer text-xs"
-                onClick={() => setBankFilter(null)}
-              >All</Badge>
+              <Badge variant={bankFilter === null ? "default" : "outline"} className="cursor-pointer text-xs" onClick={() => setBankFilter(null)}>All</Badge>
               {uniqueBanks.map(b => (
-                <Badge
-                  key={b}
-                  variant={bankFilter === b ? "default" : "outline"}
-                  className="cursor-pointer text-xs"
-                  onClick={() => setBankFilter(bankFilter === b ? null : b)}
-                >{b}</Badge>
+                <Badge key={b} variant={bankFilter === b ? "default" : "outline"} className="cursor-pointer text-xs" onClick={() => setBankFilter(bankFilter === b ? null : b)}>{b}</Badge>
               ))}
             </div>
           )}
 
-          {/* Owner filter chips */}
           {uniqueOwners.length > 1 && (
             <div className="flex flex-wrap gap-1.5">
               <span className="text-xs text-muted-foreground self-center mr-1">Owner:</span>
-              <Badge
-                variant={ownerFilter === null ? "default" : "outline"}
-                className="cursor-pointer text-xs"
-                onClick={() => setOwnerFilter(null)}
-              >All</Badge>
+              <Badge variant={ownerFilter === null ? "default" : "outline"} className="cursor-pointer text-xs" onClick={() => setOwnerFilter(null)}>All</Badge>
               {uniqueOwners.map(o => (
-                <Badge
-                  key={o}
-                  variant={ownerFilter === o ? "default" : "outline"}
-                  className="cursor-pointer text-xs"
-                  onClick={() => setOwnerFilter(ownerFilter === o ? null : o)}
-                >{o}</Badge>
+                <Badge key={o} variant={ownerFilter === o ? "default" : "outline"} className="cursor-pointer text-xs" onClick={() => setOwnerFilter(ownerFilter === o ? null : o)}>{o}</Badge>
               ))}
             </div>
           )}
@@ -315,11 +323,7 @@ const UsedBLDashboard: React.FC = () => {
                   </TableRow>
                 ) : (
                   sortedRecords.map((record) => (
-                    <TableRow
-                      key={record.id}
-                      className="cursor-pointer hover:bg-accent/30 transition-colors"
-                      onClick={() => navigate(`/used-bl/${record.id}`)}
-                    >
+                    <TableRow key={record.id} className="cursor-pointer hover:bg-accent/30 transition-colors" onClick={() => navigate(`/used-bl/${record.id}`)}>
                       <TableCell className="font-mono font-medium text-xs sm:text-sm">{record.bl_no}</TableCell>
                       <TableCell className="font-mono text-xs sm:text-sm">{record.container_no}</TableCell>
                       <TableCell className="font-semibold text-xs sm:text-sm">{formatAmount(record.invoice_amount)}</TableCell>
@@ -350,7 +354,6 @@ const UsedBLDashboard: React.FC = () => {
             </Table>
           </div>
 
-          {/* Footer Summary */}
           {sortedRecords.length > 0 && (
             <div className="border-t border-border px-4 py-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 bg-muted/30">
               <span className="text-sm text-muted-foreground">

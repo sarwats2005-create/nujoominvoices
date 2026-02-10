@@ -13,7 +13,7 @@ import type { UsedBL } from '@/types/usedBL';
 const UsedBLDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { getRecord } = useUsedBL();
+  const { getRecord, currentDashboardName, blDashboards } = useUsedBL();
   const { toast } = useToast();
   const [record, setRecord] = useState<UsedBL | null>(null);
   const [loading, setLoading] = useState(true);
@@ -27,6 +27,11 @@ const UsedBLDetails: React.FC = () => {
     };
     load();
   }, [id, getRecord]);
+
+  // Get the dashboard name for this record
+  const recordDashboardName = record?.dashboard_id
+    ? blDashboards.find(d => d.id === record.dashboard_id)?.name || currentDashboardName
+    : currentDashboardName;
 
   const handlePrint = () => {
     if (!record) return;
@@ -53,7 +58,7 @@ const UsedBLDetails: React.FC = () => {
       </head>
       <body>
         <div class="card">
-          <div class="header" dir="rtl">حوالات محمد خاص</div>
+          <div class="header" dir="rtl">${recordDashboardName || 'حوالات محمد خاص'}</div>
           <div class="row"><div class="label">B/L NO.</div><div class="value">${record.bl_no}</div></div>
           <div class="row"><div class="label">CONTAINER NO.</div><div class="value">${record.container_no}</div></div>
           <div class="row"><div class="label">INVOICE AMOUNT:</div><div class="value">${formatAmount(record.invoice_amount)}</div></div>
@@ -83,15 +88,13 @@ const UsedBLDetails: React.FC = () => {
     const valueWidth = 90;
     const rowHeight = 12;
 
-    // Header
     doc.setFillColor(30, 58, 95);
     doc.rect(startX, currentY, cardWidth, 16, 'F');
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(16);
-    doc.text('B/L RECORD', startX + cardWidth / 2, currentY + 11, { align: 'center' });
+    doc.text(recordDashboardName || 'B/L RECORD', startX + cardWidth / 2, currentY + 11, { align: 'center' });
     currentY += 16;
 
-    // Rows
     const fields = [
       ['B/L NO.', record.bl_no],
       ['CONTAINER NO.', record.container_no],
@@ -103,21 +106,18 @@ const UsedBLDetails: React.FC = () => {
     ];
     if (record.notes) fields.push(['NOTES:', record.notes]);
 
-    fields.forEach(([label, value], i) => {
-      // Label
+    fields.forEach(([label, value]) => {
       doc.setFillColor(232, 240, 254);
       doc.rect(startX, currentY, labelWidth, rowHeight, 'F');
       doc.setTextColor(30, 58, 95);
       doc.setFontSize(10);
       doc.text(label, startX + 4, currentY + 8);
 
-      // Value
       doc.setFillColor(248, 249, 250);
       doc.rect(startX + labelWidth, currentY, valueWidth, rowHeight, 'F');
       doc.setTextColor(33, 33, 33);
       doc.text(value, startX + labelWidth + 4, currentY + 8);
 
-      // Border
       doc.setDrawColor(200, 200, 200);
       doc.rect(startX, currentY, cardWidth, rowHeight);
 
@@ -154,6 +154,7 @@ const UsedBLDetails: React.FC = () => {
       </Button>
       <UsedBLCard
         record={record}
+        dashboardName={recordDashboardName}
         onEdit={() => navigate(`/used-bl/${record.id}/edit`)}
         onPrint={handlePrint}
         onExportPDF={handleExportPDF}

@@ -16,6 +16,7 @@ import type { UsedBL, UsedBLInsert } from '@/types/usedBL';
 
 interface UsedBLFormProps {
   initialData?: UsedBL | null;
+  dashboardName?: string;
   onSubmit: (data: UsedBLInsert) => Promise<{ success: boolean; error?: string }>;
   onCancel: () => void;
   onSaveAndNew?: (data: UsedBLInsert) => Promise<{ success: boolean; error?: string }>;
@@ -27,6 +28,7 @@ interface UsedBLFormProps {
 
 const UsedBLForm: React.FC<UsedBLFormProps> = ({
   initialData,
+  dashboardName,
   onSubmit,
   onCancel,
   onSaveAndNew,
@@ -142,7 +144,7 @@ const UsedBLForm: React.FC<UsedBLFormProps> = ({
     <div className="w-full max-w-lg mx-auto">
       {/* Header */}
       <div className="bg-[hsl(var(--primary))] text-primary-foreground text-center py-4 px-6 rounded-t-xl">
-        <h2 className="text-xl font-bold" dir="rtl">حوالات محمد خاص</h2>
+        <h2 className="text-xl font-bold" dir="rtl">{dashboardName || 'حوالات محمد خاص'}</h2>
       </div>
 
       {/* Form */}
