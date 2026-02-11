@@ -25,6 +25,7 @@ import UsedBLDetails from "@/pages/UsedBLDetails";
 import UsedBLEdit from "@/pages/UsedBLEdit";
 import { NetworkStatusIndicator } from "@/components/NetworkStatusIndicator";
 import PWAUpdateBanner from "@/components/PWAUpdateBanner";
+import { useAdmin } from "@/hooks/useAdmin";
 
 const queryClient = new QueryClient();
 
@@ -41,6 +42,24 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 
   if (!user) {
     return <Navigate to="/auth" replace />;
+  }
+
+  return <>{children}</>;
+};
+
+const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { isAdmin, loading } = useAdmin();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return <Navigate to="/dashboard" replace />;
   }
 
   return <>{children}</>;
@@ -69,14 +88,14 @@ const AppRoutes = () => {
         </ProtectedRoute>
       }>
         <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/new-invoice" element={<NewInvoice />} />
-        <Route path="/used-bl" element={<UsedBLDashboard />} />
-        <Route path="/used-bl/new" element={<UsedBLNew />} />
-        <Route path="/used-bl/:id" element={<UsedBLDetails />} />
-        <Route path="/used-bl/:id/edit" element={<UsedBLEdit />} />
+        <Route path="/new-invoice" element={<AdminRoute><NewInvoice /></AdminRoute>} />
+        <Route path="/used-bl" element={<AdminRoute><UsedBLDashboard /></AdminRoute>} />
+        <Route path="/used-bl/new" element={<AdminRoute><UsedBLNew /></AdminRoute>} />
+        <Route path="/used-bl/:id" element={<AdminRoute><UsedBLDetails /></AdminRoute>} />
+        <Route path="/used-bl/:id/edit" element={<AdminRoute><UsedBLEdit /></AdminRoute>} />
         <Route path="/insights" element={<Insights />} />
         <Route path="/contact" element={<Contact />} />
-        <Route path="/settings" element={<Settings />} />
+        <Route path="/settings" element={<AdminRoute><Settings /></AdminRoute>} />
         <Route path="/admin" element={<AdminPanel />} />
         <Route path="/audit-log" element={<AuditLog />} />
       </Route>

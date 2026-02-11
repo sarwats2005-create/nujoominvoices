@@ -3,6 +3,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useInvoice, Invoice } from '@/contexts/InvoiceContext';
 import { useSettings } from '@/contexts/SettingsContext';
 import { useSoundEffects } from '@/hooks/useSoundEffects';
+import { useAdmin } from '@/hooks/useAdmin';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -44,6 +45,7 @@ const Dashboard: React.FC = () => {
     toast
   } = useToast();
   const { playWhooshSound } = useSoundEffects();
+  const { isAdmin } = useAdmin();
   const [sortKey, setSortKey] = useState<SortKey>('date');
   const [sortAsc, setSortAsc] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -557,13 +559,13 @@ const Dashboard: React.FC = () => {
             <span className="sm:text-xl">{currentDashboard?.name || t('allInvoices')}</span>
           </CardTitle>
           <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-            {selectedIds.length > 0 && <Button onClick={() => setShowDeleteDialog(true)} variant="destructive" size="sm" className="btn-glow h-8 text-xs sm:text-sm">
+            {isAdmin && selectedIds.length > 0 && <Button onClick={() => setShowDeleteDialog(true)} variant="destructive" size="sm" className="btn-glow h-8 text-xs sm:text-sm">
                 <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 sm:mr-2" />{t('deleteSelected')} ({selectedIds.length})
               </Button>}
             <input type="file" ref={fileInputRef} accept=".csv" onChange={handleCSVImport} className="hidden" />
-            <Button onClick={() => fileInputRef.current?.click()} variant="outline" size="sm" className="border-primary/20 hover:bg-primary/5 hover:border-primary/40 transition-all h-8 text-xs sm:text-sm">
+            {isAdmin && <Button onClick={() => fileInputRef.current?.click()} variant="outline" size="sm" className="border-primary/20 hover:bg-primary/5 hover:border-primary/40 transition-all h-8 text-xs sm:text-sm">
               <Upload className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 sm:mr-2" /><span className="hidden xs:inline">{t('importCSV')}</span><span className="xs:hidden">Import</span>
-            </Button>
+            </Button>}
             <Button onClick={handleCSVExport} variant="outline" size="sm" disabled={!invoices.length} className="border-primary/20 hover:bg-primary/5 hover:border-primary/40 transition-all h-8 text-xs sm:text-sm">
               <Download className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 sm:mr-2" /><span className="hidden xs:inline">{t('exportCSV')}</span><span className="xs:hidden">Export</span>
             </Button>
@@ -593,9 +595,9 @@ const Dashboard: React.FC = () => {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-muted/30 hover:bg-muted/30">
-                    <TableHead className="w-12">
+                    {isAdmin && <TableHead className="w-12">
                       <Checkbox checked={allSelected} onCheckedChange={handleSelectAll} />
-                    </TableHead>
+                    </TableHead>}
                     <TableHead className="w-16">
                       <div className="flex items-center gap-2 font-semibold">
                         <CheckCircle className="h-4 w-4 text-primary" />
@@ -609,7 +611,7 @@ const Dashboard: React.FC = () => {
                     <SortHeader label={t('bank')} sortKeyName="bank" icon={Landmark} />
                     <SortHeader label={t('containerNumber')} sortKeyName="containerNumber" icon={Package} />
                     <SortHeader label={t('swiftDate')} sortKeyName="swiftDate" icon={Clock} />
-                    <TableHead className="font-semibold">{t('actions')}</TableHead>
+                    {isAdmin && <TableHead className="font-semibold">{t('actions')}</TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -642,9 +644,9 @@ const Dashboard: React.FC = () => {
                         "transition-all duration-200 hover:bg-muted/50",
                         getRowClass()
                       )}>
-                        <TableCell>
+                        {isAdmin && <TableCell>
                           <Checkbox checked={selectedIds.includes(inv.id)} onCheckedChange={c => handleSelectOne(inv.id, !!c)} />
-                        </TableCell>
+                        </TableCell>}
                         <TableCell>
                           <Checkbox 
                             checked={isComplete} 
@@ -688,7 +690,7 @@ const Dashboard: React.FC = () => {
                             </div>
                           ) : '-'}
                         </TableCell>
-                      <TableCell>
+                      {isAdmin && <TableCell>
                         <div className="flex items-center gap-1">
                           <Button variant="ghost" size="icon" className="h-9 w-9 hover:bg-primary/10 hover:text-primary transition-colors" onClick={() => setEditingInvoice(inv)}>
                             <Edit className="h-4 w-4" />
@@ -697,7 +699,7 @@ const Dashboard: React.FC = () => {
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
-                      </TableCell>
+                      </TableCell>}
                     </TableRow>
                   );
                   })}
