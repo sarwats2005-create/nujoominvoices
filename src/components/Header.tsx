@@ -160,15 +160,15 @@ const Header: React.FC = () => {
     path: '/dashboard',
     label: t('dashboard'),
     icon: LayoutDashboard
-  }, {
+  }, ...(isAdmin ? [{
     path: '/new-invoice',
     label: t('newInvoice'),
     icon: FilePlus
-  }, {
+  }] : []), ...(isAdmin ? [{
     path: '/used-bl',
     label: t('usedBL'),
     icon: ClipboardList
-  }, {
+  }] : []), {
     path: '/insights',
     label: t('insights'),
     icon: BarChart3
@@ -176,11 +176,11 @@ const Header: React.FC = () => {
     path: '/contact',
     label: t('contact'),
     icon: Mail
-  }, {
+  }, ...(isAdmin ? [{
     path: '/settings',
     label: t('settings'),
     icon: Settings
-  }, ...(isAdmin ? [{
+  }] : []), ...(isAdmin ? [{
     path: '/admin',
     label: t('adminPanel'),
     icon: Shield
