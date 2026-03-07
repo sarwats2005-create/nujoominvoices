@@ -168,6 +168,10 @@ const Header: React.FC = () => {
     path: '/used-bl',
     label: t('usedBL'),
     icon: ClipboardList
+  }] : []), ...(isAdmin ? [{
+    path: '/unused-bl',
+    label: t('unusedBL'),
+    icon: FolderOpen
   }] : []), {
     path: '/insights',
     label: t('insights'),

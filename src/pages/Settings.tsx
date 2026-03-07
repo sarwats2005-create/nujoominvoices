@@ -238,6 +238,9 @@ const Settings: React.FC = () => {
 
       {/* B/L Presets */}
       <BLPresetsManager />
+
+      {/* Unused B/L Settings */}
+      <UnusedBLSettingsPanel />
     </div>
   );
 };
