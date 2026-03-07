@@ -15,6 +15,7 @@ import { Settings as SettingsIcon, Languages, Image, Building2, Trash2, LayoutDa
 import DashboardSelector from '@/components/DashboardSelector';
 import BLPresetsManager from '@/components/BLPresetsManager';
 import BLDashboardManager from '@/components/BLDashboardManager';
+import UnusedBLSettingsPanel from '@/components/unused-bl/UnusedBLSettingsPanel';
 
 const Settings: React.FC = () => {
   const { t, language, setLanguage } = useLanguage();
@@ -237,6 +238,9 @@ const Settings: React.FC = () => {
 
       {/* B/L Presets */}
       <BLPresetsManager />
+
+      {/* Unused B/L Settings */}
+      <UnusedBLSettingsPanel />
     </div>
   );
 };

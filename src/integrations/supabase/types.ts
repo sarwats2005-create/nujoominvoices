@@ -259,6 +259,137 @@ export type Database = {
         }
         Relationships: []
       }
+      unused_bl: {
+        Row: {
+          bl_date: string
+          bl_no: string
+          clearance_company: string
+          clearance_date: string
+          container_no: string
+          created_at: string
+          id: string
+          owner: string
+          port_of_loading: string
+          product_category: string
+          product_description: string
+          quantity_unit: string | null
+          quantity_value: number | null
+          shipper_name: string | null
+          status: string
+          updated_at: string
+          used_at: string | null
+          user_id: string
+        }
+        Insert: {
+          bl_date: string
+          bl_no: string
+          clearance_company: string
+          clearance_date: string
+          container_no: string
+          created_at?: string
+          id?: string
+          owner: string
+          port_of_loading: string
+          product_category: string
+          product_description: string
+          quantity_unit?: string | null
+          quantity_value?: number | null
+          shipper_name?: string | null
+          status?: string
+          updated_at?: string
+          used_at?: string | null
+          user_id: string
+        }
+        Update: {
+          bl_date?: string
+          bl_no?: string
+          clearance_company?: string
+          clearance_date?: string
+          container_no?: string
+          created_at?: string
+          id?: string
+          owner?: string
+          port_of_loading?: string
+          product_category?: string
+          product_description?: string
+          quantity_unit?: string | null
+          quantity_value?: number | null
+          shipper_name?: string | null
+          status?: string
+          updated_at?: string
+          used_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      unused_bl_files: {
+        Row: {
+          file_type: string
+          file_url: string
+          id: string
+          original_filename: string
+          page_label: string | null
+          unused_bl_id: string
+          uploaded_at: string
+          user_id: string
+        }
+        Insert: {
+          file_type?: string
+          file_url: string
+          id?: string
+          original_filename: string
+          page_label?: string | null
+          unused_bl_id: string
+          uploaded_at?: string
+          user_id: string
+        }
+        Update: {
+          file_type?: string
+          file_url?: string
+          id?: string
+          original_filename?: string
+          page_label?: string | null
+          unused_bl_id?: string
+          uploaded_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "unused_bl_files_unused_bl_id_fkey"
+            columns: ["unused_bl_id"]
+            isOneToOne: false
+            referencedRelation: "unused_bl"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      unused_bl_settings: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          setting_type: string
+          user_id: string
+          value: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          setting_type: string
+          user_id: string
+          value: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          setting_type?: string
+          user_id?: string
+          value?: string
+        }
+        Relationships: []
+      }
       used_bl_counting: {
         Row: {
           bank: string
@@ -272,6 +403,7 @@ export type Database = {
           is_active: boolean
           notes: string | null
           owner: string
+          source_unused_bl_id: string | null
           updated_at: string
           used_for: string
           user_id: string
@@ -288,6 +420,7 @@ export type Database = {
           is_active?: boolean
           notes?: string | null
           owner: string
+          source_unused_bl_id?: string | null
           updated_at?: string
           used_for: string
           user_id: string
@@ -304,6 +437,7 @@ export type Database = {
           is_active?: boolean
           notes?: string | null
           owner?: string
+          source_unused_bl_id?: string | null
           updated_at?: string
           used_for?: string
           user_id?: string
@@ -314,6 +448,13 @@ export type Database = {
             columns: ["dashboard_id"]
             isOneToOne: false
             referencedRelation: "bl_dashboards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "used_bl_counting_source_unused_bl_id_fkey"
+            columns: ["source_unused_bl_id"]
+            isOneToOne: false
+            referencedRelation: "unused_bl"
             referencedColumns: ["id"]
           },
         ]
