@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useUnusedBL } from '@/hooks/useUnusedBL';
 import { Card, CardContent } from '@/components/ui/card';
@@ -19,6 +20,7 @@ const UnusedBLDashboard: React.FC = () => {
   const { t } = useLanguage();
   const { records, loading, stats, deleteRecord } = useUnusedBL();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -189,7 +191,14 @@ const UnusedBLDashboard: React.FC = () => {
                   <TableRow key={record.id} className="cursor-pointer hover:bg-muted/50" onClick={() => setDetailRecord(record)}>
                     <TableCell className="font-mono font-medium">{record.bl_no}</TableCell>
                     <TableCell className="font-mono">{record.container_no}</TableCell>
-                    <TableCell>{record.owner}</TableCell>
+                    <TableCell>
+                      <button
+                        className="text-primary hover:underline font-medium"
+                        onClick={(e) => { e.stopPropagation(); navigate(`/unused-bl/owner/${encodeURIComponent(record.owner)}`); }}
+                      >
+                        {record.owner}
+                      </button>
+                    </TableCell>
                     <TableCell className="hidden md:table-cell">{record.clearance_company}</TableCell>
                     <TableCell className="hidden lg:table-cell">
                       <Badge variant="secondary">{record.product_category}</Badge>
