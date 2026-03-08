@@ -20,6 +20,7 @@ import Install from "@/pages/Install";
 import AdminPanel from "@/pages/AdminPanel";
 import AuditLog from "@/pages/AuditLog";
 import UsedBLDashboard from "@/pages/UsedBLDashboard";
+import UnusedBLDashboard from "@/pages/UnusedBLDashboard";
 import UsedBLNew from "@/pages/UsedBLNew";
 import UsedBLDetails from "@/pages/UsedBLDetails";
 import UsedBLEdit from "@/pages/UsedBLEdit";
