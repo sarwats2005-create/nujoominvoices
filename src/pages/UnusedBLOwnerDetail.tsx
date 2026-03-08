@@ -1,8 +1,9 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useUnusedBL } from '@/hooks/useUnusedBL';
-import { useUsedBL } from '@/hooks/useUsedBL';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -12,33 +13,45 @@ import { ArrowLeft, Download, Package, CheckCircle, FolderOpen, FileText } from 
 import { format } from 'date-fns';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import type { UsedBL } from '@/types/usedBL';
 
 const UnusedBLOwnerDetail: React.FC = () => {
   const { ownerName } = useParams<{ ownerName: string }>();
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const { user } = useAuth();
   const { records: unusedRecords, loading: unusedLoading } = useUnusedBL();
-  const { records: usedRecords } = useUsedBL();
+  const [usedRecords, setUsedRecords] = useState<UsedBL[]>([]);
 
   const decodedOwner = decodeURIComponent(ownerName || '');
+
+  // Fetch ALL used_bl_counting records for this owner (across all dashboards)
+  useEffect(() => {
+    const fetch = async () => {
+      if (!user) return;
+      const { data } = await (supabase as any).from('used_bl_counting')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('owner', decodedOwner)
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
+      if (data) setUsedRecords(data as UsedBL[]);
+    };
+    fetch();
+  }, [user, decodedOwner]);
 
   const ownerUnused = useMemo(() =>
     unusedRecords.filter(r => r.owner === decodedOwner),
     [unusedRecords, decodedOwner]
   );
 
-  const ownerUsed = useMemo(() =>
-    usedRecords.filter(r => r.owner === decodedOwner),
-    [usedRecords, decodedOwner]
-  );
-
   const stats = useMemo(() => ({
     totalBL: ownerUnused.length,
     unused: ownerUnused.filter(r => r.status === 'UNUSED').length,
     used: ownerUnused.filter(r => r.status === 'USED').length,
-    totalUsedAmount: ownerUsed.reduce((sum, r) => sum + (r.invoice_amount || 0), 0),
-    usedInDashboard: ownerUsed.length,
-  }), [ownerUnused, ownerUsed]);
+    totalUsedAmount: usedRecords.reduce((sum, r) => sum + (r.invoice_amount || 0), 0),
+    usedInDashboard: usedRecords.length,
+  }), [ownerUnused, usedRecords]);
 
   const formatDate = (d: string) => {
     try { return format(new Date(d), 'dd/MM/yyyy'); } catch { return d; }
@@ -47,7 +60,6 @@ const UnusedBLOwnerDetail: React.FC = () => {
   const exportPDF = useCallback(() => {
     const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
-    // Header
     doc.setFontSize(18);
     doc.setFont('helvetica', 'bold');
     doc.text('Account Statement', 105, 20, { align: 'center' });
@@ -57,7 +69,6 @@ const UnusedBLOwnerDetail: React.FC = () => {
     doc.text(`Owner: ${decodedOwner}`, 14, 35);
     doc.text(`Date: ${format(new Date(), 'dd/MM/yyyy')}`, 14, 42);
 
-    // Summary
     doc.setFontSize(10);
     doc.setFont('helvetica', 'bold');
     doc.text('Summary', 14, 55);
@@ -70,7 +81,6 @@ const UnusedBLOwnerDetail: React.FC = () => {
 
     let yPos = 96;
 
-    // Unused B/L Table
     if (ownerUnused.length > 0) {
       doc.setFontSize(11);
       doc.setFont('helvetica', 'bold');
@@ -81,26 +91,19 @@ const UnusedBLOwnerDetail: React.FC = () => {
         startY: yPos,
         head: [['B/L No', 'Container', 'Category', 'B/L Date', 'Port', 'Status']],
         body: ownerUnused.map(r => [
-          r.bl_no,
-          r.container_no,
-          r.product_category,
-          formatDate(r.bl_date),
-          r.port_of_loading,
-          r.status,
+          r.bl_no, r.container_no, r.product_category,
+          formatDate(r.bl_date), r.port_of_loading, r.status,
         ]),
         styles: { fontSize: 8, cellPadding: 2 },
         headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: 'bold' },
         alternateRowStyles: { fillColor: [245, 245, 245] },
         margin: { left: 14, right: 14 },
       });
-
       yPos = (doc as any).lastAutoTable.finalY + 10;
     }
 
-    // Used B/L (from dashboard) Table
-    if (ownerUsed.length > 0) {
+    if (usedRecords.length > 0) {
       if (yPos > 240) { doc.addPage(); yPos = 20; }
-
       doc.setFontSize(11);
       doc.setFont('helvetica', 'bold');
       doc.text('Used B/L (Invoice Details)', 14, yPos);
@@ -109,30 +112,23 @@ const UnusedBLOwnerDetail: React.FC = () => {
       autoTable(doc, {
         startY: yPos,
         head: [['B/L No', 'Container', 'Used For', 'Bank', 'Amount', 'Invoice Date']],
-        body: ownerUsed.map(r => [
-          r.bl_no,
-          r.container_no,
-          r.used_for,
-          r.bank,
-          `$${(r.invoice_amount || 0).toLocaleString()}`,
-          formatDate(r.invoice_date),
+        body: usedRecords.map(r => [
+          r.bl_no, r.container_no, r.used_for, r.bank,
+          `$${(r.invoice_amount || 0).toLocaleString()}`, formatDate(r.invoice_date),
         ]),
         styles: { fontSize: 8, cellPadding: 2 },
         headStyles: { fillColor: [39, 174, 96], textColor: 255, fontStyle: 'bold' },
         alternateRowStyles: { fillColor: [245, 245, 245] },
         margin: { left: 14, right: 14 },
       });
-
       yPos = (doc as any).lastAutoTable.finalY + 8;
 
-      // Total row
       if (yPos > 270) { doc.addPage(); yPos = 20; }
       doc.setFontSize(10);
       doc.setFont('helvetica', 'bold');
       doc.text(`Total Amount Used: $${stats.totalUsedAmount.toLocaleString()}`, 14, yPos);
     }
 
-    // Footer
     const pageCount = doc.getNumberOfPages();
     for (let i = 1; i <= pageCount; i++) {
       doc.setPage(i);
@@ -144,7 +140,7 @@ const UnusedBLOwnerDetail: React.FC = () => {
     }
 
     doc.save(`${decodedOwner}_Account_Statement_${format(new Date(), 'yyyyMMdd')}.pdf`);
-  }, [decodedOwner, ownerUnused, ownerUsed, stats]);
+  }, [decodedOwner, ownerUnused, usedRecords, stats]);
 
   if (unusedLoading) {
     return <div className="flex items-center justify-center py-20 text-muted-foreground">{t('loading')}</div>;
@@ -152,7 +148,6 @@ const UnusedBLOwnerDetail: React.FC = () => {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="icon" onClick={() => navigate('/unused-bl')}>
@@ -168,13 +163,10 @@ const UnusedBLOwnerDetail: React.FC = () => {
         </Button>
       </div>
 
-      {/* Summary Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-primary/10">
-              <FolderOpen className="h-5 w-5 text-primary" />
-            </div>
+            <div className="p-2 rounded-lg bg-primary/10"><FolderOpen className="h-5 w-5 text-primary" /></div>
             <div>
               <p className="text-2xl font-bold text-foreground">{stats.totalBL}</p>
               <p className="text-xs text-muted-foreground">Total B/L</p>
@@ -183,9 +175,7 @@ const UnusedBLOwnerDetail: React.FC = () => {
         </Card>
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-primary/10">
-              <Package className="h-5 w-5 text-primary" />
-            </div>
+            <div className="p-2 rounded-lg bg-primary/10"><Package className="h-5 w-5 text-primary" /></div>
             <div>
               <p className="text-2xl font-bold text-foreground">{stats.unused}</p>
               <p className="text-xs text-muted-foreground">Unused</p>
@@ -194,9 +184,7 @@ const UnusedBLOwnerDetail: React.FC = () => {
         </Card>
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-success/10">
-              <CheckCircle className="h-5 w-5 text-success" />
-            </div>
+            <div className="p-2 rounded-lg bg-success/10"><CheckCircle className="h-5 w-5 text-success" /></div>
             <div>
               <p className="text-2xl font-bold text-foreground">{stats.usedInDashboard}</p>
               <p className="text-xs text-muted-foreground">Used in Dashboard</p>
@@ -205,9 +193,7 @@ const UnusedBLOwnerDetail: React.FC = () => {
         </Card>
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-accent/10">
-              <FileText className="h-5 w-5 text-accent" />
-            </div>
+            <div className="p-2 rounded-lg bg-accent/10"><FileText className="h-5 w-5 text-accent" /></div>
             <div>
               <p className="text-2xl font-bold text-foreground">${stats.totalUsedAmount.toLocaleString()}</p>
               <p className="text-xs text-muted-foreground">Total Amount</p>
@@ -239,17 +225,13 @@ const UnusedBLOwnerDetail: React.FC = () => {
               <TableBody>
                 {ownerUnused.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                      No B/L records for this owner
-                    </TableCell>
+                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">No B/L records</TableCell>
                   </TableRow>
                 ) : ownerUnused.map(r => (
                   <TableRow key={r.id}>
                     <TableCell className="font-mono font-medium">{r.bl_no}</TableCell>
                     <TableCell className="font-mono">{r.container_no}</TableCell>
-                    <TableCell className="hidden md:table-cell">
-                      <Badge variant="secondary">{r.product_category}</Badge>
-                    </TableCell>
+                    <TableCell className="hidden md:table-cell"><Badge variant="secondary">{r.product_category}</Badge></TableCell>
                     <TableCell className="hidden md:table-cell">{formatDate(r.bl_date)}</TableCell>
                     <TableCell className="hidden lg:table-cell">{r.port_of_loading}</TableCell>
                     <TableCell>
@@ -266,12 +248,12 @@ const UnusedBLOwnerDetail: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Used B/L Records (from dashboard) */}
-      {ownerUsed.length > 0 && (
+      {/* Used B/L Records */}
+      {usedRecords.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
-              <CheckCircle className="h-5 w-5 text-success" /> Used B/L - Invoice Details ({ownerUsed.length})
+              <CheckCircle className="h-5 w-5 text-success" /> Used B/L - Invoice Details ({usedRecords.length})
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
@@ -288,7 +270,7 @@ const UnusedBLOwnerDetail: React.FC = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {ownerUsed.map(r => (
+                  {usedRecords.map(r => (
                     <TableRow key={r.id}>
                       <TableCell className="font-mono font-medium">{r.bl_no}</TableCell>
                       <TableCell className="font-mono">{r.container_no}</TableCell>
