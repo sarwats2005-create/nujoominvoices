@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useUnusedBL } from '@/hooks/useUnusedBL';
 import { Card, CardContent } from '@/components/ui/card';
