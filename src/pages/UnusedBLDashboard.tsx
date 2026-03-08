@@ -20,6 +20,7 @@ const UnusedBLDashboard: React.FC = () => {
   const { t } = useLanguage();
   const { records, loading, stats, deleteRecord } = useUnusedBL();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
