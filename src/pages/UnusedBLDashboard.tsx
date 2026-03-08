@@ -191,7 +191,14 @@ const UnusedBLDashboard: React.FC = () => {
                   <TableRow key={record.id} className="cursor-pointer hover:bg-muted/50" onClick={() => setDetailRecord(record)}>
                     <TableCell className="font-mono font-medium">{record.bl_no}</TableCell>
                     <TableCell className="font-mono">{record.container_no}</TableCell>
-                    <TableCell>{record.owner}</TableCell>
+                    <TableCell>
+                      <button
+                        className="text-primary hover:underline font-medium"
+                        onClick={(e) => { e.stopPropagation(); navigate(`/unused-bl/owner/${encodeURIComponent(record.owner)}`); }}
+                      >
+                        {record.owner}
+                      </button>
+                    </TableCell>
                     <TableCell className="hidden md:table-cell">{record.clearance_company}</TableCell>
                     <TableCell className="hidden lg:table-cell">
                       <Badge variant="secondary">{record.product_category}</Badge>
