@@ -110,6 +110,7 @@ export const useUnusedBL = () => {
       bank: formData.bank,
       owner: record.owner,
       used_for: formData.using_for,
+      used_for_beneficiary: formData.used_for_beneficiary || null,
       source_unused_bl_id: blId,
     };
 
@@ -123,6 +124,23 @@ export const useUnusedBL = () => {
 
     await fetchRecords();
     return true;
+  };
+
+  const updateRecord = async (
+    id: string,
+    data: Partial<Omit<UnusedBL, 'id' | 'user_id' | 'created_at' | 'updated_at'>>
+  ): Promise<boolean> => {
+    if (!user) return false;
+    const { error } = await db('unused_bl')
+      .update({ ...data, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .eq('user_id', user.id);
+    if (!error) await fetchRecords();
+    return !error;
+  };
+
+  const getUniqueOwners = (): string[] => {
+    return [...new Set(records.map(r => r.owner))];
   };
 
   return {
