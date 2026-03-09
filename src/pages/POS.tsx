@@ -537,21 +537,48 @@ const POS: React.FC = () => {
 
       {/* Receipt Dialog */}
       <Dialog open={!!receiptData} onOpenChange={() => setReceiptData(null)}>
-        <DialogContent>
+        <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-success">
               <CheckCircle className="h-5 w-5" /> Sale Complete!
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 text-center">
-            <p className="text-3xl font-bold text-primary">${receiptData?.total?.toFixed(2) || grandTotal.toFixed(2)}</p>
+            <p className="text-3xl font-bold text-primary">${receiptData?.total?.toFixed(2) || '0.00'}</p>
             <p className="text-sm text-muted-foreground">#{receiptData?.sale_number}</p>
-            <div className="flex gap-2 justify-center">
-              <Button variant="outline" onClick={() => exportReceipt(receiptData)} className="gap-2">
-                <Receipt className="h-4 w-4" /> Download Receipt
+
+            <Separator />
+
+            <p className="text-sm font-medium text-foreground">What would you like to do with the receipt?</p>
+
+            <div className="grid grid-cols-1 gap-2">
+              <Button variant="outline" onClick={() => printReceipt(receiptData)} className="gap-2 w-full">
+                <Printer className="h-4 w-4" /> Print Receipt
               </Button>
-              <Button onClick={() => setReceiptData(null)}>New Sale</Button>
+
+              {'showDirectoryPicker' in window && (
+                <Button
+                  variant="outline"
+                  onClick={() => saveReceiptToFolder(receiptData)}
+                  disabled={savingReceipt}
+                  className="gap-2 w-full"
+                >
+                  {receiptDirHandle ? (
+                    <><FolderOpen className="h-4 w-4" /> {savingReceipt ? 'Saving...' : 'Save to Folder'}</>
+                  ) : (
+                    <><FolderOpen className="h-4 w-4" /> Choose Folder & Save</>
+                  )}
+                </Button>
+              )}
+
+              <Button variant="outline" onClick={() => exportReceipt(receiptData)} className="gap-2 w-full">
+                <Download className="h-4 w-4" /> Download PDF
+              </Button>
             </div>
+
+            <Separator />
+
+            <Button className="w-full" onClick={() => setReceiptData(null)}>Start New Sale</Button>
           </div>
         </DialogContent>
       </Dialog>
