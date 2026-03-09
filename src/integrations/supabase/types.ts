@@ -406,6 +406,7 @@ export type Database = {
           source_unused_bl_id: string | null
           updated_at: string
           used_for: string
+          used_for_beneficiary: string | null
           user_id: string
         }
         Insert: {
@@ -423,6 +424,7 @@ export type Database = {
           source_unused_bl_id?: string | null
           updated_at?: string
           used_for: string
+          used_for_beneficiary?: string | null
           user_id: string
         }
         Update: {
@@ -440,6 +442,7 @@ export type Database = {
           source_unused_bl_id?: string | null
           updated_at?: string
           used_for?: string
+          used_for_beneficiary?: string | null
           user_id?: string
         }
         Relationships: [
