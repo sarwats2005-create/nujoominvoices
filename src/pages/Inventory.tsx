@@ -54,7 +54,12 @@ const Inventory: React.FC = () => {
   const [formCategory, setFormCategory] = useState('');
   const [formStock, setFormStock] = useState('0');
   const [formMinStock, setFormMinStock] = useState('5');
-
+  const [formImageUrl, setFormImageUrl] = useState('');
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { user } = useAuth();
   const lowStockProducts = useMemo(() => getLowStockProducts(), [getLowStockProducts]);
 
   const filtered = useMemo(() => {
