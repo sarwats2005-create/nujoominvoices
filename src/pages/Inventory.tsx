@@ -310,9 +310,18 @@ const Inventory: React.FC = () => {
                   return (
                     <TableRow key={product.id}>
                       <TableCell>
-                        <div>
-                          <p className="font-medium text-sm">{product.name}</p>
-                          {product.barcode && <p className="text-xs text-muted-foreground font-mono">{product.barcode}</p>}
+                        <div className="flex items-center gap-3">
+                          {product.image_url ? (
+                            <img src={product.image_url} alt={product.name} className="w-10 h-10 rounded-md object-cover border border-border shrink-0" />
+                          ) : (
+                            <div className="w-10 h-10 rounded-md bg-muted flex items-center justify-center shrink-0">
+                              <Package className="h-4 w-4 text-muted-foreground" />
+                            </div>
+                          )}
+                          <div>
+                            <p className="font-medium text-sm">{product.name}</p>
+                            {product.barcode && <p className="text-xs text-muted-foreground font-mono">{product.barcode}</p>}
+                          </div>
                         </div>
                       </TableCell>
                       <TableCell className="text-xs font-mono">{product.sku || '—'}</TableCell>
