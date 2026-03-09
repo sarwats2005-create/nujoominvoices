@@ -9,11 +9,14 @@ import {
   PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis,
   CartesianGrid, Tooltip, Legend, RadialBarChart, RadialBar
 } from 'recharts';
-import { Package, CheckCircle, Users, TrendingUp, BarChart3, PieChart as PieIcon, ArrowRight } from 'lucide-react';
+import { Package, CheckCircle, Users, TrendingUp, BarChart3, PieChart as PieIcon, ArrowRight, Download } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import CountUp from '@/components/CountUp';
 import type { UnusedBL } from '@/types/unusedBL';
 import type { UsedBL } from '@/types/usedBL';
 import { format, parseISO } from 'date-fns';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const COLORS = [
   'hsl(205, 100%, 45%)',
