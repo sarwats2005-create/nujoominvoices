@@ -42,6 +42,7 @@ interface SettingsContextType {
   setSoundVolume: (volume: number) => void;
   blPresets: BLPresets;
   setBLPresets: (presets: BLPresets) => void;
+  addBLPreset: (key: keyof BLPresets, value: string) => void;
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
