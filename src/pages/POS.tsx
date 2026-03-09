@@ -185,6 +185,9 @@ const POS: React.FC = () => {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search products, SKU, barcode..." className="pl-10" />
           </div>
+          <Button variant="outline" onClick={() => setScannerOpen(true)} className="gap-2 shrink-0">
+            <ScanBarcode className="h-4 w-4" /> Scan
+          </Button>
         </div>
 
         {/* Category Tabs */}
