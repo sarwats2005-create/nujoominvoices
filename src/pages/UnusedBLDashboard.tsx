@@ -72,7 +72,7 @@ const UnusedBLDashboard: React.FC = () => {
       return sortDir === 'asc' ? cmp : -cmp;
     });
     return result;
-  }, [records, search, statusFilter, sortField, sortDir]);
+  }, [records, search, statusFilter, sortField, sortDir, hideUsed]);
 
   const handleSort = (field: string) => {
     if (sortField === field) {
