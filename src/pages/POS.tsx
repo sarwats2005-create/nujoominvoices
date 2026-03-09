@@ -147,22 +147,29 @@ const POS: React.FC = () => {
   const discountApplied = discountType === 'percentage' ? subtotal * (discountAmount / 100) : discountAmount;
   const grandTotal = subtotal - discountApplied + taxTotal;
 
+  // Store last sale's cart snapshot for receipt generation
+  const lastSaleCartRef = useRef<{ items: CartItem[]; subtotal: number; taxTotal: number; discountApplied: number; grandTotal: number } | null>(null);
+
   const handleCheckout = async () => {
+    // Snapshot cart totals before clearing
+    const snapshot = { items: [...cart], subtotal, taxTotal, discountApplied, grandTotal };
     const sale = await completeSale(cart, paymentMethod, discountAmount, discountType, selectedCustomer, notes);
     if (sale) {
-      setReceiptData({ ...sale, items: cart, customer: selectedCustomer });
+      lastSaleCartRef.current = snapshot;
+      setReceiptData({ ...sale, items: snapshot.items, customer: selectedCustomer });
       setCart([]);
       setDiscountAmount(0);
       setNotes('');
       setSelectedCustomer(null);
       setCheckoutOpen(false);
-      toast({ title: 'Sale completed!', description: `Total: $${grandTotal.toFixed(2)}` });
+      toast({ title: 'Sale completed!', description: `Total: $${snapshot.grandTotal.toFixed(2)}` });
     } else {
       toast({ title: 'Sale failed', variant: 'destructive' });
     }
   };
 
-  const exportReceipt = (data: any) => {
+  const buildReceiptPDF = (data: any): jsPDF => {
+    const snap = lastSaleCartRef.current;
     const doc = new jsPDF({ unit: 'mm', format: [80, 200] });
     let y = 10;
     doc.setFontSize(12);
@@ -185,21 +192,83 @@ const POS: React.FC = () => {
       y += 4;
     });
 
+    const st = snap?.subtotal ?? data.subtotal ?? 0;
+    const da = snap?.discountApplied ?? data.discount_amount ?? 0;
+    const tx = snap?.taxTotal ?? data.tax_amount ?? 0;
+    const gt = snap?.grandTotal ?? data.total ?? 0;
+
     doc.line(5, y, 75, y); y += 4;
-    doc.text(`Subtotal:`, 5, y); doc.text(`$${subtotal.toFixed(2)}`, 75, y, { align: 'right' }); y += 4;
-    if (discountApplied > 0) {
-      doc.text(`Discount:`, 5, y); doc.text(`-$${discountApplied.toFixed(2)}`, 75, y, { align: 'right' }); y += 4;
+    doc.text(`Subtotal:`, 5, y); doc.text(`$${st.toFixed(2)}`, 75, y, { align: 'right' }); y += 4;
+    if (da > 0) {
+      doc.text(`Discount:`, 5, y); doc.text(`-$${da.toFixed(2)}`, 75, y, { align: 'right' }); y += 4;
     }
-    if (taxTotal > 0) {
-      doc.text(`Tax:`, 5, y); doc.text(`$${taxTotal.toFixed(2)}`, 75, y, { align: 'right' }); y += 4;
+    if (tx > 0) {
+      doc.text(`Tax:`, 5, y); doc.text(`$${tx.toFixed(2)}`, 75, y, { align: 'right' }); y += 4;
     }
     doc.setFontSize(10);
-    doc.text(`TOTAL:`, 5, y); doc.text(`$${grandTotal.toFixed(2)}`, 75, y, { align: 'right' }); y += 6;
+    doc.text(`TOTAL:`, 5, y); doc.text(`$${gt.toFixed(2)}`, 75, y, { align: 'right' }); y += 6;
     doc.setFontSize(8);
     doc.text(`Payment: ${data.payment_method || paymentMethod}`, 5, y); y += 6;
     doc.text('Thank you!', 40, y, { align: 'center' });
+    return doc;
+  };
 
-    doc.save(`receipt-${data.sale_number || 'sale'}.pdf`);
+  const exportReceipt = (data: any) => {
+    const doc = buildReceiptPDF(data);
+    doc.save(`${data.sale_number || 'receipt'}.pdf`);
+  };
+
+  const pickReceiptFolder = async () => {
+    try {
+      const handle = await (window as any).showDirectoryPicker({ mode: 'readwrite' });
+      setReceiptDirHandle(handle);
+      await saveHandleToDB(handle);
+      toast({ title: 'Folder selected', description: 'Receipts will be saved here automatically.' });
+      return handle;
+    } catch {
+      return null;
+    }
+  };
+
+  const saveReceiptToFolder = async (data: any) => {
+    setSavingReceipt(true);
+    let handle = receiptDirHandle;
+
+    // Verify permission or ask for folder
+    if (handle) {
+      try {
+        const perm = await (handle as any).requestPermission({ mode: 'readwrite' });
+        if (perm !== 'granted') handle = null;
+      } catch { handle = null; }
+    }
+
+    if (!handle) {
+      handle = await pickReceiptFolder();
+      if (!handle) { setSavingReceipt(false); return; }
+    }
+
+    try {
+      const doc = buildReceiptPDF(data);
+      const blob = doc.output('blob');
+      const fileName = `${data.sale_number || 'receipt'}.pdf`;
+      const fileHandle = await handle.getFileHandle(fileName, { create: true });
+      const writable = await (fileHandle as any).createWritable();
+      await writable.write(blob);
+      await writable.close();
+      toast({ title: 'Receipt saved!', description: fileName });
+    } catch (err: any) {
+      toast({ title: 'Save failed', description: err?.message || 'Unknown error', variant: 'destructive' });
+    }
+    setSavingReceipt(false);
+  };
+
+  const printReceipt = (data: any) => {
+    const doc = buildReceiptPDF(data);
+    const pdfBlob = doc.output('bloburl');
+    const printWindow = window.open(pdfBlob as string);
+    if (printWindow) {
+      printWindow.addEventListener('load', () => printWindow.print());
+    }
   };
 
   const handleAddCustomer = async () => {
