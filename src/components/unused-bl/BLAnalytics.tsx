@@ -118,6 +118,97 @@ const BLAnalytics: React.FC<BLAnalyticsProps> = ({ records }) => {
   const totalUsed = records.filter(r => r.status === 'USED').length;
   const usageRate = totalRecorded > 0 ? Math.round((totalUsed / totalRecorded) * 100) : 0;
 
+  const exportPDF = () => {
+    const doc = new jsPDF();
+    const now = format(new Date(), 'dd/MM/yyyy HH:mm');
+
+    // Title
+    doc.setFontSize(18);
+    doc.setTextColor(30, 64, 120);
+    doc.text('B/L Overall Account Report', 14, 20);
+    doc.setFontSize(9);
+    doc.setTextColor(100);
+    doc.text(`Generated: ${now}`, 14, 27);
+
+    // Summary
+    doc.setFontSize(12);
+    doc.setTextColor(0);
+    doc.text('Summary', 14, 38);
+    autoTable(doc, {
+      startY: 42,
+      head: [['Total Recorded', 'Unused', 'Used', 'Usage Rate']],
+      body: [[totalRecorded, totalUnused, totalUsed, `${usageRate}%`]],
+      theme: 'grid',
+      headStyles: { fillColor: [30, 136, 229] },
+      styles: { halign: 'center', fontSize: 10 },
+    });
+
+    let y = (doc as any).lastAutoTable.finalY + 12;
+
+    // Owner Breakdown
+    doc.setFontSize(12);
+    doc.text('Owner Breakdown', 14, y);
+    autoTable(doc, {
+      startY: y + 4,
+      head: [['Owner', 'Total', 'Unused', 'Used', '% of Total']],
+      body: ownerData.map(o => [
+        o.name,
+        o.total,
+        o.unused,
+        o.used,
+        `${totalRecorded > 0 ? Math.round((o.total / totalRecorded) * 100) : 0}%`,
+      ]),
+      theme: 'striped',
+      headStyles: { fillColor: [30, 136, 229] },
+      styles: { fontSize: 9 },
+    });
+
+    y = (doc as any).lastAutoTable.finalY + 12;
+
+    // Customer Usage
+    if (customerData.length > 0) {
+      if (y > 240) { doc.addPage(); y = 20; }
+      doc.setFontSize(12);
+      doc.text('Usage by Customer', 14, y);
+      autoTable(doc, {
+        startY: y + 4,
+        head: [['Customer', 'B/L Count', 'Total Amount ($)', 'B/L Numbers']],
+        body: customerData.map(c => [
+          c.name,
+          c.count,
+          c.totalAmount.toLocaleString(),
+          c.bls.join(', '),
+        ]),
+        theme: 'striped',
+        headStyles: { fillColor: [46, 125, 50] },
+        styles: { fontSize: 9 },
+        columnStyles: { 3: { cellWidth: 60 } },
+      });
+      y = (doc as any).lastAutoTable.finalY + 12;
+    }
+
+    // Bank Distribution
+    if (bankData.length > 0) {
+      if (y > 240) { doc.addPage(); y = 20; }
+      doc.setFontSize(12);
+      doc.text('Bank Distribution', 14, y);
+      autoTable(doc, {
+        startY: y + 4,
+        head: [['Bank', 'Count', '% of Used']],
+        body: bankData.map(b => [
+          b.name,
+          b.value,
+          `${usedRecords.length > 0 ? Math.round((b.value / usedRecords.length) * 100) : 0}%`,
+        ]),
+        theme: 'striped',
+        headStyles: { fillColor: [245, 124, 0] },
+        styles: { fontSize: 9 },
+      });
+    }
+
+    doc.save(`BL_Account_Report_${format(new Date(), 'yyyy-MM-dd')}.pdf`);
+  };
+
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (!active || !payload?.length) return null;
     return (
@@ -137,14 +228,19 @@ const BLAnalytics: React.FC<BLAnalyticsProps> = ({ records }) => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-3">
-        <div className="p-2 rounded-lg bg-primary/10">
-          <BarChart3 className="h-5 w-5 text-primary" />
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-primary/10">
+            <BarChart3 className="h-5 w-5 text-primary" />
+          </div>
+          <div>
+            <h2 className="text-lg font-bold text-foreground">Overall Account</h2>
+            <p className="text-xs text-muted-foreground">Complete B/L analytics & breakdown</p>
+          </div>
         </div>
-        <div>
-          <h2 className="text-lg font-bold text-foreground">Overall Account</h2>
-          <p className="text-xs text-muted-foreground">Complete B/L analytics & breakdown</p>
-        </div>
+        <Button variant="outline" size="sm" onClick={exportPDF} className="gap-1.5">
+          <Download className="h-4 w-4" /> Export PDF
+        </Button>
       </div>
 
       {/* Hero Stats */}
