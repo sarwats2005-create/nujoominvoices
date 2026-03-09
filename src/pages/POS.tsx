@@ -14,8 +14,9 @@ import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   ShoppingCart, Search, Plus, Minus, Trash2, Receipt, CreditCard,
-  Banknote, Wallet, User, Percent, DollarSign, X, CheckCircle, Tag
+  Banknote, Wallet, User, Percent, DollarSign, X, CheckCircle, Tag, ScanBarcode
 } from 'lucide-react';
+import BarcodeScanner from '@/components/pos/BarcodeScanner';
 import type { CartItem, Customer, Product, ProductVariant } from '@/types/pos';
 import jsPDF from 'jspdf';
 import { format } from 'date-fns';
@@ -39,6 +40,23 @@ const POS: React.FC = () => {
   const [customerDialogOpen, setCustomerDialogOpen] = useState(false);
   const [newCustomerName, setNewCustomerName] = useState('');
   const [newCustomerPhone, setNewCustomerPhone] = useState('');
+  const [scannerOpen, setScannerOpen] = useState(false);
+
+  const handleBarcodeScan = (code: string) => {
+    const product = products.find(p =>
+      p.barcode === code ||
+      p.sku === code ||
+      p.variants?.some(v => v.barcode === code || v.sku === code)
+    );
+    if (product) {
+      const variant = product.variants?.find(v => v.barcode === code || v.sku === code) || product.variants?.[0];
+      addToCart(product, variant);
+      toast({ title: `Added: ${product.name}` });
+    } else {
+      setSearch(code);
+      toast({ title: 'Product not found', description: `No product with barcode "${code}"`, variant: 'destructive' });
+    }
+  };
 
   const filteredProducts = useMemo(() => {
     let result = products;
@@ -167,6 +185,9 @@ const POS: React.FC = () => {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search products, SKU, barcode..." className="pl-10" />
           </div>
+          <Button variant="outline" onClick={() => setScannerOpen(true)} className="gap-2 shrink-0">
+            <ScanBarcode className="h-4 w-4" /> Scan
+          </Button>
         </div>
 
         {/* Category Tabs */}
@@ -452,6 +473,9 @@ const POS: React.FC = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Barcode Scanner */}
+      <BarcodeScanner open={scannerOpen} onOpenChange={setScannerOpen} onScan={handleBarcodeScan} />
     </div>
   );
 };
