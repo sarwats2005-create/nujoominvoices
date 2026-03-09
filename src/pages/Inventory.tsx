@@ -367,6 +367,32 @@ const Inventory: React.FC = () => {
             <DialogTitle>{editingProduct ? 'Edit Product' : 'Add Product'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
+            {/* Image Upload */}
+            <div className="space-y-1.5">
+              <Label>Product Image</Label>
+              <input type="file" ref={fileInputRef} accept="image/*" className="hidden" onChange={handleImageSelect} />
+              {imagePreview ? (
+                <div className="relative w-full h-40 rounded-lg border border-border overflow-hidden bg-muted/30">
+                  <img src={imagePreview} alt="Preview" className="w-full h-full object-contain" />
+                  <Button
+                    variant="destructive" size="icon"
+                    className="absolute top-2 right-2 h-7 w-7"
+                    onClick={() => { setImageFile(null); setImagePreview(''); setFormImageUrl(''); }}
+                  >
+                    <XIcon className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-full h-32 rounded-lg border-2 border-dashed border-border hover:border-primary/50 bg-muted/20 flex flex-col items-center justify-center gap-2 transition-colors"
+                >
+                  <ImagePlus className="h-8 w-8 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">Click to upload image (max 5MB)</span>
+                </button>
+              )}
+            </div>
             <div className="space-y-1.5">
               <Label>Name <span className="text-destructive">*</span></Label>
               <Input value={formName} onChange={e => setFormName(e.target.value)} placeholder="Product name" />
