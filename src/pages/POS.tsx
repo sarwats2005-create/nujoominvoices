@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useProducts } from '@/hooks/useProducts';
 import { useCustomers } from '@/hooks/useCustomers';
 import { usePOS } from '@/hooks/usePOS';
@@ -14,12 +14,27 @@ import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   ShoppingCart, Search, Plus, Minus, Trash2, Receipt, CreditCard,
-  Banknote, Wallet, User, Percent, DollarSign, X, CheckCircle, Tag, ScanBarcode
+  Banknote, Wallet, User, Percent, DollarSign, X, CheckCircle, Tag, ScanBarcode,
+  Printer, FolderOpen, Download
 } from 'lucide-react';
 import BarcodeScanner from '@/components/pos/BarcodeScanner';
 import type { CartItem, Customer, Product, ProductVariant } from '@/types/pos';
 import jsPDF from 'jspdf';
 import { format } from 'date-fns';
+
+// IndexedDB helper for persisting the directory handle
+const openReceiptDB = (): Promise<IDBDatabase> => new Promise((resolve, reject) => {
+  const req = indexedDB.open('pos-receipts', 1);
+  req.onupgradeneeded = () => req.result.createObjectStore('handles', { keyPath: 'key' });
+  req.onsuccess = () => resolve(req.result);
+  req.onerror = () => reject(req.error);
+});
+
+const saveHandleToDB = async (handle: FileSystemDirectoryHandle) => {
+  const db = await openReceiptDB();
+  const tx = db.transaction('handles', 'readwrite');
+  tx.objectStore('handles').put({ key: 'receiptDir', handle });
+};
 
 const POS: React.FC = () => {
   const { products, categories, loading } = useProducts();
@@ -41,6 +56,24 @@ const POS: React.FC = () => {
   const [newCustomerName, setNewCustomerName] = useState('');
   const [newCustomerPhone, setNewCustomerPhone] = useState('');
   const [scannerOpen, setScannerOpen] = useState(false);
+  const [receiptDirHandle, setReceiptDirHandle] = useState<FileSystemDirectoryHandle | null>(null);
+  const [savingReceipt, setSavingReceipt] = useState(false);
+
+  // Restore saved directory handle from IndexedDB on mount
+  useEffect(() => {
+    const restore = async () => {
+      try {
+        const db = await openReceiptDB();
+        const tx = db.transaction('handles', 'readonly');
+        const store = tx.objectStore('handles');
+        const req = store.get('receiptDir');
+        req.onsuccess = () => {
+          if (req.result?.handle) setReceiptDirHandle(req.result.handle);
+        };
+      } catch {}
+    };
+    restore();
+  }, []);
 
   const handleBarcodeScan = (code: string) => {
     const product = products.find(p =>
@@ -114,22 +147,29 @@ const POS: React.FC = () => {
   const discountApplied = discountType === 'percentage' ? subtotal * (discountAmount / 100) : discountAmount;
   const grandTotal = subtotal - discountApplied + taxTotal;
 
+  // Store last sale's cart snapshot for receipt generation
+  const lastSaleCartRef = useRef<{ items: CartItem[]; subtotal: number; taxTotal: number; discountApplied: number; grandTotal: number } | null>(null);
+
   const handleCheckout = async () => {
+    // Snapshot cart totals before clearing
+    const snapshot = { items: [...cart], subtotal, taxTotal, discountApplied, grandTotal };
     const sale = await completeSale(cart, paymentMethod, discountAmount, discountType, selectedCustomer, notes);
     if (sale) {
-      setReceiptData({ ...sale, items: cart, customer: selectedCustomer });
+      lastSaleCartRef.current = snapshot;
+      setReceiptData({ ...sale, items: snapshot.items, customer: selectedCustomer });
       setCart([]);
       setDiscountAmount(0);
       setNotes('');
       setSelectedCustomer(null);
       setCheckoutOpen(false);
-      toast({ title: 'Sale completed!', description: `Total: $${grandTotal.toFixed(2)}` });
+      toast({ title: 'Sale completed!', description: `Total: $${snapshot.grandTotal.toFixed(2)}` });
     } else {
       toast({ title: 'Sale failed', variant: 'destructive' });
     }
   };
 
-  const exportReceipt = (data: any) => {
+  const buildReceiptPDF = (data: any): jsPDF => {
+    const snap = lastSaleCartRef.current;
     const doc = new jsPDF({ unit: 'mm', format: [80, 200] });
     let y = 10;
     doc.setFontSize(12);
@@ -152,21 +192,83 @@ const POS: React.FC = () => {
       y += 4;
     });
 
+    const st = snap?.subtotal ?? data.subtotal ?? 0;
+    const da = snap?.discountApplied ?? data.discount_amount ?? 0;
+    const tx = snap?.taxTotal ?? data.tax_amount ?? 0;
+    const gt = snap?.grandTotal ?? data.total ?? 0;
+
     doc.line(5, y, 75, y); y += 4;
-    doc.text(`Subtotal:`, 5, y); doc.text(`$${subtotal.toFixed(2)}`, 75, y, { align: 'right' }); y += 4;
-    if (discountApplied > 0) {
-      doc.text(`Discount:`, 5, y); doc.text(`-$${discountApplied.toFixed(2)}`, 75, y, { align: 'right' }); y += 4;
+    doc.text(`Subtotal:`, 5, y); doc.text(`$${st.toFixed(2)}`, 75, y, { align: 'right' }); y += 4;
+    if (da > 0) {
+      doc.text(`Discount:`, 5, y); doc.text(`-$${da.toFixed(2)}`, 75, y, { align: 'right' }); y += 4;
     }
-    if (taxTotal > 0) {
-      doc.text(`Tax:`, 5, y); doc.text(`$${taxTotal.toFixed(2)}`, 75, y, { align: 'right' }); y += 4;
+    if (tx > 0) {
+      doc.text(`Tax:`, 5, y); doc.text(`$${tx.toFixed(2)}`, 75, y, { align: 'right' }); y += 4;
     }
     doc.setFontSize(10);
-    doc.text(`TOTAL:`, 5, y); doc.text(`$${grandTotal.toFixed(2)}`, 75, y, { align: 'right' }); y += 6;
+    doc.text(`TOTAL:`, 5, y); doc.text(`$${gt.toFixed(2)}`, 75, y, { align: 'right' }); y += 6;
     doc.setFontSize(8);
     doc.text(`Payment: ${data.payment_method || paymentMethod}`, 5, y); y += 6;
     doc.text('Thank you!', 40, y, { align: 'center' });
+    return doc;
+  };
 
-    doc.save(`receipt-${data.sale_number || 'sale'}.pdf`);
+  const exportReceipt = (data: any) => {
+    const doc = buildReceiptPDF(data);
+    doc.save(`${data.sale_number || 'receipt'}.pdf`);
+  };
+
+  const pickReceiptFolder = async () => {
+    try {
+      const handle = await (window as any).showDirectoryPicker({ mode: 'readwrite' });
+      setReceiptDirHandle(handle);
+      await saveHandleToDB(handle);
+      toast({ title: 'Folder selected', description: 'Receipts will be saved here automatically.' });
+      return handle;
+    } catch {
+      return null;
+    }
+  };
+
+  const saveReceiptToFolder = async (data: any) => {
+    setSavingReceipt(true);
+    let handle = receiptDirHandle;
+
+    // Verify permission or ask for folder
+    if (handle) {
+      try {
+        const perm = await (handle as any).requestPermission({ mode: 'readwrite' });
+        if (perm !== 'granted') handle = null;
+      } catch { handle = null; }
+    }
+
+    if (!handle) {
+      handle = await pickReceiptFolder();
+      if (!handle) { setSavingReceipt(false); return; }
+    }
+
+    try {
+      const doc = buildReceiptPDF(data);
+      const blob = doc.output('blob');
+      const fileName = `${data.sale_number || 'receipt'}.pdf`;
+      const fileHandle = await handle.getFileHandle(fileName, { create: true });
+      const writable = await (fileHandle as any).createWritable();
+      await writable.write(blob);
+      await writable.close();
+      toast({ title: 'Receipt saved!', description: fileName });
+    } catch (err: any) {
+      toast({ title: 'Save failed', description: err?.message || 'Unknown error', variant: 'destructive' });
+    }
+    setSavingReceipt(false);
+  };
+
+  const printReceipt = (data: any) => {
+    const doc = buildReceiptPDF(data);
+    const pdfUrl = doc.output('bloburl');
+    const printWindow = window.open(pdfUrl as unknown as string);
+    if (printWindow) {
+      printWindow.addEventListener('load', () => printWindow.print());
+    }
   };
 
   const handleAddCustomer = async () => {
@@ -435,21 +537,48 @@ const POS: React.FC = () => {
 
       {/* Receipt Dialog */}
       <Dialog open={!!receiptData} onOpenChange={() => setReceiptData(null)}>
-        <DialogContent>
+        <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-success">
               <CheckCircle className="h-5 w-5" /> Sale Complete!
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 text-center">
-            <p className="text-3xl font-bold text-primary">${receiptData?.total?.toFixed(2) || grandTotal.toFixed(2)}</p>
+            <p className="text-3xl font-bold text-primary">${receiptData?.total?.toFixed(2) || '0.00'}</p>
             <p className="text-sm text-muted-foreground">#{receiptData?.sale_number}</p>
-            <div className="flex gap-2 justify-center">
-              <Button variant="outline" onClick={() => exportReceipt(receiptData)} className="gap-2">
-                <Receipt className="h-4 w-4" /> Download Receipt
+
+            <Separator />
+
+            <p className="text-sm font-medium text-foreground">What would you like to do with the receipt?</p>
+
+            <div className="grid grid-cols-1 gap-2">
+              <Button variant="outline" onClick={() => printReceipt(receiptData)} className="gap-2 w-full">
+                <Printer className="h-4 w-4" /> Print Receipt
               </Button>
-              <Button onClick={() => setReceiptData(null)}>New Sale</Button>
+
+              {'showDirectoryPicker' in window && (
+                <Button
+                  variant="outline"
+                  onClick={() => saveReceiptToFolder(receiptData)}
+                  disabled={savingReceipt}
+                  className="gap-2 w-full"
+                >
+                  {receiptDirHandle ? (
+                    <><FolderOpen className="h-4 w-4" /> {savingReceipt ? 'Saving...' : 'Save to Folder'}</>
+                  ) : (
+                    <><FolderOpen className="h-4 w-4" /> Choose Folder & Save</>
+                  )}
+                </Button>
+              )}
+
+              <Button variant="outline" onClick={() => exportReceipt(receiptData)} className="gap-2 w-full">
+                <Download className="h-4 w-4" /> Download PDF
+              </Button>
             </div>
+
+            <Separator />
+
+            <Button className="w-full" onClick={() => setReceiptData(null)}>Start New Sale</Button>
           </div>
         </DialogContent>
       </Dialog>
