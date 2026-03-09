@@ -24,7 +24,7 @@ interface EditBLModalProps {
 const EditBLModal: React.FC<EditBLModalProps> = ({ record, open, onOpenChange }) => {
   const { t } = useLanguage();
   const { updateRecord } = useUnusedBL();
-  const { settings, loading: settingsLoading } = useUnusedBLSettings();
+  const { getByType, loading: settingsLoading } = useUnusedBLSettings();
   const { toast } = useToast();
 
   const [formData, setFormData] = useState({
