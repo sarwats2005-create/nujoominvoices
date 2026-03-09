@@ -84,6 +84,7 @@ const Inventory: React.FC = () => {
     setFormName(''); setFormSku(''); setFormBarcode(''); setFormDesc('');
     setFormPrice(''); setFormCostPrice(''); setFormTaxRate('');
     setFormCategory(''); setFormStock('0'); setFormMinStock('5');
+    setFormImageUrl(''); setImageFile(null); setImagePreview('');
     setEditingProduct(null);
   };
 
