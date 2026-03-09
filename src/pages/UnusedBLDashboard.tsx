@@ -25,6 +25,7 @@ const UnusedBLDashboard: React.FC = () => {
 
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [hideUsed, setHideUsed] = useState(true);
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [useModalRecord, setUseModalRecord] = useState<UnusedBL | null>(null);
   const [editModalRecord, setEditModalRecord] = useState<UnusedBL | null>(null);
