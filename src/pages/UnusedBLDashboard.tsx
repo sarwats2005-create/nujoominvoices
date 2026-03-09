@@ -48,6 +48,9 @@ const UnusedBLDashboard: React.FC = () => {
 
   const filtered = useMemo(() => {
     let result = [...records];
+    if (hideUsed) {
+      result = result.filter(r => r.status !== 'USED');
+    }
     if (statusFilter !== 'all') {
       result = result.filter(r => r.status === statusFilter);
     }
