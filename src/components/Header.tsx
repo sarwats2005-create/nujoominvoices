@@ -5,7 +5,7 @@ import { useSettings } from '@/contexts/SettingsContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAdmin } from '@/hooks/useAdmin';
 import { Button } from '@/components/ui/button';
-import { LayoutDashboard, FilePlus, Settings, Menu, Sun, Moon, BarChart3, Mail, LogOut, Shield, ClipboardList, FolderOpen } from 'lucide-react';
+import { LayoutDashboard, FilePlus, Settings, Menu, Sun, Moon, BarChart3, Mail, LogOut, Shield, ClipboardList, FolderOpen, ShoppingCart, Boxes } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { gsap } from 'gsap';
 const GLOW_COLOR = '132, 0, 255';
@@ -173,6 +173,14 @@ const Header: React.FC = () => {
     label: t('unusedBL'),
     icon: FolderOpen
   }] : []), {
+    path: '/pos',
+    label: 'POS',
+    icon: ShoppingCart
+  }, {
+    path: '/inventory',
+    label: 'Inventory',
+    icon: Boxes
+  }, {
     path: '/insights',
     label: t('insights'),
     icon: BarChart3
