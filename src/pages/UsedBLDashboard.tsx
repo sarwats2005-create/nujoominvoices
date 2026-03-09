@@ -318,7 +318,7 @@ const UsedBLDashboard: React.FC = () => {
               <TableBody>
                 {sortedRecords.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center py-12 text-muted-foreground">
+                    <TableCell colSpan={9} className="text-center py-12 text-muted-foreground">
                       {searchQuery ? 'No matching records' : 'No records yet. Click "New Entry" to add your first B/L record.'}
                     </TableCell>
                   </TableRow>
