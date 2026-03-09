@@ -218,7 +218,7 @@ const EditBLModal: React.FC<EditBLModalProps> = ({ record, open, onOpenChange })
             <Select value={formData.port_of_loading} onValueChange={v => setFormData(p => ({ ...p, port_of_loading: v }))}>
               <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
               <SelectContent className="bg-popover">
-                {settings.port_of_loading.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+                {getByType('port_of_loading').map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
