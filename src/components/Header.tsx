@@ -173,6 +173,14 @@ const Header: React.FC = () => {
     label: t('unusedBL'),
     icon: FolderOpen
   }] : []), {
+    path: '/pos',
+    label: 'POS',
+    icon: ShoppingCart
+  }, {
+    path: '/inventory',
+    label: 'Inventory',
+    icon: Boxes
+  }, {
     path: '/insights',
     label: t('insights'),
     icon: BarChart3
