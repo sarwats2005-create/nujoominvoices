@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Search, FolderOpen, CheckCircle, Package, Eye, ArrowRightLeft, Trash2, Edit2, User } from 'lucide-react';
+import { Plus, Search, FolderOpen, CheckCircle, Package, Eye, ArrowRightLeft, Trash2, Edit2, User, EyeOff } from 'lucide-react';
 import { format } from 'date-fns';
 import AddBLModal from '@/components/unused-bl/AddBLModal';
 import UseBLModal from '@/components/unused-bl/UseBLModal';
