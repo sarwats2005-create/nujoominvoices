@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Search, FolderOpen, CheckCircle, Package, Eye, ArrowRightLeft, Trash2, Edit2, User } from 'lucide-react';
+import { Plus, Search, FolderOpen, CheckCircle, Package, Eye, ArrowRightLeft, Trash2, Edit2, User, EyeOff } from 'lucide-react';
 import { format } from 'date-fns';
 import AddBLModal from '@/components/unused-bl/AddBLModal';
 import UseBLModal from '@/components/unused-bl/UseBLModal';
@@ -25,6 +25,7 @@ const UnusedBLDashboard: React.FC = () => {
 
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [hideUsed, setHideUsed] = useState(true);
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [useModalRecord, setUseModalRecord] = useState<UnusedBL | null>(null);
   const [editModalRecord, setEditModalRecord] = useState<UnusedBL | null>(null);
@@ -47,6 +48,9 @@ const UnusedBLDashboard: React.FC = () => {
 
   const filtered = useMemo(() => {
     let result = [...records];
+    if (hideUsed) {
+      result = result.filter(r => r.status !== 'USED');
+    }
     if (statusFilter !== 'all') {
       result = result.filter(r => r.status === statusFilter);
     }
@@ -68,7 +72,7 @@ const UnusedBLDashboard: React.FC = () => {
       return sortDir === 'asc' ? cmp : -cmp;
     });
     return result;
-  }, [records, search, statusFilter, sortField, sortDir]);
+  }, [records, search, statusFilter, sortField, sortDir, hideUsed]);
 
   const handleSort = (field: string) => {
     if (sortField === field) {
@@ -102,9 +106,14 @@ const UnusedBLDashboard: React.FC = () => {
             <p className="text-sm text-muted-foreground">Track and manage unused B/L files</p>
           </div>
         </div>
-        <Button onClick={() => setAddModalOpen(true)} className="gap-2">
-          <Plus className="h-4 w-4" /> {t('addBL')}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={() => setHideUsed(!hideUsed)} className="gap-1.5">
+            <EyeOff className="h-4 w-4" /> {hideUsed ? 'Show Used' : 'Hide Used'}
+          </Button>
+          <Button onClick={() => setAddModalOpen(true)} className="gap-2">
+            <Plus className="h-4 w-4" /> {t('addBL')}
+          </Button>
+        </div>
       </div>
 
       {/* Summary Cards */}
