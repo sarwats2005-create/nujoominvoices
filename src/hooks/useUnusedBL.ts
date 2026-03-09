@@ -150,7 +150,7 @@ export const useUnusedBL = () => {
       unused: records.filter(r => r.status === 'UNUSED').length,
       used: records.filter(r => r.status === 'USED').length,
     },
-    createRecord, deleteRecord, uploadFiles, getFiles, getSignedUrl, useBL,
-    checkDuplicateBLNo, checkContainerWarning, refetch: fetchRecords,
+    createRecord, deleteRecord, updateRecord, uploadFiles, getFiles, getSignedUrl, useBL,
+    checkDuplicateBLNo, checkContainerWarning, refetch: fetchRecords, getUniqueOwners,
   };
 };
