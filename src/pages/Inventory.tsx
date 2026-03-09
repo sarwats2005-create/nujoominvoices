@@ -135,6 +135,7 @@ const Inventory: React.FC = () => {
 
   const handleSaveProduct = async () => {
     if (!formName.trim() || !formPrice) return;
+    const imageUrl = await uploadImage();
     const data: any = {
       name: formName.trim(),
       sku: formSku.trim() || null,
@@ -144,6 +145,7 @@ const Inventory: React.FC = () => {
       cost_price: formCostPrice ? parseFloat(formCostPrice) : 0,
       tax_rate: formTaxRate ? parseFloat(formTaxRate) : 0,
       category_id: formCategory || null,
+      image_url: imageUrl,
     };
 
     if (editingProduct) {
