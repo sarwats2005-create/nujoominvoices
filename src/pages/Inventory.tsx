@@ -101,7 +101,36 @@ const Inventory: React.FC = () => {
     setFormCategory(p.category_id || '');
     setFormStock(p.variants?.[0]?.stock_quantity?.toString() || '0');
     setFormMinStock(p.variants?.[0]?.min_stock_level?.toString() || '5');
+    setFormImageUrl(p.image_url || '');
+    setImagePreview(p.image_url || '');
+    setImageFile(null);
     setProductDialogOpen(true);
+  };
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ title: 'File too large', description: 'Max 5MB', variant: 'destructive' });
+      return;
+    }
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+  };
+
+  const uploadImage = async (): Promise<string | null> => {
+    if (!imageFile || !user) return formImageUrl || null;
+    setUploading(true);
+    const ext = imageFile.name.split('.').pop();
+    const path = `${user.id}/${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from('product-images').upload(path, imageFile);
+    setUploading(false);
+    if (error) {
+      toast({ title: 'Upload failed', description: error.message, variant: 'destructive' });
+      return formImageUrl || null;
+    }
+    const { data: { publicUrl } } = supabase.storage.from('product-images').getPublicUrl(path);
+    return publicUrl;
   };
 
   const handleSaveProduct = async () => {
