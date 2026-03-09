@@ -332,6 +332,7 @@ const UsedBLDashboard: React.FC = () => {
                       <TableCell><Badge variant="outline" className="text-xs">{record.bank}</Badge></TableCell>
                       <TableCell className="text-xs sm:text-sm">{record.owner}</TableCell>
                       <TableCell className="text-xs sm:text-sm">{record.used_for}</TableCell>
+                      <TableCell className="text-xs sm:text-sm">{(record as any).used_for_beneficiary || '—'}</TableCell>
                       <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                         <div className="flex justify-end gap-1">
                           <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => navigate(`/used-bl/${record.id}`)}>
