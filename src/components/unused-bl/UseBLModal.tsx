@@ -27,19 +27,24 @@ interface UseBLModalProps {
 
 const UseBLModal: React.FC<UseBLModalProps> = ({ record, open, onOpenChange }) => {
   const { t } = useLanguage();
-  const { useBL } = useUnusedBL();
-  const { blPresets } = useSettings();
+  const { useBL, getUniqueOwners } = useUnusedBL();
+  const { blPresets, addBLPreset } = useSettings();
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
   const [usingFor, setUsingFor] = useState('');
+  const [customUsingFor, setCustomUsingFor] = useState('');
+  const [showCustomUsingFor, setShowCustomUsingFor] = useState(false);
   const [bank, setBank] = useState('');
   const [invoiceAmount, setInvoiceAmount] = useState('');
   const [currency, setCurrency] = useState('USD');
   const [invoiceDate, setInvoiceDate] = useState<Date | undefined>();
   const [invoiceDateText, setInvoiceDateText] = useState('');
   const [usedForManufacturer, setUsedForManufacturer] = useState('');
+  const [usedForBeneficiary, setUsedForBeneficiary] = useState('');
+  const [customBeneficiary, setCustomBeneficiary] = useState('');
+  const [showCustomBeneficiary, setShowCustomBeneficiary] = useState(false);
   const [dashboardId, setDashboardId] = useState('');
   const [dashboards, setDashboards] = useState<{ id: string; name: string }[]>([]);
   const [error, setError] = useState('');
@@ -48,6 +53,8 @@ const UseBLModal: React.FC<UseBLModalProps> = ({ record, open, onOpenChange }) =
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [customBank, setCustomBank] = useState('');
   const [showCustomBank, setShowCustomBank] = useState(false);
+
+  const ownerOptions = getUniqueOwners();
 
   useEffect(() => {
     const fetchDashboards = async () => {
@@ -80,9 +87,20 @@ const UseBLModal: React.FC<UseBLModalProps> = ({ record, open, onOpenChange }) =
     return Number(num).toLocaleString();
   };
 
+  const handleAddBeneficiary = async () => {
+    if (!customBeneficiary.trim()) return;
+    await addBLPreset('beneficiaries', customBeneficiary.trim().toUpperCase());
+    setUsedForBeneficiary(customBeneficiary.trim().toUpperCase());
+    setCustomBeneficiary('');
+    setShowCustomBeneficiary(false);
+  };
+
   const handleConfirm = async () => {
     const finalBank = showCustomBank ? customBank : bank;
-    if (!usingFor.trim()) { setError('Using for is required'); return; }
+    const finalUsingFor = showCustomUsingFor ? customUsingFor : usingFor;
+    const finalBeneficiary = showCustomBeneficiary ? customBeneficiary : usedForBeneficiary;
+    
+    if (!finalUsingFor.trim()) { setError('Customer name is required'); return; }
     if (!finalBank.trim()) { setError('Bank is required'); return; }
     if (!invoiceAmount || parseFloat(invoiceAmount) <= 0) { setError('Valid invoice amount is required'); return; }
     if (!invoiceDate) { setError('Invoice date is required'); return; }
@@ -92,12 +110,13 @@ const UseBLModal: React.FC<UseBLModalProps> = ({ record, open, onOpenChange }) =
     setError('');
     setSubmitting(true);
     const ok = await useBL(record.id, {
-      using_for: usingFor.trim().toUpperCase(),
+      using_for: finalUsingFor.trim().toUpperCase(),
       bank: finalBank.trim().toUpperCase(),
       invoice_amount: parseFloat(invoiceAmount.replace(/,/g, '')),
       currency,
       invoice_date: format(invoiceDate, 'yyyy-MM-dd'),
       used_for_manufacturer: usedForManufacturer.trim().toUpperCase(),
+      used_for_beneficiary: finalBeneficiary.trim().toUpperCase() || '',
       dashboard_id: dashboardId,
     });
     setSubmitting(false);
@@ -151,9 +170,57 @@ const UseBLModal: React.FC<UseBLModalProps> = ({ record, open, onOpenChange }) =
 
           {/* Conversion form */}
           <div className="space-y-4">
+            {/* Customer Name (Using For) - lookup from owners */}
             <div className="space-y-1.5">
-              <Label>{t('usingFor')} <span className="text-destructive">*</span></Label>
-              <Input value={usingFor} onChange={e => setUsingFor(e.target.value)} placeholder="Customer name" />
+              <Label>{t('usingFor')} (Customer) <span className="text-destructive">*</span></Label>
+              {showCustomUsingFor ? (
+                <div className="flex gap-1.5">
+                  <Input value={customUsingFor} onChange={e => setCustomUsingFor(e.target.value.toUpperCase())} placeholder="Type customer name" className="uppercase" />
+                  <Button variant="ghost" size="icon" onClick={() => { setShowCustomUsingFor(false); setCustomUsingFor(''); }}>
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex gap-1.5">
+                  <Select value={usingFor} onValueChange={setUsingFor}>
+                    <SelectTrigger className="flex-1"><SelectValue placeholder="Select from owners" /></SelectTrigger>
+                    <SelectContent className="bg-popover">
+                      {ownerOptions.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <Button variant="outline" size="icon" onClick={() => setShowCustomUsingFor(true)} title="Add new">
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+            </div>
+
+            {/* Beneficiary - lookup from settings with add new */}
+            <div className="space-y-1.5">
+              <Label>{t('beneficiary') || 'Used For Beneficiary'}</Label>
+              {showCustomBeneficiary ? (
+                <div className="flex gap-1.5">
+                  <Input value={customBeneficiary} onChange={e => setCustomBeneficiary(e.target.value.toUpperCase())} placeholder="Type beneficiary name" className="uppercase" />
+                  <Button variant="outline" size="icon" onClick={handleAddBeneficiary} title="Add & Save">
+                    <CheckCircle className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="icon" onClick={() => { setShowCustomBeneficiary(false); setCustomBeneficiary(''); }}>
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex gap-1.5">
+                  <Select value={usedForBeneficiary} onValueChange={setUsedForBeneficiary}>
+                    <SelectTrigger className="flex-1"><SelectValue placeholder="Select beneficiary" /></SelectTrigger>
+                    <SelectContent className="bg-popover">
+                      {blPresets.beneficiaries?.map(b => <SelectItem key={b} value={b}>{b}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <Button variant="outline" size="icon" onClick={() => setShowCustomBeneficiary(true)} title="Add new">
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
             </div>
 
             <div className="space-y-1.5">

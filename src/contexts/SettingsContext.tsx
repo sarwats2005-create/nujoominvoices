@@ -16,6 +16,7 @@ export interface BLPresets {
   banks: string[];
   owners: string[];
   usedFor: string[];
+  beneficiaries: string[];
 }
 
 export const currencies: Currency[] = [
@@ -41,6 +42,7 @@ interface SettingsContextType {
   setSoundVolume: (volume: number) => void;
   blPresets: BLPresets;
   setBLPresets: (presets: BLPresets) => void;
+  addBLPreset: (key: keyof BLPresets, value: string) => void;
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -56,6 +58,7 @@ const defaultBLPresets: BLPresets = {
   banks: ['MBI', 'ADIB', 'TBI', 'BGHD', 'ECONOMY'],
   owners: ['DASHTY', 'WAAD', 'BAZIRGANI DRWST', 'KARZAN'],
   usedFor: ['SUIZI', 'JIEREN', 'ASNA'],
+  beneficiaries: [],
 };
 
 const defaultContactInfo: ContactInfo = {
@@ -144,8 +147,15 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     localStorage.setItem(BL_PRESETS_KEY, JSON.stringify(presets));
   };
 
+  const addBLPreset = (key: keyof BLPresets, value: string) => {
+    const trimmed = value.trim().toUpperCase();
+    if (!trimmed || blPresets[key].includes(trimmed)) return;
+    const updated = { ...blPresets, [key]: [...blPresets[key], trimmed] };
+    setBLPresets(updated);
+  };
+
   return (
-    <SettingsContext.Provider value={{ logo, setLogo, isDarkMode, toggleDarkMode, contactInfo, setContactInfo, currency, setCurrency, soundVolume, setSoundVolume, blPresets, setBLPresets }}>
+    <SettingsContext.Provider value={{ logo, setLogo, isDarkMode, toggleDarkMode, contactInfo, setContactInfo, currency, setCurrency, soundVolume, setSoundVolume, blPresets, setBLPresets, addBLPreset }}>
       {children}
     </SettingsContext.Provider>
   );

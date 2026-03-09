@@ -48,5 +48,6 @@ export interface UseBLFormData {
   currency: string;
   invoice_date: string;
   used_for_manufacturer: string;
+  used_for_beneficiary: string;
   dashboard_id: string;
 }

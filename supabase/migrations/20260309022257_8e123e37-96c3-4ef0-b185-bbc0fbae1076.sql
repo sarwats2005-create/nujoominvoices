@@ -1,0 +1,1 @@
+ALTER TABLE public.used_bl_counting ADD COLUMN used_for_beneficiary TEXT;
