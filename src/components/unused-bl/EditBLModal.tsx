@@ -187,7 +187,7 @@ const EditBLModal: React.FC<EditBLModalProps> = ({ record, open, onOpenChange })
             <Select value={formData.product_category} onValueChange={v => setFormData(p => ({ ...p, product_category: v }))}>
               <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
               <SelectContent className="bg-popover">
-                {settings.product_category.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                {getByType('product_category').map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
