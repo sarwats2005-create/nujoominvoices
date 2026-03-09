@@ -25,6 +25,8 @@ import UnusedBLOwnerDetail from "@/pages/UnusedBLOwnerDetail";
 import UsedBLNew from "@/pages/UsedBLNew";
 import UsedBLDetails from "@/pages/UsedBLDetails";
 import UsedBLEdit from "@/pages/UsedBLEdit";
+import POS from "@/pages/POS";
+import InventoryPage from "@/pages/Inventory";
 import { NetworkStatusIndicator } from "@/components/NetworkStatusIndicator";
 import PWAUpdateBanner from "@/components/PWAUpdateBanner";
 import { useAdmin } from "@/hooks/useAdmin";
