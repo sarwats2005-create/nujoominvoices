@@ -473,6 +473,9 @@ const POS: React.FC = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Barcode Scanner */}
+      <BarcodeScanner open={scannerOpen} onOpenChange={setScannerOpen} onScan={handleBarcodeScan} />
     </div>
   );
 };
