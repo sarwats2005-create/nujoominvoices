@@ -446,8 +446,8 @@ const Inventory: React.FC = () => {
                 </div>
               </div>
             )}
-            <Button className="w-full" onClick={handleSaveProduct} disabled={!formName.trim() || !formPrice}>
-              {editingProduct ? 'Save Changes' : 'Add Product'}
+            <Button className="w-full" onClick={handleSaveProduct} disabled={!formName.trim() || !formPrice || uploading}>
+              {uploading ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Uploading...</> : editingProduct ? 'Save Changes' : 'Add Product'}
             </Button>
           </div>
         </DialogContent>
