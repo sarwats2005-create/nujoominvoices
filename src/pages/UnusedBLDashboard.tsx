@@ -8,10 +8,11 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Search, FolderOpen, CheckCircle, Package, Eye, ArrowRightLeft, Trash2 } from 'lucide-react';
+import { Plus, Search, FolderOpen, CheckCircle, Package, Eye, ArrowRightLeft, Trash2, Edit2, User } from 'lucide-react';
 import { format } from 'date-fns';
 import AddBLModal from '@/components/unused-bl/AddBLModal';
 import UseBLModal from '@/components/unused-bl/UseBLModal';
+import EditBLModal from '@/components/unused-bl/EditBLModal';
 import BLDetailViewer from '@/components/unused-bl/BLDetailViewer';
 import type { UnusedBL } from '@/types/unusedBL';
 import { useToast } from '@/hooks/use-toast';
@@ -26,9 +27,23 @@ const UnusedBLDashboard: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [useModalRecord, setUseModalRecord] = useState<UnusedBL | null>(null);
+  const [editModalRecord, setEditModalRecord] = useState<UnusedBL | null>(null);
   const [detailRecord, setDetailRecord] = useState<UnusedBL | null>(null);
   const [sortField, setSortField] = useState<string>('created_at');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+
+  // Owner summary data
+  const ownerSummary = useMemo(() => {
+    const map = new Map<string, { total: number; unused: number; used: number }>();
+    records.forEach(r => {
+      const existing = map.get(r.owner) || { total: 0, unused: 0, used: 0 };
+      existing.total++;
+      if (r.status === 'UNUSED') existing.unused++;
+      else existing.used++;
+      map.set(r.owner, existing);
+    });
+    return Array.from(map.entries()).map(([owner, data]) => ({ owner, ...data }));
+  }, [records]);
 
   const filtered = useMemo(() => {
     let result = [...records];
@@ -129,6 +144,36 @@ const UnusedBLDashboard: React.FC = () => {
         </Card>
       </div>
 
+      {/* Owner Summary Cards */}
+      {ownerSummary.length > 0 && (
+        <div>
+          <h2 className="text-sm font-semibold text-muted-foreground mb-3 uppercase tracking-wider">Owners</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+            {ownerSummary.map(({ owner, total, unused, used }) => (
+              <Card
+                key={owner}
+                className="cursor-pointer hover:border-primary/50 transition-colors group"
+                onClick={() => navigate(`/unused-bl/owner/${encodeURIComponent(owner)}`)}
+              >
+                <CardContent className="p-3 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <div className="p-1.5 rounded-md bg-primary/10 group-hover:bg-primary/20 transition-colors">
+                      <User className="h-3.5 w-3.5 text-primary" />
+                    </div>
+                    <span className="font-semibold text-sm text-foreground truncate">{owner}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs">
+                    <Badge variant="secondary" className="text-xs">{total} total</Badge>
+                    {unused > 0 && <Badge className="text-xs">{unused} unused</Badge>}
+                    {used > 0 && <Badge variant="outline" className="text-xs bg-success/10 text-success border-success/30">{used} used</Badge>}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Search + Filters */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
@@ -218,6 +263,9 @@ const UnusedBLDashboard: React.FC = () => {
                         </Button>
                         {record.status === 'UNUSED' && (
                           <>
+                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setEditModalRecord(record)} title="Edit">
+                              <Edit2 className="h-4 w-4" />
+                            </Button>
                             <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" onClick={() => setUseModalRecord(record)} title={t('useThisBL')}>
                               <ArrowRightLeft className="h-4 w-4" />
                             </Button>
@@ -240,6 +288,9 @@ const UnusedBLDashboard: React.FC = () => {
       <AddBLModal open={addModalOpen} onOpenChange={setAddModalOpen} />
       {useModalRecord && (
         <UseBLModal record={useModalRecord} open={!!useModalRecord} onOpenChange={(open) => !open && setUseModalRecord(null)} />
+      )}
+      {editModalRecord && (
+        <EditBLModal record={editModalRecord} open={!!editModalRecord} onOpenChange={(open) => !open && setEditModalRecord(null)} />
       )}
       {detailRecord && (
         <BLDetailViewer record={detailRecord} open={!!detailRecord} onOpenChange={(open) => !open && setDetailRecord(null)} />
