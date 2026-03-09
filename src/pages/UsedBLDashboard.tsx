@@ -19,7 +19,7 @@ import autoTable from 'jspdf-autotable';
 import BLDashboardSelector from '@/components/BLDashboardSelector';
 import type { UsedBL } from '@/types/usedBL';
 
-type SortKey = 'bl_no' | 'container_no' | 'invoice_amount' | 'invoice_date' | 'bank' | 'owner' | 'used_for';
+type SortKey = 'bl_no' | 'container_no' | 'invoice_amount' | 'invoice_date' | 'bank' | 'owner' | 'used_for' | 'used_for_beneficiary';
 
 const UsedBLDashboard: React.FC = () => {
   const { t } = useLanguage();
@@ -310,14 +310,15 @@ const UsedBLDashboard: React.FC = () => {
                   <SortHeader label="DATE" sortKeyName="invoice_date" />
                   <SortHeader label="BANK" sortKeyName="bank" />
                   <SortHeader label="OWNER" sortKeyName="owner" />
-                  <SortHeader label="USED FOR" sortKeyName="used_for" />
+                  <SortHeader label="CUSTOMER" sortKeyName="used_for" />
+                  <SortHeader label="BENEFICIARY" sortKeyName="used_for_beneficiary" />
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {sortedRecords.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center py-12 text-muted-foreground">
+                    <TableCell colSpan={9} className="text-center py-12 text-muted-foreground">
                       {searchQuery ? 'No matching records' : 'No records yet. Click "New Entry" to add your first B/L record.'}
                     </TableCell>
                   </TableRow>
@@ -331,6 +332,7 @@ const UsedBLDashboard: React.FC = () => {
                       <TableCell><Badge variant="outline" className="text-xs">{record.bank}</Badge></TableCell>
                       <TableCell className="text-xs sm:text-sm">{record.owner}</TableCell>
                       <TableCell className="text-xs sm:text-sm">{record.used_for}</TableCell>
+                      <TableCell className="text-xs sm:text-sm">{(record as any).used_for_beneficiary || '—'}</TableCell>
                       <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                         <div className="flex justify-end gap-1">
                           <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => navigate(`/used-bl/${record.id}`)}>
