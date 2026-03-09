@@ -154,6 +154,9 @@ const UnusedBLDashboard: React.FC = () => {
         </Card>
       </div>
 
+      {/* Analytics Section */}
+      <BLAnalytics records={records} />
+
       {/* Owner Summary Cards */}
       {ownerSummary.length > 0 && (
         <div>
