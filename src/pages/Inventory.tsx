@@ -16,7 +16,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import {
   Package, Plus, Search, Edit, Trash2, AlertTriangle, ArrowDownToLine, ArrowUpFromLine,
-  Tags, Boxes, BarChart3, TrendingDown
+  Tags, Boxes, BarChart3, TrendingDown, ImagePlus, X as XIcon, Loader2
 } from 'lucide-react';
 import type { Product, ProductVariant } from '@/types/pos';
 
