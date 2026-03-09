@@ -14,8 +14,9 @@ import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   ShoppingCart, Search, Plus, Minus, Trash2, Receipt, CreditCard,
-  Banknote, Wallet, User, Percent, DollarSign, X, CheckCircle, Tag
+  Banknote, Wallet, User, Percent, DollarSign, X, CheckCircle, Tag, ScanBarcode
 } from 'lucide-react';
+import BarcodeScanner from '@/components/pos/BarcodeScanner';
 import type { CartItem, Customer, Product, ProductVariant } from '@/types/pos';
 import jsPDF from 'jspdf';
 import { format } from 'date-fns';
