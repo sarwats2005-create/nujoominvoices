@@ -1,4 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { useProducts } from '@/hooks/useProducts';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,7 +16,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import {
   Package, Plus, Search, Edit, Trash2, AlertTriangle, ArrowDownToLine, ArrowUpFromLine,
-  Tags, Boxes, BarChart3, TrendingDown
+  Tags, Boxes, BarChart3, TrendingDown, ImagePlus, X as XIcon, Loader2
 } from 'lucide-react';
 import type { Product, ProductVariant } from '@/types/pos';
 
@@ -52,7 +54,12 @@ const Inventory: React.FC = () => {
   const [formCategory, setFormCategory] = useState('');
   const [formStock, setFormStock] = useState('0');
   const [formMinStock, setFormMinStock] = useState('5');
-
+  const [formImageUrl, setFormImageUrl] = useState('');
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { user } = useAuth();
   const lowStockProducts = useMemo(() => getLowStockProducts(), [getLowStockProducts]);
 
   const filtered = useMemo(() => {
@@ -77,6 +84,7 @@ const Inventory: React.FC = () => {
     setFormName(''); setFormSku(''); setFormBarcode(''); setFormDesc('');
     setFormPrice(''); setFormCostPrice(''); setFormTaxRate('');
     setFormCategory(''); setFormStock('0'); setFormMinStock('5');
+    setFormImageUrl(''); setImageFile(null); setImagePreview('');
     setEditingProduct(null);
   };
 
@@ -93,11 +101,41 @@ const Inventory: React.FC = () => {
     setFormCategory(p.category_id || '');
     setFormStock(p.variants?.[0]?.stock_quantity?.toString() || '0');
     setFormMinStock(p.variants?.[0]?.min_stock_level?.toString() || '5');
+    setFormImageUrl(p.image_url || '');
+    setImagePreview(p.image_url || '');
+    setImageFile(null);
     setProductDialogOpen(true);
+  };
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ title: 'File too large', description: 'Max 5MB', variant: 'destructive' });
+      return;
+    }
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+  };
+
+  const uploadImage = async (): Promise<string | null> => {
+    if (!imageFile || !user) return formImageUrl || null;
+    setUploading(true);
+    const ext = imageFile.name.split('.').pop();
+    const path = `${user.id}/${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from('product-images').upload(path, imageFile);
+    setUploading(false);
+    if (error) {
+      toast({ title: 'Upload failed', description: error.message, variant: 'destructive' });
+      return formImageUrl || null;
+    }
+    const { data: { publicUrl } } = supabase.storage.from('product-images').getPublicUrl(path);
+    return publicUrl;
   };
 
   const handleSaveProduct = async () => {
     if (!formName.trim() || !formPrice) return;
+    const imageUrl = await uploadImage();
     const data: any = {
       name: formName.trim(),
       sku: formSku.trim() || null,
@@ -107,6 +145,7 @@ const Inventory: React.FC = () => {
       cost_price: formCostPrice ? parseFloat(formCostPrice) : 0,
       tax_rate: formTaxRate ? parseFloat(formTaxRate) : 0,
       category_id: formCategory || null,
+      image_url: imageUrl,
     };
 
     if (editingProduct) {
@@ -271,9 +310,18 @@ const Inventory: React.FC = () => {
                   return (
                     <TableRow key={product.id}>
                       <TableCell>
-                        <div>
-                          <p className="font-medium text-sm">{product.name}</p>
-                          {product.barcode && <p className="text-xs text-muted-foreground font-mono">{product.barcode}</p>}
+                        <div className="flex items-center gap-3">
+                          {product.image_url ? (
+                            <img src={product.image_url} alt={product.name} className="w-10 h-10 rounded-md object-cover border border-border shrink-0" />
+                          ) : (
+                            <div className="w-10 h-10 rounded-md bg-muted flex items-center justify-center shrink-0">
+                              <Package className="h-4 w-4 text-muted-foreground" />
+                            </div>
+                          )}
+                          <div>
+                            <p className="font-medium text-sm">{product.name}</p>
+                            {product.barcode && <p className="text-xs text-muted-foreground font-mono">{product.barcode}</p>}
+                          </div>
                         </div>
                       </TableCell>
                       <TableCell className="text-xs font-mono">{product.sku || '—'}</TableCell>
@@ -328,6 +376,32 @@ const Inventory: React.FC = () => {
             <DialogTitle>{editingProduct ? 'Edit Product' : 'Add Product'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
+            {/* Image Upload */}
+            <div className="space-y-1.5">
+              <Label>Product Image</Label>
+              <input type="file" ref={fileInputRef} accept="image/*" className="hidden" onChange={handleImageSelect} />
+              {imagePreview ? (
+                <div className="relative w-full h-40 rounded-lg border border-border overflow-hidden bg-muted/30">
+                  <img src={imagePreview} alt="Preview" className="w-full h-full object-contain" />
+                  <Button
+                    variant="destructive" size="icon"
+                    className="absolute top-2 right-2 h-7 w-7"
+                    onClick={() => { setImageFile(null); setImagePreview(''); setFormImageUrl(''); }}
+                  >
+                    <XIcon className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-full h-32 rounded-lg border-2 border-dashed border-border hover:border-primary/50 bg-muted/20 flex flex-col items-center justify-center gap-2 transition-colors"
+                >
+                  <ImagePlus className="h-8 w-8 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">Click to upload image (max 5MB)</span>
+                </button>
+              )}
+            </div>
             <div className="space-y-1.5">
               <Label>Name <span className="text-destructive">*</span></Label>
               <Input value={formName} onChange={e => setFormName(e.target.value)} placeholder="Product name" />
@@ -381,8 +455,8 @@ const Inventory: React.FC = () => {
                 </div>
               </div>
             )}
-            <Button className="w-full" onClick={handleSaveProduct} disabled={!formName.trim() || !formPrice}>
-              {editingProduct ? 'Save Changes' : 'Add Product'}
+            <Button className="w-full" onClick={handleSaveProduct} disabled={!formName.trim() || !formPrice || uploading}>
+              {uploading ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Uploading...</> : editingProduct ? 'Save Changes' : 'Add Product'}
             </Button>
           </div>
         </DialogContent>
