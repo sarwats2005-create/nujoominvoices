@@ -19,7 +19,7 @@ import autoTable from 'jspdf-autotable';
 import BLDashboardSelector from '@/components/BLDashboardSelector';
 import type { UsedBL } from '@/types/usedBL';
 
-type SortKey = 'bl_no' | 'container_no' | 'invoice_amount' | 'invoice_date' | 'bank' | 'owner' | 'used_for';
+type SortKey = 'bl_no' | 'container_no' | 'invoice_amount' | 'invoice_date' | 'bank' | 'owner' | 'used_for' | 'used_for_beneficiary';
 
 const UsedBLDashboard: React.FC = () => {
   const { t } = useLanguage();
