@@ -142,7 +142,7 @@ const EditBLModal: React.FC<EditBLModalProps> = ({ record, open, onOpenChange })
             <Select value={formData.clearance_company} onValueChange={v => setFormData(p => ({ ...p, clearance_company: v }))}>
               <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
               <SelectContent className="bg-popover">
-                {settings.clearance_company.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                {getByType('clearance_company').map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
