@@ -42,6 +42,24 @@ const POS: React.FC = () => {
   const [newCustomerName, setNewCustomerName] = useState('');
   const [newCustomerPhone, setNewCustomerPhone] = useState('');
   const [scannerOpen, setScannerOpen] = useState(false);
+  const [receiptDirHandle, setReceiptDirHandle] = useState<FileSystemDirectoryHandle | null>(null);
+  const [savingReceipt, setSavingReceipt] = useState(false);
+
+  // Restore saved directory handle from IndexedDB on mount
+  useEffect(() => {
+    const restore = async () => {
+      try {
+        const db = await openReceiptDB();
+        const tx = db.transaction('handles', 'readonly');
+        const store = tx.objectStore('handles');
+        const req = store.get('receiptDir');
+        req.onsuccess = () => {
+          if (req.result?.handle) setReceiptDirHandle(req.result.handle);
+        };
+      } catch {}
+    };
+    restore();
+  }, []);
 
   const handleBarcodeScan = (code: string) => {
     const product = products.find(p =>
