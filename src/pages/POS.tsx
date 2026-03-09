@@ -264,8 +264,8 @@ const POS: React.FC = () => {
 
   const printReceipt = (data: any) => {
     const doc = buildReceiptPDF(data);
-    const pdfBlob = doc.output('bloburl');
-    const printWindow = window.open(pdfBlob as string);
+    const pdfUrl = doc.output('bloburl');
+    const printWindow = window.open(pdfUrl as unknown as string);
     if (printWindow) {
       printWindow.addEventListener('load', () => printWindow.print());
     }
