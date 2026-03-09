@@ -310,7 +310,8 @@ const UsedBLDashboard: React.FC = () => {
                   <SortHeader label="DATE" sortKeyName="invoice_date" />
                   <SortHeader label="BANK" sortKeyName="bank" />
                   <SortHeader label="OWNER" sortKeyName="owner" />
-                  <SortHeader label="USED FOR" sortKeyName="used_for" />
+                  <SortHeader label="CUSTOMER" sortKeyName="used_for" />
+                  <SortHeader label="BENEFICIARY" sortKeyName="used_for_beneficiary" />
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
