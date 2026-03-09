@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Plus, Search, FolderOpen, CheckCircle, Package, Eye, ArrowRightLeft, Trash2, Edit2, User, EyeOff } from 'lucide-react';
 import { format } from 'date-fns';
 import AddBLModal from '@/components/unused-bl/AddBLModal';
+import BLAnalytics from '@/components/unused-bl/BLAnalytics';
 import UseBLModal from '@/components/unused-bl/UseBLModal';
 import EditBLModal from '@/components/unused-bl/EditBLModal';
 import BLDetailViewer from '@/components/unused-bl/BLDetailViewer';
