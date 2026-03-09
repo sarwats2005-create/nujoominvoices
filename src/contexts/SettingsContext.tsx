@@ -58,6 +58,7 @@ const defaultBLPresets: BLPresets = {
   banks: ['MBI', 'ADIB', 'TBI', 'BGHD', 'ECONOMY'],
   owners: ['DASHTY', 'WAAD', 'BAZIRGANI DRWST', 'KARZAN'],
   usedFor: ['SUIZI', 'JIEREN', 'ASNA'],
+  beneficiaries: [],
 };
 
 const defaultContactInfo: ContactInfo = {
