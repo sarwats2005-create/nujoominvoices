@@ -207,7 +207,7 @@ const EditBLModal: React.FC<EditBLModalProps> = ({ record, open, onOpenChange })
               <Select value={formData.quantity_unit} onValueChange={v => setFormData(p => ({ ...p, quantity_unit: v }))}>
                 <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
                 <SelectContent className="bg-popover">
-                  {settings.quantity_unit.map(u => <SelectItem key={u} value={u}>{u}</SelectItem>)}
+                  {getByType('quantity_unit').map(u => <SelectItem key={u} value={u}>{u}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
