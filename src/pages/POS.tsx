@@ -40,6 +40,23 @@ const POS: React.FC = () => {
   const [customerDialogOpen, setCustomerDialogOpen] = useState(false);
   const [newCustomerName, setNewCustomerName] = useState('');
   const [newCustomerPhone, setNewCustomerPhone] = useState('');
+  const [scannerOpen, setScannerOpen] = useState(false);
+
+  const handleBarcodeScan = (code: string) => {
+    const product = products.find(p =>
+      p.barcode === code ||
+      p.sku === code ||
+      p.variants?.some(v => v.barcode === code || v.sku === code)
+    );
+    if (product) {
+      const variant = product.variants?.find(v => v.barcode === code || v.sku === code) || product.variants?.[0];
+      addToCart(product, variant);
+      toast({ title: `Added: ${product.name}` });
+    } else {
+      setSearch(code);
+      toast({ title: 'Product not found', description: `No product with barcode "${code}"`, variant: 'destructive' });
+    }
+  };
 
   const filteredProducts = useMemo(() => {
     let result = products;
