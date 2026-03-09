@@ -106,9 +106,14 @@ const UnusedBLDashboard: React.FC = () => {
             <p className="text-sm text-muted-foreground">Track and manage unused B/L files</p>
           </div>
         </div>
-        <Button onClick={() => setAddModalOpen(true)} className="gap-2">
-          <Plus className="h-4 w-4" /> {t('addBL')}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={() => setHideUsed(!hideUsed)} className="gap-1.5">
+            <EyeOff className="h-4 w-4" /> {hideUsed ? 'Show Used' : 'Hide Used'}
+          </Button>
+          <Button onClick={() => setAddModalOpen(true)} className="gap-2">
+            <Plus className="h-4 w-4" /> {t('addBL')}
+          </Button>
+        </div>
       </div>
 
       {/* Summary Cards */}
