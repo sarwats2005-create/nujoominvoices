@@ -22,6 +22,20 @@ import type { CartItem, Customer, Product, ProductVariant } from '@/types/pos';
 import jsPDF from 'jspdf';
 import { format } from 'date-fns';
 
+// IndexedDB helper for persisting the directory handle
+const openReceiptDB = (): Promise<IDBDatabase> => new Promise((resolve, reject) => {
+  const req = indexedDB.open('pos-receipts', 1);
+  req.onupgradeneeded = () => req.result.createObjectStore('handles', { keyPath: 'key' });
+  req.onsuccess = () => resolve(req.result);
+  req.onerror = () => reject(req.error);
+});
+
+const saveHandleToDB = async (handle: FileSystemDirectoryHandle) => {
+  const db = await openReceiptDB();
+  const tx = db.transaction('handles', 'readwrite');
+  tx.objectStore('handles').put({ key: 'receiptDir', handle });
+};
+
 const POS: React.FC = () => {
   const { products, categories, loading } = useProducts();
   const { customers, addCustomer } = useCustomers();
