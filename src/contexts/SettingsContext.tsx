@@ -16,6 +16,7 @@ export interface BLPresets {
   banks: string[];
   owners: string[];
   usedFor: string[];
+  beneficiaries: string[];
 }
 
 export const currencies: Currency[] = [
