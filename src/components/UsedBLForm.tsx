@@ -312,7 +312,7 @@ const UsedBLForm: React.FC<UsedBLFormProps> = ({
                     <SelectValue placeholder="Select owner" />
                   </SelectTrigger>
                   <SelectContent className="bg-popover">
-                    {blPresets.owners.map(o => (
+                    {ownerOptions.map(o => (
                       <SelectItem key={o} value={o}>{o}</SelectItem>
                     ))}
                   </SelectContent>

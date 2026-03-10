@@ -134,7 +134,12 @@ const EditBLModal: React.FC<EditBLModalProps> = ({ record, open, onOpenChange })
 
           <div className="space-y-1.5">
             <Label>{t('owner')} <span className="text-destructive">*</span></Label>
-            <Input value={formData.owner} onChange={e => setFormData(p => ({ ...p, owner: e.target.value.toUpperCase() }))} className="uppercase" />
+            <Select value={formData.owner} onValueChange={v => setFormData(p => ({ ...p, owner: v }))}>
+              <SelectTrigger><SelectValue placeholder="Select owner" /></SelectTrigger>
+              <SelectContent className="bg-popover">
+                {getByType('owner').map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-1.5">

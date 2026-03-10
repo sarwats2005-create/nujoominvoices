@@ -312,10 +312,8 @@ const AddBLModal: React.FC<AddBLModalProps> = ({ open, onOpenChange }) => {
             )}
           </div>
 
-          <div className="space-y-1.5">
-            <Label>Owner <span className="text-destructive">*</span></Label>
-            <Input value={owner} onChange={e => setOwner(e.target.value)} placeholder="Enter owner name" />
-          </div>
+          <SettingDropdown label={t('owner')} value={owner} onChange={setOwner}
+            options={owners} type="owner" required />
 
           <SettingDropdown label={t('clearanceCompany')} value={clearanceCompany} onChange={setClearanceCompany}
             options={clearanceCompanies} type="clearance_company" required />
