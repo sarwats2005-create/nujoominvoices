@@ -756,6 +756,7 @@ export type Database = {
           invoice_amount: number
           invoice_date: string
           is_active: boolean
+          is_archived: boolean
           notes: string | null
           owner: string
           source_unused_bl_id: string | null
@@ -774,6 +775,7 @@ export type Database = {
           invoice_amount: number
           invoice_date: string
           is_active?: boolean
+          is_archived?: boolean
           notes?: string | null
           owner: string
           source_unused_bl_id?: string | null
@@ -792,6 +794,7 @@ export type Database = {
           invoice_amount?: number
           invoice_date?: string
           is_active?: boolean
+          is_archived?: boolean
           notes?: string | null
           owner?: string
           source_unused_bl_id?: string | null
