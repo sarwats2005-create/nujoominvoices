@@ -39,6 +39,8 @@ const UsedBLDashboard: React.FC = () => {
   const [bankFilter, setBankFilter] = useState<string | null>(null);
   const [ownerFilter, setOwnerFilter] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [archiveId, setArchiveId] = useState<string | null>(null);
+  const [showArchived, setShowArchived] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const formatAmount = (amount: number) => `$${Math.round(amount).toLocaleString()}`;
