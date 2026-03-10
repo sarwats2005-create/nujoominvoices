@@ -387,6 +387,89 @@ const UsedBLDashboard: React.FC = () => {
         </CardContent>
       </Card>
 
+      {/* Archived Section */}
+      <Card>
+        <CardContent className="p-0">
+          <button
+            onClick={() => setShowArchived(!showArchived)}
+            className="w-full flex items-center justify-between px-4 py-3 hover:bg-muted/30 transition-colors"
+          >
+            <div className="flex items-center gap-2">
+              <Archive className="h-4 w-4 text-muted-foreground" />
+              <span className="font-semibold text-sm text-foreground">Archived Records</span>
+              <Badge variant="secondary" className="text-xs">{archivedRecords.length}</Badge>
+            </div>
+            <span className="text-xs text-muted-foreground">{showArchived ? 'Hide' : 'Show'}</span>
+          </button>
+
+          {showArchived && (
+            <div className="border-t border-border">
+              {loadingArchived ? (
+                <div className="py-8 text-center text-muted-foreground text-sm">Loading archived records...</div>
+              ) : archivedRecords.length === 0 ? (
+                <div className="py-8 text-center text-muted-foreground text-sm">No archived records</div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="text-xs">B/L NO</TableHead>
+                        <TableHead className="text-xs">CONTAINER NO</TableHead>
+                        <TableHead className="text-xs">AMOUNT</TableHead>
+                        <TableHead className="text-xs">DATE</TableHead>
+                        <TableHead className="text-xs">BANK</TableHead>
+                        <TableHead className="text-xs">OWNER</TableHead>
+                        <TableHead className="text-xs">CUSTOMER</TableHead>
+                        <TableHead className="text-right text-xs">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {archivedRecords.map((record) => (
+                        <TableRow key={record.id} className="opacity-70 hover:opacity-100 transition-opacity">
+                          <TableCell className="font-mono text-xs">{record.bl_no}</TableCell>
+                          <TableCell className="font-mono text-xs">{record.container_no}</TableCell>
+                          <TableCell className="text-xs font-semibold">{formatAmount(record.invoice_amount)}</TableCell>
+                          <TableCell className="text-xs">{format(parseDateString(record.invoice_date), 'dd/MM/yyyy')}</TableCell>
+                          <TableCell><Badge variant="outline" className="text-xs">{record.bank}</Badge></TableCell>
+                          <TableCell className="text-xs">{record.owner}</TableCell>
+                          <TableCell className="text-xs">{record.used_for}</TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-1">
+                              <Button variant="outline" size="sm" className="h-7 gap-1 text-xs" onClick={() => handleUnarchive(record.id)}>
+                                <ArchiveRestore className="h-3.5 w-3.5" /> Restore
+                              </Button>
+                              <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => setDeleteId(record.id)}>
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Archive Dialog */}
+      <AlertDialog open={!!archiveId} onOpenChange={() => setArchiveId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Archive Record</AlertDialogTitle>
+            <AlertDialogDescription>
+              This record will be moved to the archive. It won't be counted in account statements or totals. You can restore it anytime.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleArchive}>Archive</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {/* Delete Dialog */}
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
