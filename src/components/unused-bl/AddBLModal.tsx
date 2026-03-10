@@ -55,6 +55,7 @@ const AddBLModal: React.FC<AddBLModalProps> = ({ open, onOpenChange }) => {
   const [clearanceDateOpen, setClearanceDateOpen] = useState(false);
   const [addingNew, setAddingNew] = useState<{ type: SettingType; value: string } | null>(null);
 
+  const owners = getByType('owner');
   const clearanceCompanies = getByType('clearance_company');
   const productCategories = getByType('product_category');
   const quantityUnits = getByType('quantity_unit');
