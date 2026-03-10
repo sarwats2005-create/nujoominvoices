@@ -327,14 +327,19 @@ export const useUsedBL = (dashboardId?: string | null) => {
 
   return {
     records,
+    archivedRecords,
     loading,
+    loadingArchived,
     addRecord,
     updateRecord,
     softDeleteRecord,
+    archiveRecord,
+    unarchiveRecord,
     getRecord,
     checkContainerExists,
     addMultipleRecords,
     refetch: fetchRecords,
+    refetchArchived: fetchArchivedRecords,
     // Dashboard management
     blDashboards,
     currentBLDashboardId: activeDashboardId,
