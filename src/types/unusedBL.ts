@@ -39,7 +39,7 @@ export interface UnusedBLSetting {
   created_at: string;
 }
 
-export type SettingType = 'clearance_company' | 'product_category' | 'quantity_unit' | 'port_of_loading';
+export type SettingType = 'owner' | 'clearance_company' | 'product_category' | 'quantity_unit' | 'port_of_loading';
 
 export interface UseBLFormData {
   using_for: string;

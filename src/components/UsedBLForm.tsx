@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useSettings } from '@/contexts/SettingsContext';
+import { useUnusedBLSettings } from '@/hooks/useUnusedBLSettings';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
@@ -39,6 +40,8 @@ const UsedBLForm: React.FC<UsedBLFormProps> = ({
 }) => {
   const { t } = useLanguage();
   const { blPresets } = useSettings();
+  const { getByType } = useUnusedBLSettings();
+  const ownerOptions = getByType('owner');
   const [blNo, setBlNo] = useState(initialData?.bl_no || '');
   const [containerNo, setContainerNo] = useState(initialData?.container_no || '');
   const [invoiceAmount, setInvoiceAmount] = useState(initialData?.invoice_amount?.toString() || '');
@@ -309,7 +312,7 @@ const UsedBLForm: React.FC<UsedBLFormProps> = ({
                     <SelectValue placeholder="Select owner" />
                   </SelectTrigger>
                   <SelectContent className="bg-popover">
-                    {blPresets.owners.map(o => (
+                    {ownerOptions.map(o => (
                       <SelectItem key={o} value={o}>{o}</SelectItem>
                     ))}
                   </SelectContent>

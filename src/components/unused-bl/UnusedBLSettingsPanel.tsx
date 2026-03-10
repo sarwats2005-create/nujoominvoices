@@ -7,10 +7,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { FolderOpen, Plus, X, Building, Tag, Ruler, Anchor } from 'lucide-react';
+import { FolderOpen, Plus, X, Building, Tag, Ruler, Anchor, User } from 'lucide-react';
 import type { SettingType } from '@/types/unusedBL';
 
 const SETTING_TYPES: { type: SettingType; icon: React.ReactNode; labelKey: string }[] = [
+  { type: 'owner', icon: <User className="h-4 w-4" />, labelKey: 'owners' },
   { type: 'clearance_company', icon: <Building className="h-4 w-4" />, labelKey: 'clearanceCompanies' },
   { type: 'product_category', icon: <Tag className="h-4 w-4" />, labelKey: 'productCategories' },
   { type: 'quantity_unit', icon: <Ruler className="h-4 w-4" />, labelKey: 'quantityUnits' },

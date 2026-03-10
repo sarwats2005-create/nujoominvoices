@@ -55,6 +55,7 @@ const AddBLModal: React.FC<AddBLModalProps> = ({ open, onOpenChange }) => {
   const [clearanceDateOpen, setClearanceDateOpen] = useState(false);
   const [addingNew, setAddingNew] = useState<{ type: SettingType; value: string } | null>(null);
 
+  const owners = getByType('owner');
   const clearanceCompanies = getByType('clearance_company');
   const productCategories = getByType('product_category');
   const quantityUnits = getByType('quantity_unit');
@@ -125,6 +126,7 @@ const AddBLModal: React.FC<AddBLModalProps> = ({ open, onOpenChange }) => {
     const val = addingNew.value.trim().toUpperCase();
     const ok = await addSetting(type, val);
     if (ok) {
+      if (type === 'owner') setOwner(val);
       if (type === 'clearance_company') setClearanceCompany(val);
       if (type === 'product_category') setProductCategory(val);
       if (type === 'quantity_unit') setQuantityUnit(val);
@@ -310,10 +312,8 @@ const AddBLModal: React.FC<AddBLModalProps> = ({ open, onOpenChange }) => {
             )}
           </div>
 
-          <div className="space-y-1.5">
-            <Label>Owner <span className="text-destructive">*</span></Label>
-            <Input value={owner} onChange={e => setOwner(e.target.value)} placeholder="Enter owner name" />
-          </div>
+          <SettingDropdown label={t('owner')} value={owner} onChange={setOwner}
+            options={owners} type="owner" required />
 
           <SettingDropdown label={t('clearanceCompany')} value={clearanceCompany} onChange={setClearanceCompany}
             options={clearanceCompanies} type="clearance_company" required />
