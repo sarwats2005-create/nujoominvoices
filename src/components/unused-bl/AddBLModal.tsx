@@ -126,6 +126,7 @@ const AddBLModal: React.FC<AddBLModalProps> = ({ open, onOpenChange }) => {
     const val = addingNew.value.trim().toUpperCase();
     const ok = await addSetting(type, val);
     if (ok) {
+      if (type === 'owner') setOwner(val);
       if (type === 'clearance_company') setClearanceCompany(val);
       if (type === 'product_category') setProductCategory(val);
       if (type === 'quantity_unit') setQuantityUnit(val);
