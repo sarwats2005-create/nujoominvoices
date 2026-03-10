@@ -270,20 +270,20 @@ const UnusedBLDashboard: React.FC = () => {
                       </Badge>
                     </TableCell>
                     <TableCell onClick={e => e.stopPropagation()}>
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-1.5">
                         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setDetailRecord(record)}>
                           <Eye className="h-4 w-4" />
                         </Button>
                         {record.status === 'UNUSED' && (
                           <>
-                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setEditModalRecord(record)} title="Edit">
-                              <Edit2 className="h-4 w-4" />
+                            <Button variant="outline" size="sm" className="h-8 gap-1 text-xs" onClick={() => setEditModalRecord(record)}>
+                              <Edit2 className="h-3.5 w-3.5" /> Edit
                             </Button>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" onClick={() => setUseModalRecord(record)} title={t('useThisBL')}>
-                              <ArrowRightLeft className="h-4 w-4" />
+                            <Button variant="outline" size="sm" className="h-8 gap-1 text-xs text-primary border-primary/30 hover:bg-primary/10" onClick={() => setUseModalRecord(record)}>
+                              <ArrowRightLeft className="h-3.5 w-3.5" /> Use
                             </Button>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDelete(record.id)}>
-                              <Trash2 className="h-4 w-4" />
+                            <Button variant="outline" size="sm" className="h-8 gap-1 text-xs text-destructive border-destructive/30 hover:bg-destructive/10" onClick={() => handleDelete(record.id)}>
+                              <Trash2 className="h-3.5 w-3.5" /> Delete
                             </Button>
                           </>
                         )}
