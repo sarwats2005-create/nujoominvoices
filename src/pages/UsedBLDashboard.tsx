@@ -90,6 +90,18 @@ const UsedBLDashboard: React.FC = () => {
     setDeleteId(null);
   };
 
+  const handleArchive = async () => {
+    if (!archiveId) return;
+    const ok = await archiveRecord(archiveId);
+    if (ok) toast({ title: 'Record archived successfully' });
+    setArchiveId(null);
+  };
+
+  const handleUnarchive = async (id: string) => {
+    const ok = await unarchiveRecord(id);
+    if (ok) toast({ title: 'Record restored from archive' });
+  };
+
   // CSV parsing helper that handles quoted fields
   const parseCSVLine = (line: string): string[] => {
     const result: string[] = [];
