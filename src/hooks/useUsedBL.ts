@@ -154,6 +154,42 @@ export const useUsedBL = (dashboardId?: string | null) => {
     return { success: true };
   };
 
+  const archiveRecord = async (id: string): Promise<boolean> => {
+    if (!user) return false;
+    const { error } = await supabase
+      .from('used_bl_counting' as any)
+      .update({ is_archived: true } as any)
+      .eq('id', id)
+      .eq('user_id', user.id);
+
+    if (error) {
+      toast({ title: 'Error archiving record', variant: 'destructive' });
+      return false;
+    }
+
+    setRecords(prev => prev.filter(r => r.id !== id));
+    fetchArchivedRecords();
+    return true;
+  };
+
+  const unarchiveRecord = async (id: string): Promise<boolean> => {
+    if (!user) return false;
+    const { error } = await supabase
+      .from('used_bl_counting' as any)
+      .update({ is_archived: false } as any)
+      .eq('id', id)
+      .eq('user_id', user.id);
+
+    if (error) {
+      toast({ title: 'Error restoring record', variant: 'destructive' });
+      return false;
+    }
+
+    setArchivedRecords(prev => prev.filter(r => r.id !== id));
+    fetchRecords();
+    return true;
+  };
+
   const softDeleteRecord = async (id: string): Promise<boolean> => {
     if (!user) return false;
 
@@ -170,6 +206,7 @@ export const useUsedBL = (dashboardId?: string | null) => {
     }
 
     setRecords(prev => prev.filter(r => r.id !== id));
+    setArchivedRecords(prev => prev.filter(r => r.id !== id));
     return true;
   };
 
