@@ -356,6 +356,9 @@ const UsedBLDashboard: React.FC = () => {
                           <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => navigate(`/used-bl/${record.id}/edit`)}>
                             <Edit className="h-3.5 w-3.5" />
                           </Button>
+                          <Button variant="outline" size="sm" className="h-7 gap-1 text-xs" onClick={() => setArchiveId(record.id)} title="Archive">
+                            <Archive className="h-3.5 w-3.5" /> Archive
+                          </Button>
                           <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => setDeleteId(record.id)}>
                             <Trash2 className="h-3.5 w-3.5" />
                           </Button>
