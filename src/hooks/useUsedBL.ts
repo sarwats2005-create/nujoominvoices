@@ -75,6 +75,7 @@ export const useUsedBL = (dashboardId?: string | null) => {
       .eq('user_id', user.id)
       .eq('dashboard_id', activeDashboardId)
       .eq('is_active', true)
+      .eq('is_archived', false)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -85,6 +86,22 @@ export const useUsedBL = (dashboardId?: string | null) => {
     }
     setLoading(false);
   }, [user, activeDashboardId, toast]);
+
+  const fetchArchivedRecords = useCallback(async () => {
+    if (!user || !activeDashboardId) return;
+    setLoadingArchived(true);
+    const { data, error } = await supabase
+      .from('used_bl_counting' as any)
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('dashboard_id', activeDashboardId)
+      .eq('is_active', true)
+      .eq('is_archived', true)
+      .order('created_at', { ascending: false });
+
+    if (!error) setArchivedRecords((data as any[]) || []);
+    setLoadingArchived(false);
+  }, [user, activeDashboardId]);
 
   useEffect(() => {
     if (activeDashboardId) fetchRecords();
