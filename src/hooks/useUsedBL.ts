@@ -10,7 +10,9 @@ export const useUsedBL = (dashboardId?: string | null) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [records, setRecords] = useState<UsedBL[]>([]);
+  const [archivedRecords, setArchivedRecords] = useState<UsedBL[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingArchived, setLoadingArchived] = useState(false);
   const [blDashboards, setBLDashboards] = useState<BLDashboard[]>([]);
   const [currentBLDashboardId, setCurrentBLDashboardIdState] = useState<string | null>(() => {
     return localStorage.getItem(BL_DASHBOARD_KEY);
@@ -73,6 +75,7 @@ export const useUsedBL = (dashboardId?: string | null) => {
       .eq('user_id', user.id)
       .eq('dashboard_id', activeDashboardId)
       .eq('is_active', true)
+      .eq('is_archived', false)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -84,9 +87,28 @@ export const useUsedBL = (dashboardId?: string | null) => {
     setLoading(false);
   }, [user, activeDashboardId, toast]);
 
+  const fetchArchivedRecords = useCallback(async () => {
+    if (!user || !activeDashboardId) return;
+    setLoadingArchived(true);
+    const { data, error } = await supabase
+      .from('used_bl_counting' as any)
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('dashboard_id', activeDashboardId)
+      .eq('is_active', true)
+      .eq('is_archived', true)
+      .order('created_at', { ascending: false });
+
+    if (!error) setArchivedRecords((data as any[]) || []);
+    setLoadingArchived(false);
+  }, [user, activeDashboardId]);
+
   useEffect(() => {
-    if (activeDashboardId) fetchRecords();
-  }, [fetchRecords, activeDashboardId]);
+    if (activeDashboardId) {
+      fetchRecords();
+      fetchArchivedRecords();
+    }
+  }, [fetchRecords, fetchArchivedRecords, activeDashboardId]);
 
   const addRecord = async (record: UsedBLInsert): Promise<{ success: boolean; error?: string }> => {
     if (!user || !activeDashboardId) return { success: false, error: 'Not authenticated' };
@@ -132,6 +154,42 @@ export const useUsedBL = (dashboardId?: string | null) => {
     return { success: true };
   };
 
+  const archiveRecord = async (id: string): Promise<boolean> => {
+    if (!user) return false;
+    const { error } = await supabase
+      .from('used_bl_counting' as any)
+      .update({ is_archived: true } as any)
+      .eq('id', id)
+      .eq('user_id', user.id);
+
+    if (error) {
+      toast({ title: 'Error archiving record', variant: 'destructive' });
+      return false;
+    }
+
+    setRecords(prev => prev.filter(r => r.id !== id));
+    fetchArchivedRecords();
+    return true;
+  };
+
+  const unarchiveRecord = async (id: string): Promise<boolean> => {
+    if (!user) return false;
+    const { error } = await supabase
+      .from('used_bl_counting' as any)
+      .update({ is_archived: false } as any)
+      .eq('id', id)
+      .eq('user_id', user.id);
+
+    if (error) {
+      toast({ title: 'Error restoring record', variant: 'destructive' });
+      return false;
+    }
+
+    setArchivedRecords(prev => prev.filter(r => r.id !== id));
+    fetchRecords();
+    return true;
+  };
+
   const softDeleteRecord = async (id: string): Promise<boolean> => {
     if (!user) return false;
 
@@ -148,6 +206,7 @@ export const useUsedBL = (dashboardId?: string | null) => {
     }
 
     setRecords(prev => prev.filter(r => r.id !== id));
+    setArchivedRecords(prev => prev.filter(r => r.id !== id));
     return true;
   };
 
@@ -268,14 +327,19 @@ export const useUsedBL = (dashboardId?: string | null) => {
 
   return {
     records,
+    archivedRecords,
     loading,
+    loadingArchived,
     addRecord,
     updateRecord,
     softDeleteRecord,
+    archiveRecord,
+    unarchiveRecord,
     getRecord,
     checkContainerExists,
     addMultipleRecords,
     refetch: fetchRecords,
+    refetchArchived: fetchArchivedRecords,
     // Dashboard management
     blDashboards,
     currentBLDashboardId: activeDashboardId,

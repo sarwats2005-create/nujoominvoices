@@ -1,0 +1,1 @@
+ALTER TABLE public.used_bl_counting ADD COLUMN is_archived boolean NOT NULL DEFAULT false;
