@@ -43,7 +43,8 @@ const BLAnalytics: React.FC<BLAnalyticsProps> = ({ records }) => {
       const { data } = await (supabase as any).from('used_bl_counting')
         .select('*')
         .eq('user_id', user.id)
-        .eq('is_active', true);
+        .eq('is_active', true)
+        .eq('is_archived', false);
       if (data) setUsedRecords(data as UsedBL[]);
     };
     fetchUsed();
