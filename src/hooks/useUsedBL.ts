@@ -104,8 +104,11 @@ export const useUsedBL = (dashboardId?: string | null) => {
   }, [user, activeDashboardId]);
 
   useEffect(() => {
-    if (activeDashboardId) fetchRecords();
-  }, [fetchRecords, activeDashboardId]);
+    if (activeDashboardId) {
+      fetchRecords();
+      fetchArchivedRecords();
+    }
+  }, [fetchRecords, fetchArchivedRecords, activeDashboardId]);
 
   const addRecord = async (record: UsedBLInsert): Promise<{ success: boolean; error?: string }> => {
     if (!user || !activeDashboardId) return { success: false, error: 'Not authenticated' };
