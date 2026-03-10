@@ -26,6 +26,7 @@ const UsedBLDashboard: React.FC = () => {
   const navigate = useNavigate();
   const {
     records, loading, softDeleteRecord, addMultipleRecords,
+    archivedRecords, loadingArchived, archiveRecord, unarchiveRecord,
     blDashboards, currentBLDashboardId, currentDashboardName,
     setCurrentBLDashboardId, addBLDashboard,
   } = useUsedBL();
