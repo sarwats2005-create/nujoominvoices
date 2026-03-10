@@ -10,7 +10,9 @@ export const useUsedBL = (dashboardId?: string | null) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [records, setRecords] = useState<UsedBL[]>([]);
+  const [archivedRecords, setArchivedRecords] = useState<UsedBL[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingArchived, setLoadingArchived] = useState(false);
   const [blDashboards, setBLDashboards] = useState<BLDashboard[]>([]);
   const [currentBLDashboardId, setCurrentBLDashboardIdState] = useState<string | null>(() => {
     return localStorage.getItem(BL_DASHBOARD_KEY);
