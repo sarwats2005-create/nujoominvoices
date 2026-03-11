@@ -72,7 +72,7 @@ const MagicNavLink: React.FC<{
     });
     onClick?.();
   }, [onClick]);
-  return <Link ref={linkRef} to={to} onClick={handleClick} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} className={`relative overflow-hidden flex items-center gap-2 px-3 py-2 rounded-md transition-colors ${isActive ? 'bg-primary text-primary-foreground' : 'hover:bg-accent text-foreground'} ${mobile ? 'w-full' : ''}`} style={{
+  return <Link ref={linkRef} to={to} onClick={handleClick} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} className={`hover-glow relative overflow-hidden flex items-center gap-2 px-3 py-2 rounded-md transition-colors ${isActive ? 'bg-primary text-primary-foreground' : 'hover:bg-accent text-foreground'} ${mobile ? 'w-full' : ''}`} style={{
     transformOrigin: 'center'
   }}>
       <Icon className="h-4 w-4" />
