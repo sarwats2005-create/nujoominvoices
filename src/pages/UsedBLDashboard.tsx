@@ -13,6 +13,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { format } from 'date-fns';
 import { parseDateString } from '@/lib/dateUtils';
 import { Plus, Search, ArrowUpDown, Trash2, Edit, Eye, Copy, Download, Upload, FileText, Archive, ArchiveRestore } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -41,6 +42,8 @@ const UsedBLDashboard: React.FC = () => {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [archiveId, setArchiveId] = useState<string | null>(null);
   const [showArchived, setShowArchived] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [showBulkArchiveDialog, setShowBulkArchiveDialog] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const formatAmount = (amount: number) => `$${Math.round(amount).toLocaleString()}`;
@@ -100,6 +103,34 @@ const UsedBLDashboard: React.FC = () => {
   const handleUnarchive = async (id: string) => {
     const ok = await unarchiveRecord(id);
     if (ok) toast({ title: 'Record restored from archive' });
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === sortedRecords.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(sortedRecords.map(r => r.id)));
+    }
+  };
+
+  const handleBulkArchive = async () => {
+    let archived = 0;
+    for (const id of selectedIds) {
+      const ok = await archiveRecord(id);
+      if (ok) archived++;
+    }
+    toast({ title: `${archived} record${archived !== 1 ? 's' : ''} archived` });
+    setSelectedIds(new Set());
+    setShowBulkArchiveDialog(false);
   };
 
   // CSV parsing helper that handles quoted fields
@@ -312,6 +343,21 @@ const UsedBLDashboard: React.FC = () => {
         </Button>
       </div>
 
+      {/* Bulk Archive Bar */}
+      {selectedIds.size > 0 && (
+        <Card>
+          <CardContent className="p-3 flex items-center justify-between">
+            <span className="text-sm font-medium">{selectedIds.size} record{selectedIds.size !== 1 ? 's' : ''} selected</span>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={() => setSelectedIds(new Set())}>Clear</Button>
+              <Button size="sm" className="gap-1.5" onClick={() => setShowBulkArchiveDialog(true)}>
+                <Archive className="h-4 w-4" /> Archive Selected
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Table */}
       <Card>
         <CardContent className="p-0">
@@ -319,6 +365,12 @@ const UsedBLDashboard: React.FC = () => {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-10">
+                    <Checkbox
+                      checked={sortedRecords.length > 0 && selectedIds.size === sortedRecords.length}
+                      onCheckedChange={toggleSelectAll}
+                    />
+                  </TableHead>
                   <SortHeader label="B/L NO" sortKeyName="bl_no" />
                   <SortHeader label="CONTAINER NO" sortKeyName="container_no" />
                   <SortHeader label="AMOUNT" sortKeyName="invoice_amount" />
@@ -333,13 +385,19 @@ const UsedBLDashboard: React.FC = () => {
               <TableBody>
                 {sortedRecords.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={9} className="text-center py-12 text-muted-foreground">
+                    <TableCell colSpan={10} className="text-center py-12 text-muted-foreground">
                       {searchQuery ? 'No matching records' : 'No records yet. Click "New Entry" to add your first B/L record.'}
                     </TableCell>
                   </TableRow>
                 ) : (
                   sortedRecords.map((record) => (
                     <TableRow key={record.id} className="cursor-pointer hover:bg-accent/30 transition-colors" onClick={() => navigate(`/used-bl/${record.id}`)}>
+                      <TableCell onClick={(e) => e.stopPropagation()}>
+                        <Checkbox
+                          checked={selectedIds.has(record.id)}
+                          onCheckedChange={() => toggleSelect(record.id)}
+                        />
+                      </TableCell>
                       <TableCell className="font-mono font-medium text-xs sm:text-sm">{record.bl_no}</TableCell>
                       <TableCell className="font-mono text-xs sm:text-sm">{record.container_no}</TableCell>
                       <TableCell className="font-semibold text-xs sm:text-sm">{formatAmount(record.invoice_amount)}</TableCell>
@@ -484,6 +542,22 @@ const UsedBLDashboard: React.FC = () => {
             <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
               Delete
             </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Bulk Archive Dialog */}
+      <AlertDialog open={showBulkArchiveDialog} onOpenChange={setShowBulkArchiveDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Archive {selectedIds.size} Record{selectedIds.size !== 1 ? 's' : ''}</AlertDialogTitle>
+            <AlertDialogDescription>
+              These records will be moved to the archive. They won't be counted in account statements or totals. You can restore them anytime.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleBulkArchive}>Archive All</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
