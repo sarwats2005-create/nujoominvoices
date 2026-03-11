@@ -343,6 +343,21 @@ const UsedBLDashboard: React.FC = () => {
         </Button>
       </div>
 
+      {/* Bulk Archive Bar */}
+      {selectedIds.size > 0 && (
+        <Card>
+          <CardContent className="p-3 flex items-center justify-between">
+            <span className="text-sm font-medium">{selectedIds.size} record{selectedIds.size !== 1 ? 's' : ''} selected</span>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={() => setSelectedIds(new Set())}>Clear</Button>
+              <Button size="sm" className="gap-1.5" onClick={() => setShowBulkArchiveDialog(true)}>
+                <Archive className="h-4 w-4" /> Archive Selected
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Table */}
       <Card>
         <CardContent className="p-0">
@@ -350,6 +365,12 @@ const UsedBLDashboard: React.FC = () => {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-10">
+                    <Checkbox
+                      checked={sortedRecords.length > 0 && selectedIds.size === sortedRecords.length}
+                      onCheckedChange={toggleSelectAll}
+                    />
+                  </TableHead>
                   <SortHeader label="B/L NO" sortKeyName="bl_no" />
                   <SortHeader label="CONTAINER NO" sortKeyName="container_no" />
                   <SortHeader label="AMOUNT" sortKeyName="invoice_amount" />
