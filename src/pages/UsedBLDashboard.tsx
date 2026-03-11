@@ -41,6 +41,8 @@ const UsedBLDashboard: React.FC = () => {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [archiveId, setArchiveId] = useState<string | null>(null);
   const [showArchived, setShowArchived] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [showBulkArchiveDialog, setShowBulkArchiveDialog] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const formatAmount = (amount: number) => `$${Math.round(amount).toLocaleString()}`;
