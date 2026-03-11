@@ -104,6 +104,34 @@ const UsedBLDashboard: React.FC = () => {
     if (ok) toast({ title: 'Record restored from archive' });
   };
 
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === sortedRecords.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(sortedRecords.map(r => r.id)));
+    }
+  };
+
+  const handleBulkArchive = async () => {
+    let archived = 0;
+    for (const id of selectedIds) {
+      const ok = await archiveRecord(id);
+      if (ok) archived++;
+    }
+    toast({ title: `${archived} record${archived !== 1 ? 's' : ''} archived` });
+    setSelectedIds(new Set());
+    setShowBulkArchiveDialog(false);
+  };
+
   // CSV parsing helper that handles quoted fields
   const parseCSVLine = (line: string): string[] => {
     const result: string[] = [];
