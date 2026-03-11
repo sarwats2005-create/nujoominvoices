@@ -392,6 +392,12 @@ const UsedBLDashboard: React.FC = () => {
                 ) : (
                   sortedRecords.map((record) => (
                     <TableRow key={record.id} className="cursor-pointer hover:bg-accent/30 transition-colors" onClick={() => navigate(`/used-bl/${record.id}`)}>
+                      <TableCell onClick={(e) => e.stopPropagation()}>
+                        <Checkbox
+                          checked={selectedIds.has(record.id)}
+                          onCheckedChange={() => toggleSelect(record.id)}
+                        />
+                      </TableCell>
                       <TableCell className="font-mono font-medium text-xs sm:text-sm">{record.bl_no}</TableCell>
                       <TableCell className="font-mono text-xs sm:text-sm">{record.container_no}</TableCell>
                       <TableCell className="font-semibold text-xs sm:text-sm">{formatAmount(record.invoice_amount)}</TableCell>
