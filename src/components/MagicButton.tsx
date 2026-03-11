@@ -41,7 +41,7 @@ const MagicButton = forwardRef<HTMLButtonElement, MagicButtonProps>(({
   enableTilt = true,
   enableMagnetism = true,
   clickEffect = true,
-  enableParticles = true,
+  enableParticles = false,
   disabled,
   ...props
 }, ref) => {
