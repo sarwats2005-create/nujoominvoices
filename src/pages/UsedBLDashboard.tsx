@@ -13,6 +13,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { format } from 'date-fns';
 import { parseDateString } from '@/lib/dateUtils';
 import { Plus, Search, ArrowUpDown, Trash2, Edit, Eye, Copy, Download, Upload, FileText, Archive, ArchiveRestore } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
