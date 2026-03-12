@@ -224,13 +224,13 @@ const UnusedBLOwnerDetail: React.FC = () => {
         </Button>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
             <div className="p-2 rounded-lg bg-primary/10"><FolderOpen className="h-5 w-5 text-primary" /></div>
             <div>
               <p className="text-2xl font-bold text-foreground">{stats.totalBL}</p>
-              <p className="text-xs text-muted-foreground">Total B/L</p>
+              <p className="text-xs text-muted-foreground">Recorded B/L</p>
             </div>
           </CardContent>
         </Card>
@@ -248,7 +248,16 @@ const UnusedBLOwnerDetail: React.FC = () => {
             <div className="p-2 rounded-lg bg-success/10"><CheckCircle className="h-5 w-5 text-success" /></div>
             <div>
               <p className="text-2xl font-bold text-foreground">{stats.usedInDashboard}</p>
-              <p className="text-xs text-muted-foreground">Used in Dashboard</p>
+              <p className="text-xs text-muted-foreground">Used B/L</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-secondary/10"><Users className="h-5 w-5 text-secondary-foreground" /></div>
+            <div>
+              <p className="text-2xl font-bold text-foreground">{stats.totalCustomers}</p>
+              <p className="text-xs text-muted-foreground">Customers</p>
             </div>
           </CardContent>
         </Card>
@@ -262,6 +271,27 @@ const UnusedBLOwnerDetail: React.FC = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Customer Breakdown */}
+      {Object.keys(customerBreakdown).length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Users className="h-5 w-5" /> Customer Breakdown
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+              {Object.entries(customerBreakdown).map(([customer, count]) => (
+                <div key={customer} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                  <span className="text-sm font-medium text-foreground truncate">{customer}</span>
+                  <Badge variant="secondary">{count} B/L</Badge>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Unused B/L Records */}
       <Card>
@@ -309,12 +339,12 @@ const UnusedBLOwnerDetail: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Used B/L Records */}
-      {usedRecords.length > 0 && (
-        <Card>
+      {/* Used B/L Records grouped by Dashboard */}
+      {Object.entries(usedByDashboard).map(([dashId, records]) => (
+        <Card key={dashId}>
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
-              <CheckCircle className="h-5 w-5 text-success" /> Used B/L - Invoice Details ({usedRecords.length})
+              <CheckCircle className="h-5 w-5 text-success" /> {dashboardMap[dashId] || 'Unknown Dashboard'} ({records.length})
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
@@ -325,17 +355,19 @@ const UnusedBLOwnerDetail: React.FC = () => {
                     <TableHead>B/L No</TableHead>
                     <TableHead>Container</TableHead>
                     <TableHead>Used For</TableHead>
+                    <TableHead className="hidden md:table-cell">Beneficiary</TableHead>
                     <TableHead className="hidden md:table-cell">Bank</TableHead>
                     <TableHead>Amount</TableHead>
                     <TableHead className="hidden md:table-cell">Invoice Date</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {usedRecords.map(r => (
+                  {records.map(r => (
                     <TableRow key={r.id}>
                       <TableCell className="font-mono font-medium">{r.bl_no}</TableCell>
                       <TableCell className="font-mono">{r.container_no}</TableCell>
                       <TableCell>{r.used_for}</TableCell>
+                      <TableCell className="hidden md:table-cell">{r.used_for_beneficiary || '-'}</TableCell>
                       <TableCell className="hidden md:table-cell">{r.bank}</TableCell>
                       <TableCell className="font-mono font-bold">${(r.invoice_amount || 0).toLocaleString()}</TableCell>
                       <TableCell className="hidden md:table-cell">{formatDate(r.invoice_date)}</TableCell>
@@ -347,15 +379,24 @@ const UnusedBLOwnerDetail: React.FC = () => {
             <Separator />
             <div className="p-4 flex justify-end">
               <div className="text-right">
-                <p className="text-sm text-muted-foreground">Total Amount Used</p>
-                <p className="text-xl font-bold text-foreground">${stats.totalUsedAmount.toLocaleString()}</p>
+                <p className="text-sm text-muted-foreground">Subtotal</p>
+                <p className="text-xl font-bold text-foreground">
+                  ${records.reduce((s, r) => s + (r.invoice_amount || 0), 0).toLocaleString()}
+                </p>
               </div>
             </div>
           </CardContent>
         </Card>
-      )}
-    </div>
-  );
-};
+      ))}
 
-export default UnusedBLOwnerDetail;
+      {/* Grand Total */}
+      {usedRecords.length > 0 && (
+        <Card className="border-primary/30">
+          <CardContent className="p-4 flex justify-end">
+            <div className="text-right">
+              <p className="text-sm text-muted-foreground">Grand Total Amount Used</p>
+              <p className="text-2xl font-bold text-primary">${stats.totalUsedAmount.toLocaleString()}</p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
