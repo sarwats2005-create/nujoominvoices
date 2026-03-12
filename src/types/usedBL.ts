@@ -9,8 +9,11 @@ export interface UsedBL {
   bank: string;
   owner: string;
   used_for: string;
+  used_for_beneficiary: string | null;
   notes: string | null;
   is_active: boolean;
+  is_archived: boolean;
+  source_unused_bl_id: string | null;
   created_at: string;
   updated_at: string;
 }

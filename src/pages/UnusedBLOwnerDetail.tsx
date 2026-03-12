@@ -9,11 +9,11 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Separator } from '@/components/ui/separator';
-import { ArrowLeft, Download, Package, CheckCircle, FolderOpen, FileText } from 'lucide-react';
+import { ArrowLeft, Download, Package, CheckCircle, FolderOpen, FileText, Users } from 'lucide-react';
 import { format } from 'date-fns';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import type { UsedBL } from '@/types/usedBL';
+import type { UsedBL, BLDashboard } from '@/types/usedBL';
 
 const UnusedBLOwnerDetail: React.FC = () => {
   const { ownerName } = useParams<{ ownerName: string }>();
@@ -22,23 +22,30 @@ const UnusedBLOwnerDetail: React.FC = () => {
   const { user } = useAuth();
   const { records: unusedRecords, loading: unusedLoading } = useUnusedBL();
   const [usedRecords, setUsedRecords] = useState<UsedBL[]>([]);
+  const [dashboards, setDashboards] = useState<BLDashboard[]>([]);
 
   const decodedOwner = decodeURIComponent(ownerName || '');
 
-  // Fetch ALL used_bl_counting records for this owner (across all dashboards)
+  // Fetch ALL used_bl_counting records and dashboards for this owner
   useEffect(() => {
-    const fetch = async () => {
+    const fetchData = async () => {
       if (!user) return;
-      const { data } = await (supabase as any).from('used_bl_counting')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('owner', decodedOwner)
-        .eq('is_active', true)
-        .eq('is_archived', false)
-        .order('created_at', { ascending: false });
-      if (data) setUsedRecords(data as UsedBL[]);
+      const [usedRes, dashRes] = await Promise.all([
+        (supabase as any).from('used_bl_counting')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('owner', decodedOwner)
+          .eq('is_active', true)
+          .order('created_at', { ascending: false }),
+        (supabase as any).from('bl_dashboards')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: true }),
+      ]);
+      if (usedRes.data) setUsedRecords(usedRes.data as UsedBL[]);
+      if (dashRes.data) setDashboards(dashRes.data as BLDashboard[]);
     };
-    fetch();
+    fetchData();
   }, [user, decodedOwner]);
 
   const ownerUnused = useMemo(() =>
@@ -46,13 +53,41 @@ const UnusedBLOwnerDetail: React.FC = () => {
     [unusedRecords, decodedOwner]
   );
 
+  const dashboardMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    dashboards.forEach(d => { map[d.id] = d.name; });
+    return map;
+  }, [dashboards]);
+
+  // Group used records by dashboard
+  const usedByDashboard = useMemo(() => {
+    const groups: Record<string, UsedBL[]> = {};
+    usedRecords.forEach(r => {
+      const key = r.dashboard_id || 'unknown';
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(r);
+    });
+    return groups;
+  }, [usedRecords]);
+
+  // Customer breakdown: how many times each customer (used_for) appears
+  const customerBreakdown = useMemo(() => {
+    const counts: Record<string, number> = {};
+    usedRecords.forEach(r => {
+      const customer = r.used_for || 'Unknown';
+      counts[customer] = (counts[customer] || 0) + 1;
+    });
+    return counts;
+  }, [usedRecords]);
+
   const stats = useMemo(() => ({
     totalBL: ownerUnused.length,
     unused: ownerUnused.filter(r => r.status === 'UNUSED').length,
     used: ownerUnused.filter(r => r.status === 'USED').length,
     totalUsedAmount: usedRecords.reduce((sum, r) => sum + (r.invoice_amount || 0), 0),
     usedInDashboard: usedRecords.length,
-  }), [ownerUnused, usedRecords]);
+    totalCustomers: Object.keys(customerBreakdown).length,
+  }), [ownerUnused, usedRecords, customerBreakdown]);
 
   const formatDate = (d: string) => {
     try { return format(new Date(d), 'dd/MM/yyyy'); } catch { return d; }
@@ -70,19 +105,30 @@ const UnusedBLOwnerDetail: React.FC = () => {
     doc.text(`Owner: ${decodedOwner}`, 14, 35);
     doc.text(`Date: ${format(new Date(), 'dd/MM/yyyy')}`, 14, 42);
 
-    doc.setFontSize(10);
+    // === INSIGHTS SECTION ===
+    doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
-    doc.text('Summary', 14, 55);
+    doc.text('Insights', 14, 55);
+
+    doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
-    doc.text(`Total B/L Records: ${stats.totalBL}`, 14, 62);
-    doc.text(`Unused: ${stats.unused}`, 14, 68);
-    doc.text(`Used (Converted): ${stats.used}`, 14, 74);
-    doc.text(`Used in Dashboard: ${stats.usedInDashboard}`, 14, 80);
-    doc.text(`Total Invoice Amount: $${stats.totalUsedAmount.toLocaleString()}`, 14, 86);
+    let yPos = 63;
+    doc.text(`1. Recorded B/L from owner: ${stats.totalBL}`, 14, yPos); yPos += 6;
+    doc.text(`2. Used B/L from owner: ${stats.usedInDashboard}`, 14, yPos); yPos += 6;
+    doc.text(`3. Used for ${stats.totalCustomers} customer(s):`, 14, yPos); yPos += 6;
 
-    let yPos = 96;
+    Object.entries(customerBreakdown).forEach(([customer, count]) => {
+      doc.text(`    • ${customer}: ${count} B/L(s)`, 18, yPos); yPos += 5;
+      if (yPos > 270) { doc.addPage(); yPos = 20; }
+    });
 
+    yPos += 4;
+    doc.text(`Total Invoice Amount: $${stats.totalUsedAmount.toLocaleString()}`, 14, yPos);
+    yPos += 10;
+
+    // === B/L Records Table ===
     if (ownerUnused.length > 0) {
+      if (yPos > 240) { doc.addPage(); yPos = 20; }
       doc.setFontSize(11);
       doc.setFont('helvetica', 'bold');
       doc.text('B/L Records', 14, yPos);
@@ -103,31 +149,45 @@ const UnusedBLOwnerDetail: React.FC = () => {
       yPos = (doc as any).lastAutoTable.finalY + 10;
     }
 
-    if (usedRecords.length > 0) {
+    // === Used B/L grouped by Dashboard ===
+    const dashboardEntries = Object.entries(usedByDashboard);
+    dashboardEntries.forEach(([dashId, records]) => {
+      const dashName = dashboardMap[dashId] || 'Unknown Dashboard';
       if (yPos > 240) { doc.addPage(); yPos = 20; }
+
       doc.setFontSize(11);
       doc.setFont('helvetica', 'bold');
-      doc.text('Used B/L (Invoice Details)', 14, yPos);
+      doc.text(`Used B/L - ${dashName} (${records.length})`, 14, yPos);
       yPos += 4;
 
       autoTable(doc, {
         startY: yPos,
-        head: [['B/L No', 'Container', 'Used For', 'Bank', 'Amount', 'Invoice Date']],
-        body: usedRecords.map(r => [
-          r.bl_no, r.container_no, r.used_for, r.bank,
-          `$${(r.invoice_amount || 0).toLocaleString()}`, formatDate(r.invoice_date),
+        head: [['B/L No', 'Container', 'Used For', 'Beneficiary', 'Bank', 'Amount', 'Invoice Date']],
+        body: records.map(r => [
+          r.bl_no, r.container_no, r.used_for, r.used_for_beneficiary || '-',
+          r.bank, `$${(r.invoice_amount || 0).toLocaleString()}`, formatDate(r.invoice_date),
         ]),
-        styles: { fontSize: 8, cellPadding: 2 },
+        styles: { fontSize: 7, cellPadding: 2 },
         headStyles: { fillColor: [39, 174, 96], textColor: 255, fontStyle: 'bold' },
         alternateRowStyles: { fillColor: [245, 245, 245] },
         margin: { left: 14, right: 14 },
       });
-      yPos = (doc as any).lastAutoTable.finalY + 8;
+      yPos = (doc as any).lastAutoTable.finalY + 6;
 
+      // Dashboard subtotal
+      const dashTotal = records.reduce((s, r) => s + (r.invoice_amount || 0), 0);
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      doc.text(`Subtotal (${dashName}): $${dashTotal.toLocaleString()}`, 14, yPos);
+      yPos += 8;
+    });
+
+    // Grand total
+    if (usedRecords.length > 0) {
       if (yPos > 270) { doc.addPage(); yPos = 20; }
       doc.setFontSize(10);
       doc.setFont('helvetica', 'bold');
-      doc.text(`Total Amount Used: $${stats.totalUsedAmount.toLocaleString()}`, 14, yPos);
+      doc.text(`Grand Total Amount Used: $${stats.totalUsedAmount.toLocaleString()}`, 14, yPos);
     }
 
     const pageCount = doc.getNumberOfPages();
@@ -141,7 +201,7 @@ const UnusedBLOwnerDetail: React.FC = () => {
     }
 
     doc.save(`${decodedOwner}_Account_Statement_${format(new Date(), 'yyyyMMdd')}.pdf`);
-  }, [decodedOwner, ownerUnused, usedRecords, stats]);
+  }, [decodedOwner, ownerUnused, usedRecords, usedByDashboard, dashboardMap, customerBreakdown, stats]);
 
   if (unusedLoading) {
     return <div className="flex items-center justify-center py-20 text-muted-foreground">{t('loading')}</div>;
@@ -164,13 +224,13 @@ const UnusedBLOwnerDetail: React.FC = () => {
         </Button>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
             <div className="p-2 rounded-lg bg-primary/10"><FolderOpen className="h-5 w-5 text-primary" /></div>
             <div>
               <p className="text-2xl font-bold text-foreground">{stats.totalBL}</p>
-              <p className="text-xs text-muted-foreground">Total B/L</p>
+              <p className="text-xs text-muted-foreground">Recorded B/L</p>
             </div>
           </CardContent>
         </Card>
@@ -188,7 +248,16 @@ const UnusedBLOwnerDetail: React.FC = () => {
             <div className="p-2 rounded-lg bg-success/10"><CheckCircle className="h-5 w-5 text-success" /></div>
             <div>
               <p className="text-2xl font-bold text-foreground">{stats.usedInDashboard}</p>
-              <p className="text-xs text-muted-foreground">Used in Dashboard</p>
+              <p className="text-xs text-muted-foreground">Used B/L</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-secondary/10"><Users className="h-5 w-5 text-secondary-foreground" /></div>
+            <div>
+              <p className="text-2xl font-bold text-foreground">{stats.totalCustomers}</p>
+              <p className="text-xs text-muted-foreground">Customers</p>
             </div>
           </CardContent>
         </Card>
@@ -202,6 +271,27 @@ const UnusedBLOwnerDetail: React.FC = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Customer Breakdown */}
+      {Object.keys(customerBreakdown).length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Users className="h-5 w-5" /> Customer Breakdown
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+              {Object.entries(customerBreakdown).map(([customer, count]) => (
+                <div key={customer} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                  <span className="text-sm font-medium text-foreground truncate">{customer}</span>
+                  <Badge variant="secondary">{count} B/L</Badge>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Unused B/L Records */}
       <Card>
@@ -249,12 +339,12 @@ const UnusedBLOwnerDetail: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Used B/L Records */}
-      {usedRecords.length > 0 && (
-        <Card>
+      {/* Used B/L Records grouped by Dashboard */}
+      {Object.entries(usedByDashboard).map(([dashId, records]) => (
+        <Card key={dashId}>
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
-              <CheckCircle className="h-5 w-5 text-success" /> Used B/L - Invoice Details ({usedRecords.length})
+              <CheckCircle className="h-5 w-5 text-success" /> {dashboardMap[dashId] || 'Unknown Dashboard'} ({records.length})
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
@@ -265,17 +355,19 @@ const UnusedBLOwnerDetail: React.FC = () => {
                     <TableHead>B/L No</TableHead>
                     <TableHead>Container</TableHead>
                     <TableHead>Used For</TableHead>
+                    <TableHead className="hidden md:table-cell">Beneficiary</TableHead>
                     <TableHead className="hidden md:table-cell">Bank</TableHead>
                     <TableHead>Amount</TableHead>
                     <TableHead className="hidden md:table-cell">Invoice Date</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {usedRecords.map(r => (
+                  {records.map(r => (
                     <TableRow key={r.id}>
                       <TableCell className="font-mono font-medium">{r.bl_no}</TableCell>
                       <TableCell className="font-mono">{r.container_no}</TableCell>
                       <TableCell>{r.used_for}</TableCell>
+                      <TableCell className="hidden md:table-cell">{r.used_for_beneficiary || '-'}</TableCell>
                       <TableCell className="hidden md:table-cell">{r.bank}</TableCell>
                       <TableCell className="font-mono font-bold">${(r.invoice_amount || 0).toLocaleString()}</TableCell>
                       <TableCell className="hidden md:table-cell">{formatDate(r.invoice_date)}</TableCell>
@@ -287,9 +379,23 @@ const UnusedBLOwnerDetail: React.FC = () => {
             <Separator />
             <div className="p-4 flex justify-end">
               <div className="text-right">
-                <p className="text-sm text-muted-foreground">Total Amount Used</p>
-                <p className="text-xl font-bold text-foreground">${stats.totalUsedAmount.toLocaleString()}</p>
+                <p className="text-sm text-muted-foreground">Subtotal</p>
+                <p className="text-xl font-bold text-foreground">
+                  ${records.reduce((s, r) => s + (r.invoice_amount || 0), 0).toLocaleString()}
+                </p>
               </div>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+
+      {/* Grand Total */}
+      {usedRecords.length > 0 && (
+        <Card className="border-primary/30">
+          <CardContent className="p-4 flex justify-end">
+            <div className="text-right">
+              <p className="text-sm text-muted-foreground">Grand Total Amount Used</p>
+              <p className="text-2xl font-bold text-primary">${stats.totalUsedAmount.toLocaleString()}</p>
             </div>
           </CardContent>
         </Card>
