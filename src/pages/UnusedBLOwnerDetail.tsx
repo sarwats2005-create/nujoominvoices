@@ -53,13 +53,41 @@ const UnusedBLOwnerDetail: React.FC = () => {
     [unusedRecords, decodedOwner]
   );
 
+  const dashboardMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    dashboards.forEach(d => { map[d.id] = d.name; });
+    return map;
+  }, [dashboards]);
+
+  // Group used records by dashboard
+  const usedByDashboard = useMemo(() => {
+    const groups: Record<string, UsedBL[]> = {};
+    usedRecords.forEach(r => {
+      const key = r.dashboard_id || 'unknown';
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(r);
+    });
+    return groups;
+  }, [usedRecords]);
+
+  // Customer breakdown: how many times each customer (used_for) appears
+  const customerBreakdown = useMemo(() => {
+    const counts: Record<string, number> = {};
+    usedRecords.forEach(r => {
+      const customer = r.used_for || 'Unknown';
+      counts[customer] = (counts[customer] || 0) + 1;
+    });
+    return counts;
+  }, [usedRecords]);
+
   const stats = useMemo(() => ({
     totalBL: ownerUnused.length,
     unused: ownerUnused.filter(r => r.status === 'UNUSED').length,
     used: ownerUnused.filter(r => r.status === 'USED').length,
     totalUsedAmount: usedRecords.reduce((sum, r) => sum + (r.invoice_amount || 0), 0),
     usedInDashboard: usedRecords.length,
-  }), [ownerUnused, usedRecords]);
+    totalCustomers: Object.keys(customerBreakdown).length,
+  }), [ownerUnused, usedRecords, customerBreakdown]);
 
   const formatDate = (d: string) => {
     try { return format(new Date(d), 'dd/MM/yyyy'); } catch { return d; }
