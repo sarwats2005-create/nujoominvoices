@@ -13,7 +13,7 @@ import { ArrowLeft, Download, Package, CheckCircle, FolderOpen, FileText } from 
 import { format } from 'date-fns';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import type { UsedBL } from '@/types/usedBL';
+import type { UsedBL, BLDashboard } from '@/types/usedBL';
 
 const UnusedBLOwnerDetail: React.FC = () => {
   const { ownerName } = useParams<{ ownerName: string }>();
@@ -22,23 +22,30 @@ const UnusedBLOwnerDetail: React.FC = () => {
   const { user } = useAuth();
   const { records: unusedRecords, loading: unusedLoading } = useUnusedBL();
   const [usedRecords, setUsedRecords] = useState<UsedBL[]>([]);
+  const [dashboards, setDashboards] = useState<BLDashboard[]>([]);
 
   const decodedOwner = decodeURIComponent(ownerName || '');
 
-  // Fetch ALL used_bl_counting records for this owner (across all dashboards)
+  // Fetch ALL used_bl_counting records and dashboards for this owner
   useEffect(() => {
-    const fetch = async () => {
+    const fetchData = async () => {
       if (!user) return;
-      const { data } = await (supabase as any).from('used_bl_counting')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('owner', decodedOwner)
-        .eq('is_active', true)
-        .eq('is_archived', false)
-        .order('created_at', { ascending: false });
-      if (data) setUsedRecords(data as UsedBL[]);
+      const [usedRes, dashRes] = await Promise.all([
+        (supabase as any).from('used_bl_counting')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('owner', decodedOwner)
+          .eq('is_active', true)
+          .order('created_at', { ascending: false }),
+        (supabase as any).from('bl_dashboards')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: true }),
+      ]);
+      if (usedRes.data) setUsedRecords(usedRes.data as UsedBL[]);
+      if (dashRes.data) setDashboards(dashRes.data as BLDashboard[]);
     };
-    fetch();
+    fetchData();
   }, [user, decodedOwner]);
 
   const ownerUnused = useMemo(() =>
