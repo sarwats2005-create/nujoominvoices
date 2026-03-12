@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Separator } from '@/components/ui/separator';
-import { ArrowLeft, Download, Package, CheckCircle, FolderOpen, FileText } from 'lucide-react';
+import { ArrowLeft, Download, Package, CheckCircle, FolderOpen, FileText, Users } from 'lucide-react';
 import { format } from 'date-fns';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
