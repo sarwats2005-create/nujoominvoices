@@ -105,19 +105,30 @@ const UnusedBLOwnerDetail: React.FC = () => {
     doc.text(`Owner: ${decodedOwner}`, 14, 35);
     doc.text(`Date: ${format(new Date(), 'dd/MM/yyyy')}`, 14, 42);
 
-    doc.setFontSize(10);
+    // === INSIGHTS SECTION ===
+    doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
-    doc.text('Summary', 14, 55);
+    doc.text('Insights', 14, 55);
+
+    doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
-    doc.text(`Total B/L Records: ${stats.totalBL}`, 14, 62);
-    doc.text(`Unused: ${stats.unused}`, 14, 68);
-    doc.text(`Used (Converted): ${stats.used}`, 14, 74);
-    doc.text(`Used in Dashboard: ${stats.usedInDashboard}`, 14, 80);
-    doc.text(`Total Invoice Amount: $${stats.totalUsedAmount.toLocaleString()}`, 14, 86);
+    let yPos = 63;
+    doc.text(`1. Recorded B/L from owner: ${stats.totalBL}`, 14, yPos); yPos += 6;
+    doc.text(`2. Used B/L from owner: ${stats.usedInDashboard}`, 14, yPos); yPos += 6;
+    doc.text(`3. Used for ${stats.totalCustomers} customer(s):`, 14, yPos); yPos += 6;
 
-    let yPos = 96;
+    Object.entries(customerBreakdown).forEach(([customer, count]) => {
+      doc.text(`    • ${customer}: ${count} B/L(s)`, 18, yPos); yPos += 5;
+      if (yPos > 270) { doc.addPage(); yPos = 20; }
+    });
 
+    yPos += 4;
+    doc.text(`Total Invoice Amount: $${stats.totalUsedAmount.toLocaleString()}`, 14, yPos);
+    yPos += 10;
+
+    // === B/L Records Table ===
     if (ownerUnused.length > 0) {
+      if (yPos > 240) { doc.addPage(); yPos = 20; }
       doc.setFontSize(11);
       doc.setFont('helvetica', 'bold');
       doc.text('B/L Records', 14, yPos);
@@ -138,31 +149,45 @@ const UnusedBLOwnerDetail: React.FC = () => {
       yPos = (doc as any).lastAutoTable.finalY + 10;
     }
 
-    if (usedRecords.length > 0) {
+    // === Used B/L grouped by Dashboard ===
+    const dashboardEntries = Object.entries(usedByDashboard);
+    dashboardEntries.forEach(([dashId, records]) => {
+      const dashName = dashboardMap[dashId] || 'Unknown Dashboard';
       if (yPos > 240) { doc.addPage(); yPos = 20; }
+
       doc.setFontSize(11);
       doc.setFont('helvetica', 'bold');
-      doc.text('Used B/L (Invoice Details)', 14, yPos);
+      doc.text(`Used B/L - ${dashName} (${records.length})`, 14, yPos);
       yPos += 4;
 
       autoTable(doc, {
         startY: yPos,
-        head: [['B/L No', 'Container', 'Used For', 'Bank', 'Amount', 'Invoice Date']],
-        body: usedRecords.map(r => [
-          r.bl_no, r.container_no, r.used_for, r.bank,
-          `$${(r.invoice_amount || 0).toLocaleString()}`, formatDate(r.invoice_date),
+        head: [['B/L No', 'Container', 'Used For', 'Beneficiary', 'Bank', 'Amount', 'Invoice Date']],
+        body: records.map(r => [
+          r.bl_no, r.container_no, r.used_for, r.used_for_beneficiary || '-',
+          r.bank, `$${(r.invoice_amount || 0).toLocaleString()}`, formatDate(r.invoice_date),
         ]),
-        styles: { fontSize: 8, cellPadding: 2 },
+        styles: { fontSize: 7, cellPadding: 2 },
         headStyles: { fillColor: [39, 174, 96], textColor: 255, fontStyle: 'bold' },
         alternateRowStyles: { fillColor: [245, 245, 245] },
         margin: { left: 14, right: 14 },
       });
-      yPos = (doc as any).lastAutoTable.finalY + 8;
+      yPos = (doc as any).lastAutoTable.finalY + 6;
 
+      // Dashboard subtotal
+      const dashTotal = records.reduce((s, r) => s + (r.invoice_amount || 0), 0);
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      doc.text(`Subtotal (${dashName}): $${dashTotal.toLocaleString()}`, 14, yPos);
+      yPos += 8;
+    });
+
+    // Grand total
+    if (usedRecords.length > 0) {
       if (yPos > 270) { doc.addPage(); yPos = 20; }
       doc.setFontSize(10);
       doc.setFont('helvetica', 'bold');
-      doc.text(`Total Amount Used: $${stats.totalUsedAmount.toLocaleString()}`, 14, yPos);
+      doc.text(`Grand Total Amount Used: $${stats.totalUsedAmount.toLocaleString()}`, 14, yPos);
     }
 
     const pageCount = doc.getNumberOfPages();
@@ -176,7 +201,7 @@ const UnusedBLOwnerDetail: React.FC = () => {
     }
 
     doc.save(`${decodedOwner}_Account_Statement_${format(new Date(), 'yyyyMMdd')}.pdf`);
-  }, [decodedOwner, ownerUnused, usedRecords, stats]);
+  }, [decodedOwner, ownerUnused, usedRecords, usedByDashboard, dashboardMap, customerBreakdown, stats]);
 
   if (unusedLoading) {
     return <div className="flex items-center justify-center py-20 text-muted-foreground">{t('loading')}</div>;
