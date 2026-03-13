@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, X, Building2, User, Package } from 'lucide-react';
+import { Plus, X, Building2, User, Package, Users } from 'lucide-react';
 
 interface PresetListProps {
   label: string;
@@ -118,6 +118,15 @@ const BLPresetsManager: React.FC = () => {
           onAdd={(item) => updatePresets('usedFor', [...blPresets.usedFor, item])}
           onRemove={(i) => updatePresets('usedFor', blPresets.usedFor.filter((_, idx) => idx !== i))}
           placeholder={t('addNewUsedFor')}
+        />
+
+        <PresetList
+          label="Beneficiary Presets"
+          icon={<Users className="h-4 w-4" />}
+          items={blPresets.beneficiaries}
+          onAdd={(item) => updatePresets('beneficiaries', [...blPresets.beneficiaries, item])}
+          onRemove={(i) => updatePresets('beneficiaries', blPresets.beneficiaries.filter((_, idx) => idx !== i))}
+          placeholder="Add new beneficiary"
         />
       </CardContent>
     </Card>
