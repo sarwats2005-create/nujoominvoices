@@ -51,14 +51,17 @@ const UsedBLForm: React.FC<UsedBLFormProps> = ({
   const [bank, setBank] = useState(initialData?.bank || '');
   const [owner, setOwner] = useState(initialData?.owner || '');
   const [usedFor, setUsedFor] = useState(initialData?.used_for || '');
+  const [beneficiary, setBeneficiary] = useState(initialData?.used_for_beneficiary || '');
   const [notes, setNotes] = useState(initialData?.notes || '');
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [customBank, setCustomBank] = useState('');
   const [customOwner, setCustomOwner] = useState('');
   const [customUsedFor, setCustomUsedFor] = useState('');
+  const [customBeneficiary, setCustomBeneficiary] = useState('');
   const [showCustomBank, setShowCustomBank] = useState(false);
   const [showCustomOwner, setShowCustomOwner] = useState(false);
   const [showCustomUsedFor, setShowCustomUsedFor] = useState(false);
+  const [showCustomBeneficiary, setShowCustomBeneficiary] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
