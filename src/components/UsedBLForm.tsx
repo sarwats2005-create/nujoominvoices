@@ -74,6 +74,7 @@ const UsedBLForm: React.FC<UsedBLFormProps> = ({
     const finalBank = showCustomBank ? customBank : bank;
     const finalOwner = showCustomOwner ? customOwner : owner;
     const finalUsedFor = showCustomUsedFor ? customUsedFor : usedFor;
+    const finalBeneficiary = showCustomBeneficiary ? customBeneficiary : beneficiary;
 
     if (!blNo || !containerNo || !invoiceAmount || !invoiceDate || !finalBank || !finalOwner || !finalUsedFor) {
       setError(t('requiredField'));
@@ -95,6 +96,7 @@ const UsedBLForm: React.FC<UsedBLFormProps> = ({
       bank: finalBank.toUpperCase(),
       owner: finalOwner.toUpperCase(),
       used_for: finalUsedFor.toUpperCase(),
+      used_for_beneficiary: finalBeneficiary ? finalBeneficiary.toUpperCase() : null,
       notes: notes || null,
     };
   };
