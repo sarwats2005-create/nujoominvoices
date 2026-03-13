@@ -26,6 +26,7 @@ export interface UsedBLInsert {
   bank: string;
   owner: string;
   used_for: string;
+  used_for_beneficiary?: string | null;
   notes?: string | null;
   dashboard_id?: string | null;
 }

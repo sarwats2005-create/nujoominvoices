@@ -131,6 +131,7 @@ const UsedBLForm: React.FC<UsedBLFormProps> = ({
       setBank('');
       setOwner('');
       setUsedFor('');
+      setBeneficiary('');
       setNotes('');
       setError('');
     } else {
