@@ -1,282 +1,104 @@
 
 
-# Expenses Tracker Module -- Implementation Plan
+## Prototype Review and Recommendations
 
-## Overview
-
-Build a full Expenses Tracker module with multi-company support, multi-currency (IQD base + USD), exchange rate management, branded PDF reports, and rich dashboards. The module integrates into the existing app as new pages and a Company Switcher in the header.
-
-This is a large feature set. It will be implemented in **5 phases**, each delivering a usable increment.
+After reviewing your entire codebase — the Used B/L module, Unused B/L module, Owner Account Statement, Invoice Dashboard, Settings, and data flow — here are the gaps and recommendations organized by priority:
 
 ---
 
-## Phase 1: Foundation -- Companies, Storage, and Company Switcher
+### 1. Data Integrity: Duplicate B/L Validation Across Dashboards
 
-### Database Tables
+**Problem**: `checkContainerExists` in `useUsedBL` only checks within the current dashboard. A user could accidentally enter the same B/L number or container across different dashboards without warning.
 
-**companies**
-- id (uuid, PK)
-- user_id (uuid, NOT NULL)
-- name (text, NOT NULL)
-- name_ar (text, nullable)
-- phones (text[], nullable)
-- address (text, nullable)
-- address_ar (text, nullable)
-- website (text, nullable)
-- email (text, nullable)
-- notes (text, nullable)
-- tax_info (text, nullable)
-- default_currency (text, default 'IQD')
-- base_currency (text, default 'IQD')
-- is_active (boolean, default true)
-- created_at, updated_at
-- RLS: users CRUD their own rows
-
-**company_templates**
-- id (uuid, PK)
-- company_id (uuid, FK -> companies)
-- user_id (uuid, NOT NULL)
-- name (text, NOT NULL)
-- header_image_url (text, NOT NULL) -- stored in Supabase Storage
-- is_default (boolean, default false)
-- is_active (boolean, default true)
-- created_at, updated_at
-- RLS: users CRUD their own rows
-
-### Storage Buckets
-- `company-logos` (public) -- company logo images
-- `company-templates` (public) -- header template images
-- `expense-attachments` (private) -- receipt images/PDFs
-
-### Company Switcher
-- New `CompanyContext` provider wrapping the app
-  - Stores `currentCompanyId` in localStorage
-  - Provides `companies`, `currentCompany`, `setCurrentCompanyId`
-  - Auto-creates a default company if none exist
-- Dropdown in Header showing current company name
-- Admin-only "All Companies" option
-
-### New Pages
-- `/companies` -- CRUD list of companies (admin only)
-- `/companies/:id/templates` -- manage header templates per company
-
-### Files to Create/Modify
-| File | Action |
-|------|--------|
-| Migration SQL | Create `companies`, `company_templates` tables, storage buckets |
-| `src/contexts/CompanyContext.tsx` | New context provider |
-| `src/components/CompanySwitcher.tsx` | New dropdown component for header |
-| `src/components/Header.tsx` | Add CompanySwitcher |
-| `src/pages/Companies.tsx` | New CRUD page |
-| `src/pages/CompanyTemplates.tsx` | New template management page |
-| `src/App.tsx` | Add CompanyProvider, new routes |
-| `src/contexts/LanguageContext.tsx` | Add translations for all new strings |
+**Fix**: Add a cross-dashboard duplicate check that warns (not blocks) when the same `bl_no` or `container_no` exists in another dashboard.
 
 ---
 
-## Phase 2: Categories, Vendors, and Exchange Rates
+### 2. Missing: Archived Records in Account Statement
 
-### Database Tables
+**Problem**: `UnusedBLOwnerDetail` fetches used records with `eq('is_active', true)` but does not distinguish archived vs non-archived. The PDF doesn't label which records are archived. If someone archives a record, it still shows in the statement without context.
 
-**expense_categories**
-- id, company_id, user_id
-- name (text), parent_id (uuid, nullable, self-ref for subcategories)
-- category_type (text: 'fixed' / 'variable' / 'one_time')
-- monthly_budget (numeric, nullable)
-- is_active, created_at, updated_at
-
-**expense_vendors**
-- id, company_id, user_id
-- name (text), phone (text, nullable), notes (text, nullable)
-- is_active, created_at, updated_at
-
-**exchange_rates**
-- id, user_id
-- rate_date (date, NOT NULL)
-- usd_to_iqd (numeric, NOT NULL)
-- source (text: 'manual' / 'api' / 'note')
-- is_default (boolean, default true)
-- company_id (uuid, nullable -- null means global)
-- created_at, updated_at
-- Unique constraint on (rate_date, company_id)
-
-**exchange_rate_audit**
-- id, exchange_rate_id, user_id
-- old_rate, new_rate, changed_at
-
-### New Pages
-- `/expenses/categories` -- category CRUD with subcategory support
-- `/expenses/vendors` -- vendor CRUD
-- `/expenses/exchange-rates` -- rate management (Settings sub-page)
-
-### Files to Create/Modify
-| File | Action |
-|------|--------|
-| Migration SQL | Create 4 tables above |
-| `src/hooks/useCategories.ts` | CRUD hook |
-| `src/hooks/useVendors.ts` | CRUD hook |
-| `src/hooks/useExchangeRates.ts` | CRUD hook with "get rate for date" logic |
-| `src/pages/ExpenseCategories.tsx` | New page |
-| `src/pages/ExpenseVendors.tsx` | New page |
-| `src/pages/ExchangeRates.tsx` | New page |
-| `src/App.tsx` | Add routes |
+**Fix**: Add an "Archived" badge or separate section in the statement, and include/exclude archived records with a toggle.
 
 ---
 
-## Phase 3: Expenses CRUD (Core)
+### 3. Missing: Date Range Filter on Account Statement
 
-### Database Tables
+**Problem**: The owner account statement exports ALL records ever. For accounting accuracy, users need to filter by date range (e.g., "January 2026 statement only").
 
-**expenses**
-- id (uuid, PK)
-- company_id (uuid, FK -> companies, NOT NULL)
-- user_id (uuid, NOT NULL)
-- expense_date (date, NOT NULL)
-- original_amount (numeric, NOT NULL, > 0)
-- original_currency (text, NOT NULL: 'IQD' or 'USD')
-- exchange_rate_usd_to_iqd (numeric, nullable -- required when currency is USD)
-- base_amount_iqd (numeric, NOT NULL -- auto-calculated)
-- category_id (uuid, FK -> expense_categories, NOT NULL)
-- subcategory_id (uuid, FK -> expense_categories, nullable)
-- vendor_id (uuid, FK -> expense_vendors, nullable)
-- payment_method (text: 'cash' / 'bank_transfer' / 'card' / 'other')
-- project (text, nullable)
-- branch (text, nullable)
-- department (text, nullable)
-- notes (text, nullable)
-- tags (text[], nullable)
-- status (text: 'draft' / 'posted' / 'void', default 'draft')
-- created_by (uuid)
-- created_at, updated_at
-
-**expense_attachments**
-- id, expense_id (FK), user_id
-- file_url (text), file_name (text), file_type (text)
-- created_at
-
-**expense_audit_log**
-- id, expense_id, user_id
-- action (text: 'create' / 'update' / 'void' / 'post')
-- old_data (jsonb), new_data (jsonb)
-- created_at
-
-### Expense Form UX
-- When Currency = USD:
-  - Auto-fill exchange rate from saved rate for expense date
-  - Show live conversion: `USD Amount x Rate = IQD Base Amount`
-  - "Use Today's Rate" button
-  - "Update Today's Rate" button (opens inline modal)
-- Validation: no negative amounts, exchange rate required for USD
-- Editing a posted expense creates an audit log entry
-
-### New Pages
-- `/expenses` -- main expense list with filters, search, pagination
-- `/expenses/new` -- expense form
-- `/expenses/:id` -- expense detail view
-- `/expenses/:id/edit` -- edit form
-
-### Files to Create/Modify
-| File | Action |
-|------|--------|
-| Migration SQL | Create `expenses`, `expense_attachments`, `expense_audit_log` |
-| `src/hooks/useExpenses.ts` | Full CRUD + filtering + audit |
-| `src/types/expenses.ts` | TypeScript interfaces |
-| `src/components/ExpenseForm.tsx` | Form with currency logic |
-| `src/components/ExpenseCard.tsx` | List item component |
-| `src/pages/Expenses.tsx` | Main list page |
-| `src/pages/ExpenseNew.tsx` | New expense |
-| `src/pages/ExpenseDetail.tsx` | Detail view |
-| `src/pages/ExpenseEdit.tsx` | Edit page |
-| `src/components/Header.tsx` | Add "Expenses" nav item |
+**Fix**: Add a date range picker on the `UnusedBLOwnerDetail` page that filters both the UI tables and the PDF export.
 
 ---
 
-## Phase 4: Dashboards
+### 4. Missing: Currency Handling in Used B/L
 
-### Dashboard Views (all scoped by current company)
+**Problem**: The Used B/L form hardcodes `$` as the currency symbol. The `UseBLModal` (unused-to-used flow) has a currency field, but `UsedBLInsert` type and the `used_bl_counting` table don't store currency. All amounts are assumed USD.
 
-1. **Overview Dashboard** -- Total this month/year (IQD base), month-over-month change, top categories, top vendors, cash vs bank split, USD spending line
-2. **Category Dashboard** -- Spend by category with trends, budget vs actual bars
-3. **Vendor Dashboard** -- Spend by vendor with trends
-4. **Project/Branch Dashboard** -- Filter by project/branch
-5. **Accountant Dashboard** -- Full table with all filters, export, audit view
-
-### Filters (available on all dashboards)
-- Date range, Currency (IQD/USD/All), Category, Vendor, Payment method, Project/Branch, User
-
-### Files to Create/Modify
-| File | Action |
-|------|--------|
-| `src/pages/ExpenseDashboard.tsx` | New page with dashboard selector tabs |
-| `src/components/ExpenseOverviewDash.tsx` | Overview cards + charts |
-| `src/components/ExpenseCategoryDash.tsx` | Category breakdown |
-| `src/components/ExpenseVendorDash.tsx` | Vendor analytics |
-| `src/components/ExpenseFilters.tsx` | Shared filter panel |
+**Fix**: Add a `currency` column to `used_bl_counting` and include it in the form, display, and PDF exports. The account statement grand total should group or convert by currency.
 
 ---
 
-## Phase 5: Reports and PDF Generation
+### 5. Missing: Beneficiary in Search and Filters
 
-### Report Types
-1. Monthly Expense Summary PDF
-2. Monthly Category Breakdown PDF
-3. Vendor Summary PDF
-4. Excel export (raw + summary)
+**Problem**: The `UsedBLDashboard` search filters by `bl_no`, `container_no`, `bank`, `owner`, `used_for`, and `invoice_amount` — but NOT `used_for_beneficiary`. Also, there's no dedicated beneficiary filter chip row like banks/owners have.
 
-### PDF Branding
-- Place selected company header template image at the top
-- Clean invoice-style layout with spacing and footer
-- Include: Month/Year, total IQD, totals by currency, category table, top vendors, payment split
-- File naming: `Expenses_Report_<CompanyName>_YYYY_MM.pdf`
-
-### Report History Table
-
-**expense_report_runs**
-- id, company_id, user_id
-- template_id (uuid, FK -> company_templates)
-- report_type (text)
-- date_range_start, date_range_end
-- metadata_snapshot (jsonb -- company name, template used, totals at time of generation)
-- file_url (text -- stored PDF in storage)
-- created_at
-
-### Files to Create/Modify
-| File | Action |
-|------|--------|
-| Migration SQL | Create `expense_report_runs` table |
-| `src/pages/ExpenseReports.tsx` | Report generation page |
-| `src/components/ExpenseReportGenerator.tsx` | PDF generation logic using jspdf |
-| `src/hooks/useExpenseReports.ts` | Report history CRUD |
+**Fix**: Add `used_for_beneficiary` to the search query and optionally add a beneficiary filter row.
 
 ---
 
-## Navigation Structure
+### 6. Missing: Audit Trail / Change History
 
-The header will get a new "Expenses" nav item (admin-only) that leads to `/expenses`. From there, a sub-navigation provides access to:
-- Expenses list
-- Categories
-- Vendors
-- Dashboards
-- Reports
-- Exchange Rates
+**Problem**: When a record is edited, there's no history of what changed, when, or by whom. For financial record-keeping this is critical.
 
-Companies management is accessible from the Company Switcher dropdown or Settings.
+**Fix**: Create a `bl_change_log` table that records field-level changes with timestamps. Display a "History" tab on the record detail page.
 
 ---
 
-## Technical Notes
+### 7. Account Statement: Missing "Unused B/L" Amount/Value
 
-- All tables use RLS scoped by `user_id` with `has_role()` for admin-only features
-- Storage buckets use RLS policies for authenticated upload/download
-- Exchange rates are stored per-expense so historical reports stay accurate
-- `base_amount_iqd` is always calculated and stored (IQD expenses: amount as-is; USD expenses: amount * rate, rounded to 0 decimals)
-- Company Switcher context wraps the entire app similarly to `SettingsProvider`
-- Existing pages (Dashboard, Used B/L, etc.) are unaffected
-- All new translations added to `LanguageContext` for en/ar/ku
+**Problem**: The insights section counts recorded B/Ls and used B/Ls, but doesn't show how many remain UNUSED. The unused ones have no monetary value tracked, which makes the statement incomplete for owners who want to know their remaining capacity.
+
+**Fix**: Add "Remaining Unused B/L: X" to the insights section in both UI and PDF.
 
 ---
 
-## Implementation Order
+### 8. PDF Export: No Company Branding
 
-Phase 1 will be implemented first. Each subsequent phase builds on the previous one. I will ask for approval before starting each phase so you can test incrementally.
+**Problem**: The PDF says "Generated by Nujoom Invoices" but doesn't include the user's uploaded logo or company contact info from Settings.
+
+**Fix**: Embed the logo (from `SettingsContext`) and contact info into the PDF header.
+
+---
+
+### 9. Data Consistency: BL Presets Are Local Storage Only
+
+**Problem**: `blPresets` (banks, owners, usedFor, beneficiaries) are stored in `localStorage` via `SettingsContext`. If the user logs in from another device, all presets are lost. Meanwhile, `unused_bl_settings` uses the database.
+
+**Fix**: Migrate `blPresets` to a database table (or reuse `unused_bl_settings` with new types like `bank`, `used_for`, `beneficiary`) so they sync across devices.
+
+---
+
+### 10. Minor Accuracy Issues
+
+- **CSV Export** doesn't include the `beneficiary` column — it exports 8 columns but skips beneficiary
+- **CSV Import** doesn't parse a beneficiary column either
+- **PDF Export** from `UsedBLDashboard` doesn't include beneficiary column
+- **Owner filter** on `UsedBLDashboard` should be case-insensitive (currently exact match on uppercase values)
+
+---
+
+### Priority Order for Implementation
+
+| Priority | Item | Impact |
+|----------|------|--------|
+| High | #4 Currency handling | Financial accuracy |
+| High | #9 Sync presets to database | Data reliability |
+| High | #3 Date range on statement | Accounting accuracy |
+| Medium | #1 Cross-dashboard duplicate check | Data integrity |
+| Medium | #10 CSV/PDF beneficiary columns | Completeness |
+| Medium | #2 Archived records in statement | Clarity |
+| Medium | #5 Beneficiary in search | Usability |
+| Low | #6 Audit trail | Compliance |
+| Low | #7 Unused B/L count in statement | Completeness |
+| Low | #8 Logo in PDF | Branding |
 
