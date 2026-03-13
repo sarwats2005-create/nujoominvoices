@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, X, Building2, User, Package } from 'lucide-react';
+import { Plus, X, Building2, User, Package, Users } from 'lucide-react';
 
 interface PresetListProps {
   label: string;
