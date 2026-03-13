@@ -369,6 +369,44 @@ const UsedBLForm: React.FC<UsedBLFormProps> = ({
           </div>
         </div>
 
+        {/* BENEFICIARY */}
+        <div className="flex border-b border-border">
+          <div className="w-2/5 bg-primary/10 px-4 py-3 font-semibold text-sm text-foreground border-r border-border flex items-center">
+            BENEFICIARY:
+          </div>
+          <div className="w-3/5 px-3 py-2">
+            {showCustomBeneficiary ? (
+              <div className="flex items-center gap-1">
+                <Input
+                  value={customBeneficiary}
+                  onChange={(e) => setCustomBeneficiary(e.target.value.toUpperCase())}
+                  placeholder="Type beneficiary"
+                  className="border-0 shadow-none focus-visible:ring-0 h-8 uppercase"
+                />
+                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => { setShowCustomBeneficiary(false); setCustomBeneficiary(''); }}>
+                  <X className="h-3 w-3" />
+                </Button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-1">
+                <Select value={beneficiary} onValueChange={setBeneficiary}>
+                  <SelectTrigger className="border-0 shadow-none focus:ring-0 h-8">
+                    <SelectValue placeholder="Select beneficiary" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-popover">
+                    {blPresets.beneficiaries.map(b => (
+                      <SelectItem key={b} value={b}>{b}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0" onClick={() => setShowCustomBeneficiary(true)} title="Type custom">
+                  <Plus className="h-3 w-3" />
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* NOTES */}
         <div className="flex border-b border-border">
           <div className="w-2/5 bg-primary/10 px-4 py-3 font-semibold text-sm text-foreground border-r border-border flex items-start pt-4">

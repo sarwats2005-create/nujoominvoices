@@ -119,6 +119,15 @@ const BLPresetsManager: React.FC = () => {
           onRemove={(i) => updatePresets('usedFor', blPresets.usedFor.filter((_, idx) => idx !== i))}
           placeholder={t('addNewUsedFor')}
         />
+
+        <PresetList
+          label="Beneficiary Presets"
+          icon={<Users className="h-4 w-4" />}
+          items={blPresets.beneficiaries}
+          onAdd={(item) => updatePresets('beneficiaries', [...blPresets.beneficiaries, item])}
+          onRemove={(i) => updatePresets('beneficiaries', blPresets.beneficiaries.filter((_, idx) => idx !== i))}
+          placeholder="Add new beneficiary"
+        />
       </CardContent>
     </Card>
   );
