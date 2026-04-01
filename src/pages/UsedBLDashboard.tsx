@@ -406,7 +406,7 @@ const UsedBLDashboard: React.FC = () => {
                       </TableCell>
                       <TableCell className="font-mono font-medium text-xs sm:text-sm">{record.bl_no}</TableCell>
                       <TableCell className="font-mono text-xs sm:text-sm">{record.container_no}</TableCell>
-                      <TableCell className="font-semibold text-xs sm:text-sm">{formatAmount(record.invoice_amount)}</TableCell>
+                      <TableCell className="font-semibold text-xs sm:text-sm">{formatAmount(record.invoice_amount, (record as any).currency)}</TableCell>
                       <TableCell className="text-xs sm:text-sm">{format(parseDateString(record.invoice_date), 'dd/MM/yyyy')}</TableCell>
                       <TableCell><Badge variant="outline" className="text-xs">{record.bank}</Badge></TableCell>
                       <TableCell className="text-xs sm:text-sm">{record.owner}</TableCell>
