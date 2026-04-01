@@ -159,11 +159,12 @@ const UsedBLDashboard: React.FC = () => {
   };
 
   const handleCSVExport = () => {
-    const headers = ['B/L NO', 'CONTAINER NO', 'INVOICE AMOUNT', 'INVOICE DATE', 'BANK', 'OWNER', 'USED FOR', 'NOTES'];
+    const headers = ['B/L NO', 'CONTAINER NO', 'INVOICE AMOUNT', 'CURRENCY', 'INVOICE DATE', 'BANK', 'OWNER', 'USED FOR', 'BENEFICIARY', 'NOTES'];
     const rows = sortedRecords.map(r => [
       r.bl_no, r.container_no, r.invoice_amount.toString(),
+      (r as any).currency || 'USD',
       format(parseDateString(r.invoice_date), 'dd/MM/yyyy'),
-      r.bank, r.owner, r.used_for, r.notes || '',
+      r.bank, r.owner, r.used_for, r.used_for_beneficiary || '', r.notes || '',
     ]);
     const csv = [headers.join(','), ...rows.map(row => row.map(c => `"${c.replace(/"/g, '""')}"`).join(','))].join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
