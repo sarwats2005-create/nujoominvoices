@@ -452,9 +452,11 @@ const UsedBLDashboard: React.FC = () => {
               <span className="text-sm text-muted-foreground">
                 Showing {sortedRecords.length} of {records.length} records
               </span>
-              <span className="text-sm font-bold text-foreground">
-                Total: {formatAmount(totalAmount)}
-              </span>
+              <div className="flex flex-wrap gap-2 text-sm font-bold text-foreground">
+                {Object.entries(totalsByCurrency).map(([curr, total]) => (
+                  <span key={curr}>Total ({curr}): {formatAmount(total, curr)}</span>
+                ))}
+              </div>
             </div>
           )}
         </CardContent>
