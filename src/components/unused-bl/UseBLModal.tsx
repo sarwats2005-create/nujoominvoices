@@ -238,7 +238,7 @@ const UseBLModal: React.FC<UseBLModalProps> = ({ record, open, onOpenChange }) =
                   <Select value={bank} onValueChange={setBank}>
                     <SelectTrigger className="flex-1"><SelectValue placeholder="Select bank" /></SelectTrigger>
                     <SelectContent className="bg-popover">
-                      {blPresets.banks.map(b => <SelectItem key={b} value={b}>{b}</SelectItem>)}
+                      {getByType('bank').map(b => <SelectItem key={b} value={b}>{b}</SelectItem>)}
                     </SelectContent>
                   </Select>
                   <Button variant="outline" size="icon" onClick={() => setShowCustomBank(true)}>
