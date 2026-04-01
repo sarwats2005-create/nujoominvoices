@@ -65,6 +65,45 @@ export type Database = {
         }
         Relationships: []
       }
+      bl_change_log: {
+        Row: {
+          action: string
+          bl_id: string
+          bl_no: string
+          changed_fields: Json | null
+          dashboard_id: string | null
+          id: string
+          performed_at: string
+          performed_by: string | null
+          reason: string | null
+          user_id: string
+        }
+        Insert: {
+          action: string
+          bl_id: string
+          bl_no: string
+          changed_fields?: Json | null
+          dashboard_id?: string | null
+          id?: string
+          performed_at?: string
+          performed_by?: string | null
+          reason?: string | null
+          user_id: string
+        }
+        Update: {
+          action?: string
+          bl_id?: string
+          bl_no?: string
+          changed_fields?: Json | null
+          dashboard_id?: string | null
+          id?: string
+          performed_at?: string
+          performed_by?: string | null
+          reason?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       bl_dashboards: {
         Row: {
           created_at: string
@@ -86,6 +125,30 @@ export type Database = {
           name?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      bl_presets: {
+        Row: {
+          created_at: string | null
+          id: string
+          type: string
+          user_id: string
+          value: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          type: string
+          user_id: string
+          value: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          type?: string
+          user_id?: string
+          value?: string
         }
         Relationships: []
       }
@@ -623,12 +686,15 @@ export type Database = {
           container_no: string
           created_at: string
           id: string
+          original_used_data: Json | null
           owner: string
           port_of_loading: string
           product_category: string
           product_description: string
           quantity_unit: string | null
           quantity_value: number | null
+          revert_reason: string | null
+          reverted_at: string | null
           shipper_name: string | null
           status: string
           updated_at: string
@@ -643,12 +709,15 @@ export type Database = {
           container_no: string
           created_at?: string
           id?: string
+          original_used_data?: Json | null
           owner: string
           port_of_loading: string
           product_category: string
           product_description: string
           quantity_unit?: string | null
           quantity_value?: number | null
+          revert_reason?: string | null
+          reverted_at?: string | null
           shipper_name?: string | null
           status?: string
           updated_at?: string
@@ -663,12 +732,15 @@ export type Database = {
           container_no?: string
           created_at?: string
           id?: string
+          original_used_data?: Json | null
           owner?: string
           port_of_loading?: string
           product_category?: string
           product_description?: string
           quantity_unit?: string | null
           quantity_value?: number | null
+          revert_reason?: string | null
+          reverted_at?: string | null
           shipper_name?: string | null
           status?: string
           updated_at?: string
@@ -747,10 +819,12 @@ export type Database = {
       }
       used_bl_counting: {
         Row: {
+          archive_folder_id: string | null
           bank: string
           bl_no: string
           container_no: string
           created_at: string
+          currency: string
           dashboard_id: string | null
           id: string
           invoice_amount: number
@@ -766,10 +840,12 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          archive_folder_id?: string | null
           bank: string
           bl_no: string
           container_no: string
           created_at?: string
+          currency?: string
           dashboard_id?: string | null
           id?: string
           invoice_amount: number
@@ -785,10 +861,12 @@ export type Database = {
           user_id: string
         }
         Update: {
+          archive_folder_id?: string | null
           bank?: string
           bl_no?: string
           container_no?: string
           created_at?: string
+          currency?: string
           dashboard_id?: string | null
           id?: string
           invoice_amount?: number
