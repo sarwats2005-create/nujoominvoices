@@ -46,15 +46,18 @@ const UsedBLDashboard: React.FC = () => {
   const [showBulkArchiveDialog, setShowBulkArchiveDialog] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const formatAmount = (amount: number) => `$${Math.round(amount).toLocaleString()}`;
+  const formatAmount = (amount: number, curr?: string) => {
+    const symbol = curr === 'EUR' ? '€' : curr === 'GBP' ? '£' : curr === 'IQD' ? 'د.ع' : curr === 'TRY' ? '₺' : curr === 'SAR' ? '﷼' : curr === 'AED' ? 'د.إ' : '$';
+    return `${symbol}${Math.round(amount).toLocaleString()}`;
+  };
 
   const uniqueBanks = useMemo(() => [...new Set(records.map(r => r.bank))].sort(), [records]);
   const uniqueOwners = useMemo(() => [...new Set(records.map(r => r.owner))].sort(), [records]);
 
   const filteredRecords = useMemo(() => {
     let result = records;
-    if (bankFilter) result = result.filter(r => r.bank === bankFilter);
-    if (ownerFilter) result = result.filter(r => r.owner === ownerFilter);
+    if (bankFilter) result = result.filter(r => r.bank.toLowerCase() === bankFilter.toLowerCase());
+    if (ownerFilter) result = result.filter(r => r.owner.toLowerCase() === ownerFilter.toLowerCase());
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       result = result.filter(r =>
@@ -63,6 +66,7 @@ const UsedBLDashboard: React.FC = () => {
         r.bank.toLowerCase().includes(q) ||
         r.owner.toLowerCase().includes(q) ||
         r.used_for.toLowerCase().includes(q) ||
+        (r.used_for_beneficiary || '').toLowerCase().includes(q) ||
         r.invoice_amount.toString().includes(q)
       );
     }
@@ -78,6 +82,15 @@ const UsedBLDashboard: React.FC = () => {
       return sortAsc ? comparison : -comparison;
     });
   }, [filteredRecords, sortKey, sortAsc]);
+
+  const totalsByCurrency = useMemo(() => {
+    const totals: Record<string, number> = {};
+    filteredRecords.forEach(r => {
+      const curr = (r as any).currency || 'USD';
+      totals[curr] = (totals[curr] || 0) + r.invoice_amount;
+    });
+    return totals;
+  }, [filteredRecords]);
 
   const totalAmount = useMemo(() => filteredRecords.reduce((sum, r) => sum + r.invoice_amount, 0), [filteredRecords]);
 
@@ -155,11 +168,12 @@ const UsedBLDashboard: React.FC = () => {
   };
 
   const handleCSVExport = () => {
-    const headers = ['B/L NO', 'CONTAINER NO', 'INVOICE AMOUNT', 'INVOICE DATE', 'BANK', 'OWNER', 'USED FOR', 'NOTES'];
+    const headers = ['B/L NO', 'CONTAINER NO', 'INVOICE AMOUNT', 'CURRENCY', 'INVOICE DATE', 'BANK', 'OWNER', 'USED FOR', 'BENEFICIARY', 'NOTES'];
     const rows = sortedRecords.map(r => [
       r.bl_no, r.container_no, r.invoice_amount.toString(),
+      (r as any).currency || 'USD',
       format(parseDateString(r.invoice_date), 'dd/MM/yyyy'),
-      r.bank, r.owner, r.used_for, r.notes || '',
+      r.bank, r.owner, r.used_for, r.used_for_beneficiary || '', r.notes || '',
     ]);
     const csv = [headers.join(','), ...rows.map(row => row.map(c => `"${c.replace(/"/g, '""')}"`).join(','))].join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
@@ -241,14 +255,15 @@ const UsedBLDashboard: React.FC = () => {
     doc.text(`Total: ${sortedRecords.length} records | Sum: ${formatAmount(totalAmount)} | Date: ${format(new Date(), 'PPP')}`, 14, 22);
 
     autoTable(doc, {
-      head: [['B/L NO', 'CONTAINER NO', 'AMOUNT', 'DATE', 'BANK', 'OWNER', 'USED FOR']],
+      head: [['B/L NO', 'CONTAINER NO', 'AMOUNT', 'CURRENCY', 'DATE', 'BANK', 'OWNER', 'USED FOR', 'BENEFICIARY']],
       body: sortedRecords.map(r => [
-        r.bl_no, r.container_no, formatAmount(r.invoice_amount),
+        r.bl_no, r.container_no, formatAmount(r.invoice_amount, (r as any).currency),
+        (r as any).currency || 'USD',
         format(parseDateString(r.invoice_date), 'dd/MM/yyyy'),
-        r.bank, r.owner, r.used_for,
+        r.bank, r.owner, r.used_for, r.used_for_beneficiary || '—',
       ]),
       startY: 28,
-      styles: { fontSize: 9, cellPadding: 2 },
+      styles: { fontSize: 8, cellPadding: 2 },
       headStyles: { fillColor: [30, 58, 95], textColor: [255, 255, 255], fontStyle: 'bold' },
       alternateRowStyles: { fillColor: [249, 249, 249] },
     });
@@ -400,7 +415,7 @@ const UsedBLDashboard: React.FC = () => {
                       </TableCell>
                       <TableCell className="font-mono font-medium text-xs sm:text-sm">{record.bl_no}</TableCell>
                       <TableCell className="font-mono text-xs sm:text-sm">{record.container_no}</TableCell>
-                      <TableCell className="font-semibold text-xs sm:text-sm">{formatAmount(record.invoice_amount)}</TableCell>
+                      <TableCell className="font-semibold text-xs sm:text-sm">{formatAmount(record.invoice_amount, (record as any).currency)}</TableCell>
                       <TableCell className="text-xs sm:text-sm">{format(parseDateString(record.invoice_date), 'dd/MM/yyyy')}</TableCell>
                       <TableCell><Badge variant="outline" className="text-xs">{record.bank}</Badge></TableCell>
                       <TableCell className="text-xs sm:text-sm">{record.owner}</TableCell>
@@ -437,9 +452,11 @@ const UsedBLDashboard: React.FC = () => {
               <span className="text-sm text-muted-foreground">
                 Showing {sortedRecords.length} of {records.length} records
               </span>
-              <span className="text-sm font-bold text-foreground">
-                Total: {formatAmount(totalAmount)}
-              </span>
+              <div className="flex flex-wrap gap-2 text-sm font-bold text-foreground">
+                {Object.entries(totalsByCurrency).map(([curr, total]) => (
+                  <span key={curr}>Total ({curr}): {formatAmount(total, curr)}</span>
+                ))}
+              </div>
             </div>
           )}
         </CardContent>
@@ -486,7 +503,7 @@ const UsedBLDashboard: React.FC = () => {
                         <TableRow key={record.id} className="opacity-70 hover:opacity-100 transition-opacity">
                           <TableCell className="font-mono text-xs">{record.bl_no}</TableCell>
                           <TableCell className="font-mono text-xs">{record.container_no}</TableCell>
-                          <TableCell className="text-xs font-semibold">{formatAmount(record.invoice_amount)}</TableCell>
+                          <TableCell className="text-xs font-semibold">{formatAmount(record.invoice_amount, (record as any).currency)}</TableCell>
                           <TableCell className="text-xs">{format(parseDateString(record.invoice_date), 'dd/MM/yyyy')}</TableCell>
                           <TableCell><Badge variant="outline" className="text-xs">{record.bank}</Badge></TableCell>
                           <TableCell className="text-xs">{record.owner}</TableCell>

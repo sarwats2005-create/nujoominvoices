@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useUnusedBL } from '@/hooks/useUnusedBL';
-import { useSettings } from '@/contexts/SettingsContext';
+import { currencies } from '@/contexts/SettingsContext';
+import { useBLPresets } from '@/hooks/useBLPresets';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -28,7 +29,7 @@ interface UseBLModalProps {
 const UseBLModal: React.FC<UseBLModalProps> = ({ record, open, onOpenChange }) => {
   const { t } = useLanguage();
   const { useBL, getUniqueOwners } = useUnusedBL();
-  const { blPresets, addBLPreset } = useSettings();
+  const { getByType, addPreset } = useBLPresets();
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -89,7 +90,7 @@ const UseBLModal: React.FC<UseBLModalProps> = ({ record, open, onOpenChange }) =
 
   const handleAddBeneficiary = async () => {
     if (!customBeneficiary.trim()) return;
-    await addBLPreset('beneficiaries', customBeneficiary.trim().toUpperCase());
+    await addPreset('beneficiary', customBeneficiary.trim().toUpperCase());
     setUsedForBeneficiary(customBeneficiary.trim().toUpperCase());
     setCustomBeneficiary('');
     setShowCustomBeneficiary(false);
@@ -213,7 +214,7 @@ const UseBLModal: React.FC<UseBLModalProps> = ({ record, open, onOpenChange }) =
                   <Select value={usedForBeneficiary} onValueChange={setUsedForBeneficiary}>
                     <SelectTrigger className="flex-1"><SelectValue placeholder="Select beneficiary" /></SelectTrigger>
                     <SelectContent className="bg-popover">
-                      {blPresets.beneficiaries?.map(b => <SelectItem key={b} value={b}>{b}</SelectItem>)}
+                      {getByType('beneficiary').map(b => <SelectItem key={b} value={b}>{b}</SelectItem>)}
                     </SelectContent>
                   </Select>
                   <Button variant="outline" size="icon" onClick={() => setShowCustomBeneficiary(true)} title="Add new">
@@ -237,7 +238,7 @@ const UseBLModal: React.FC<UseBLModalProps> = ({ record, open, onOpenChange }) =
                   <Select value={bank} onValueChange={setBank}>
                     <SelectTrigger className="flex-1"><SelectValue placeholder="Select bank" /></SelectTrigger>
                     <SelectContent className="bg-popover">
-                      {blPresets.banks.map(b => <SelectItem key={b} value={b}>{b}</SelectItem>)}
+                      {getByType('bank').map(b => <SelectItem key={b} value={b}>{b}</SelectItem>)}
                     </SelectContent>
                   </Select>
                   <Button variant="outline" size="icon" onClick={() => setShowCustomBank(true)}>
@@ -250,18 +251,16 @@ const UseBLModal: React.FC<UseBLModalProps> = ({ record, open, onOpenChange }) =
             <div className="space-y-1.5">
               <Label>{t('invoiceAmount')} <span className="text-destructive">*</span></Label>
               <div className="flex gap-2">
-                <div className="flex items-center gap-1 flex-1">
-                  <span className="text-muted-foreground font-bold">$</span>
-                  <Input value={formatAmount(invoiceAmount)} onChange={e => setInvoiceAmount(e.target.value.replace(/,/g, ''))}
-                    placeholder="0" type="text" inputMode="numeric" />
-                </div>
                 <Select value={currency} onValueChange={setCurrency}>
                   <SelectTrigger className="w-[90px]"><SelectValue /></SelectTrigger>
                   <SelectContent className="bg-popover">
-                    <SelectItem value="USD">USD</SelectItem>
-                    <SelectItem value="IQD">IQD</SelectItem>
+                    {currencies.map(c => (
+                      <SelectItem key={c.code} value={c.code}>{c.symbol} {c.code}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
+                <Input value={formatAmount(invoiceAmount)} onChange={e => setInvoiceAmount(e.target.value.replace(/,/g, ''))}
+                  placeholder="0" type="text" inputMode="numeric" className="flex-1" />
               </div>
             </div>
 
