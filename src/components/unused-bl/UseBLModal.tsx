@@ -90,7 +90,7 @@ const UseBLModal: React.FC<UseBLModalProps> = ({ record, open, onOpenChange }) =
 
   const handleAddBeneficiary = async () => {
     if (!customBeneficiary.trim()) return;
-    await addBLPreset('beneficiaries', customBeneficiary.trim().toUpperCase());
+    await addPreset('beneficiary', customBeneficiary.trim().toUpperCase());
     setUsedForBeneficiary(customBeneficiary.trim().toUpperCase());
     setCustomBeneficiary('');
     setShowCustomBeneficiary(false);
