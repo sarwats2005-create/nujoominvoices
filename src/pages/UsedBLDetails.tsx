@@ -38,7 +38,8 @@ const UsedBLDetails: React.FC = () => {
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
 
-    const formatAmount = (amount: number) => `$${Math.round(amount).toLocaleString()}`;
+    const currCode = record.currency || 'USD';
+    const formatAmount = (amount: number) => `${currCode} ${Math.round(amount).toLocaleString()}`;
 
     printWindow.document.write(`
       <!DOCTYPE html>
