@@ -492,7 +492,7 @@ const UsedBLDashboard: React.FC = () => {
                         <TableRow key={record.id} className="opacity-70 hover:opacity-100 transition-opacity">
                           <TableCell className="font-mono text-xs">{record.bl_no}</TableCell>
                           <TableCell className="font-mono text-xs">{record.container_no}</TableCell>
-                          <TableCell className="text-xs font-semibold">{formatAmount(record.invoice_amount)}</TableCell>
+                          <TableCell className="text-xs font-semibold">{formatAmount(record.invoice_amount, (record as any).currency)}</TableCell>
                           <TableCell className="text-xs">{format(parseDateString(record.invoice_date), 'dd/MM/yyyy')}</TableCell>
                           <TableCell><Badge variant="outline" className="text-xs">{record.bank}</Badge></TableCell>
                           <TableCell className="text-xs">{record.owner}</TableCell>
