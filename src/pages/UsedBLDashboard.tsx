@@ -46,7 +46,10 @@ const UsedBLDashboard: React.FC = () => {
   const [showBulkArchiveDialog, setShowBulkArchiveDialog] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const formatAmount = (amount: number) => `$${Math.round(amount).toLocaleString()}`;
+  const formatAmount = (amount: number, curr?: string) => {
+    const symbol = curr === 'EUR' ? '€' : curr === 'GBP' ? '£' : curr === 'IQD' ? 'د.ع' : curr === 'TRY' ? '₺' : curr === 'SAR' ? '﷼' : curr === 'AED' ? 'د.إ' : '$';
+    return `${symbol}${Math.round(amount).toLocaleString()}`;
+  };
 
   const uniqueBanks = useMemo(() => [...new Set(records.map(r => r.bank))].sort(), [records]);
   const uniqueOwners = useMemo(() => [...new Set(records.map(r => r.owner))].sort(), [records]);
