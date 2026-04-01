@@ -83,6 +83,15 @@ const UsedBLDashboard: React.FC = () => {
     });
   }, [filteredRecords, sortKey, sortAsc]);
 
+  const totalsByCurrency = useMemo(() => {
+    const totals: Record<string, number> = {};
+    filteredRecords.forEach(r => {
+      const curr = (r as any).currency || 'USD';
+      totals[curr] = (totals[curr] || 0) + r.invoice_amount;
+    });
+    return totals;
+  }, [filteredRecords]);
+
   const totalAmount = useMemo(() => filteredRecords.reduce((sum, r) => sum + r.invoice_amount, 0), [filteredRecords]);
 
   const handleSort = (key: SortKey) => {
