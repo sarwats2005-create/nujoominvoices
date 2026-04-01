@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useSettings } from '@/contexts/SettingsContext';
+import { useBLPresets } from '@/hooks/useBLPresets';
 import { useUnusedBLSettings } from '@/hooks/useUnusedBLSettings';
+import { currencies } from '@/contexts/SettingsContext';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
@@ -39,9 +40,14 @@ const UsedBLForm: React.FC<UsedBLFormProps> = ({
   isSubmitting = false,
 }) => {
   const { t } = useLanguage();
-  const { blPresets } = useSettings();
-  const { getByType } = useUnusedBLSettings();
-  const ownerOptions = getByType('owner');
+  const { getByType, addPreset } = useBLPresets();
+  const { getByType: getUnusedSettingsByType } = useUnusedBLSettings();
+  const ownerOptions = getUnusedSettingsByType('owner');
+
+  const bankPresets = getByType('bank');
+  const usedForPresets = getByType('used_for');
+  const beneficiaryPresets = getByType('beneficiary');
+
   const [blNo, setBlNo] = useState(initialData?.bl_no || '');
   const [containerNo, setContainerNo] = useState(initialData?.container_no || '');
   const [invoiceAmount, setInvoiceAmount] = useState(initialData?.invoice_amount?.toString() || '');
@@ -53,6 +59,7 @@ const UsedBLForm: React.FC<UsedBLFormProps> = ({
   const [usedFor, setUsedFor] = useState(initialData?.used_for || '');
   const [beneficiary, setBeneficiary] = useState(initialData?.used_for_beneficiary || '');
   const [notes, setNotes] = useState(initialData?.notes || '');
+  const [currency, setCurrency] = useState(initialData?.currency || 'USD');
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [customBank, setCustomBank] = useState('');
   const [customOwner, setCustomOwner] = useState('');
@@ -69,6 +76,10 @@ const UsedBLForm: React.FC<UsedBLFormProps> = ({
       onContainerCheck(containerNo);
     }
   }, [containerNo, onContainerCheck]);
+
+  const getCurrencySymbol = (code: string) => {
+    return currencies.find(c => c.code === code)?.symbol || code;
+  };
 
   const buildFormData = (): UsedBLInsert | null => {
     const finalBank = showCustomBank ? customBank : bank;
@@ -98,6 +109,7 @@ const UsedBLForm: React.FC<UsedBLFormProps> = ({
       used_for: finalUsedFor.toUpperCase(),
       used_for_beneficiary: finalBeneficiary ? finalBeneficiary.toUpperCase() : null,
       notes: notes || null,
+      currency,
     };
   };
 
@@ -105,6 +117,15 @@ const UsedBLForm: React.FC<UsedBLFormProps> = ({
     e.preventDefault();
     const data = buildFormData();
     if (!data) return;
+
+    // Auto-add new values to presets
+    const finalBank = showCustomBank ? customBank.trim().toUpperCase() : bank;
+    const finalUsedFor = showCustomUsedFor ? customUsedFor.trim().toUpperCase() : usedFor;
+    const finalBeneficiary = showCustomBeneficiary ? customBeneficiary.trim().toUpperCase() : beneficiary;
+
+    if (finalBank && !bankPresets.includes(finalBank)) addPreset('bank', finalBank);
+    if (finalUsedFor && !usedForPresets.includes(finalUsedFor)) addPreset('used_for', finalUsedFor);
+    if (finalBeneficiary && !beneficiaryPresets.includes(finalBeneficiary)) addPreset('beneficiary', finalBeneficiary);
 
     const result = await onSubmit(data);
     if (!result.success) {
@@ -123,7 +144,6 @@ const UsedBLForm: React.FC<UsedBLFormProps> = ({
 
     const result = await onSaveAndNew(data);
     if (result.success) {
-      // Reset form
       setBlNo('');
       setContainerNo('');
       setInvoiceAmount('');
@@ -133,6 +153,7 @@ const UsedBLForm: React.FC<UsedBLFormProps> = ({
       setUsedFor('');
       setBeneficiary('');
       setNotes('');
+      setCurrency('USD');
       setError('');
     } else {
       if (result.error === 'duplicate_bl') {
@@ -202,14 +223,23 @@ const UsedBLForm: React.FC<UsedBLFormProps> = ({
           </div>
         </div>
 
-        {/* INVOICE AMOUNT */}
+        {/* INVOICE AMOUNT + CURRENCY */}
         <div className="flex border-b border-border">
           <div className="w-2/5 bg-primary/10 px-4 py-3 font-semibold text-sm text-foreground border-r border-border flex items-center">
             INVOICE AMOUNT:
           </div>
           <div className="w-3/5 px-3 py-2">
             <div className="flex items-center gap-1">
-              <span className="text-muted-foreground font-bold">$</span>
+              <Select value={currency} onValueChange={setCurrency}>
+                <SelectTrigger className="border-0 shadow-none focus:ring-0 h-8 w-20 shrink-0 px-1">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-popover">
+                  {currencies.map(c => (
+                    <SelectItem key={c.code} value={c.code}>{c.symbol} {c.code}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <Input
                 value={formatDisplayAmount(invoiceAmount)}
                 onChange={(e) => setInvoiceAmount(e.target.value.replace(/,/g, ''))}
@@ -280,7 +310,7 @@ const UsedBLForm: React.FC<UsedBLFormProps> = ({
                     <SelectValue placeholder="Select bank" />
                   </SelectTrigger>
                   <SelectContent className="bg-popover">
-                    {blPresets.banks.map(b => (
+                    {bankPresets.map(b => (
                       <SelectItem key={b} value={b}>{b}</SelectItem>
                     ))}
                   </SelectContent>
@@ -356,7 +386,7 @@ const UsedBLForm: React.FC<UsedBLFormProps> = ({
                     <SelectValue placeholder="Select usage" />
                   </SelectTrigger>
                   <SelectContent className="bg-popover">
-                    {blPresets.usedFor.map(u => (
+                    {usedForPresets.map(u => (
                       <SelectItem key={u} value={u}>{u}</SelectItem>
                     ))}
                   </SelectContent>
@@ -394,7 +424,7 @@ const UsedBLForm: React.FC<UsedBLFormProps> = ({
                     <SelectValue placeholder="Select beneficiary" />
                   </SelectTrigger>
                   <SelectContent className="bg-popover">
-                    {blPresets.beneficiaries.map(b => (
+                    {beneficiaryPresets.map(b => (
                       <SelectItem key={b} value={b}>{b}</SelectItem>
                     ))}
                   </SelectContent>
