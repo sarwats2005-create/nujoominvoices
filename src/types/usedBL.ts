@@ -30,6 +30,7 @@ export interface UsedBLInsert {
   used_for: string;
   used_for_beneficiary?: string | null;
   notes?: string | null;
+  currency?: string;
   dashboard_id?: string | null;
 }
 
