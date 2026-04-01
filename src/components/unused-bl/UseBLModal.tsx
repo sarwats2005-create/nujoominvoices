@@ -29,7 +29,7 @@ interface UseBLModalProps {
 const UseBLModal: React.FC<UseBLModalProps> = ({ record, open, onOpenChange }) => {
   const { t } = useLanguage();
   const { useBL, getUniqueOwners } = useUnusedBL();
-  const { blPresets, addBLPreset } = useSettings();
+  const { getByType, addPreset } = useBLPresets();
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
