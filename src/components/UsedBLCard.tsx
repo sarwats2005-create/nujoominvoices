@@ -1,6 +1,7 @@
 import React from 'react';
 import { format } from 'date-fns';
 import { parseDateString } from '@/lib/dateUtils';
+import { currencies } from '@/contexts/SettingsContext';
 import type { UsedBL } from '@/types/usedBL';
 
 interface UsedBLCardProps {
