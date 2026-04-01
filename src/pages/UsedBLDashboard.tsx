@@ -56,8 +56,8 @@ const UsedBLDashboard: React.FC = () => {
 
   const filteredRecords = useMemo(() => {
     let result = records;
-    if (bankFilter) result = result.filter(r => r.bank === bankFilter);
-    if (ownerFilter) result = result.filter(r => r.owner === ownerFilter);
+    if (bankFilter) result = result.filter(r => r.bank.toLowerCase() === bankFilter.toLowerCase());
+    if (ownerFilter) result = result.filter(r => r.owner.toLowerCase() === ownerFilter.toLowerCase());
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       result = result.filter(r =>
