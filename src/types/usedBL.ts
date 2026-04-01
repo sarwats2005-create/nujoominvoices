@@ -11,8 +11,10 @@ export interface UsedBL {
   used_for: string;
   used_for_beneficiary: string | null;
   notes: string | null;
+  currency: string;
   is_active: boolean;
   is_archived: boolean;
+  archive_folder_id: string | null;
   source_unused_bl_id: string | null;
   created_at: string;
   updated_at: string;
