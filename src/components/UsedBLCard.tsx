@@ -14,16 +14,18 @@ interface UsedBLCardProps {
 }
 
 const UsedBLCard: React.FC<UsedBLCardProps> = ({ record, dashboardName, showActions = true, onEdit, onPrint, onExportPDF }) => {
-  const formatAmount = (amount: number) => `$${Math.round(amount).toLocaleString()}`;
+  const currSymbol = currencies.find(c => c.code === (record.currency || 'USD'))?.symbol || '$';
+  const formatAmount = (amount: number) => `${currSymbol}${Math.round(amount).toLocaleString()}`;
 
   const fields = [
     { label: 'B/L NO.', value: record.bl_no },
     { label: 'CONTAINER NO.', value: record.container_no },
-    { label: 'INVOICE AMOUNT:', value: formatAmount(record.invoice_amount) },
+    { label: 'INVOICE AMOUNT:', value: `${formatAmount(record.invoice_amount)} (${record.currency || 'USD'})` },
     { label: 'INVOICE DATE:', value: format(parseDateString(record.invoice_date), 'dd/MM/yyyy') },
     { label: 'BANK:', value: record.bank },
     { label: 'OWNER:', value: record.owner },
     { label: 'USED FOR:', value: record.used_for },
+    ...(record.used_for_beneficiary ? [{ label: 'BENEFICIARY:', value: record.used_for_beneficiary }] : []),
   ];
 
   if (record.notes) {

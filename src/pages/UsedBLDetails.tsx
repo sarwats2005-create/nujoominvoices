@@ -78,7 +78,8 @@ const UsedBLDetails: React.FC = () => {
 
   const handleExportPDF = () => {
     if (!record) return;
-    const formatAmount = (amount: number) => `$${Math.round(amount).toLocaleString()}`;
+    const currCode2 = record.currency || 'USD';
+    const formatAmount = (amount: number) => `${currCode2} ${Math.round(amount).toLocaleString()}`;
 
     const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
