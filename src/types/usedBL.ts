@@ -42,7 +42,9 @@ export interface UsedBLUpdate {
   bank?: string;
   owner?: string;
   used_for?: string;
+  used_for_beneficiary?: string | null;
   notes?: string | null;
+  currency?: string;
 }
 
 export interface BLDashboard {
