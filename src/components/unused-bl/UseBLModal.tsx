@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useUnusedBL } from '@/hooks/useUnusedBL';
-import { useSettings } from '@/contexts/SettingsContext';
+import { currencies } from '@/contexts/SettingsContext';
+import { useBLPresets } from '@/hooks/useBLPresets';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
