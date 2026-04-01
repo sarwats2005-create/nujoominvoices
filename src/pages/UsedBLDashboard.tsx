@@ -246,14 +246,15 @@ const UsedBLDashboard: React.FC = () => {
     doc.text(`Total: ${sortedRecords.length} records | Sum: ${formatAmount(totalAmount)} | Date: ${format(new Date(), 'PPP')}`, 14, 22);
 
     autoTable(doc, {
-      head: [['B/L NO', 'CONTAINER NO', 'AMOUNT', 'DATE', 'BANK', 'OWNER', 'USED FOR']],
+      head: [['B/L NO', 'CONTAINER NO', 'AMOUNT', 'CURRENCY', 'DATE', 'BANK', 'OWNER', 'USED FOR', 'BENEFICIARY']],
       body: sortedRecords.map(r => [
-        r.bl_no, r.container_no, formatAmount(r.invoice_amount),
+        r.bl_no, r.container_no, formatAmount(r.invoice_amount, (r as any).currency),
+        (r as any).currency || 'USD',
         format(parseDateString(r.invoice_date), 'dd/MM/yyyy'),
-        r.bank, r.owner, r.used_for,
+        r.bank, r.owner, r.used_for, r.used_for_beneficiary || '—',
       ]),
       startY: 28,
-      styles: { fontSize: 9, cellPadding: 2 },
+      styles: { fontSize: 8, cellPadding: 2 },
       headStyles: { fillColor: [30, 58, 95], textColor: [255, 255, 255], fontStyle: 'bold' },
       alternateRowStyles: { fillColor: [249, 249, 249] },
     });
