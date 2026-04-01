@@ -251,18 +251,16 @@ const UseBLModal: React.FC<UseBLModalProps> = ({ record, open, onOpenChange }) =
             <div className="space-y-1.5">
               <Label>{t('invoiceAmount')} <span className="text-destructive">*</span></Label>
               <div className="flex gap-2">
-                <div className="flex items-center gap-1 flex-1">
-                  <span className="text-muted-foreground font-bold">$</span>
-                  <Input value={formatAmount(invoiceAmount)} onChange={e => setInvoiceAmount(e.target.value.replace(/,/g, ''))}
-                    placeholder="0" type="text" inputMode="numeric" />
-                </div>
                 <Select value={currency} onValueChange={setCurrency}>
                   <SelectTrigger className="w-[90px]"><SelectValue /></SelectTrigger>
                   <SelectContent className="bg-popover">
-                    <SelectItem value="USD">USD</SelectItem>
-                    <SelectItem value="IQD">IQD</SelectItem>
+                    {currencies.map(c => (
+                      <SelectItem key={c.code} value={c.code}>{c.symbol} {c.code}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
+                <Input value={formatAmount(invoiceAmount)} onChange={e => setInvoiceAmount(e.target.value.replace(/,/g, ''))}
+                  placeholder="0" type="text" inputMode="numeric" className="flex-1" />
               </div>
             </div>
 
