@@ -214,7 +214,7 @@ const UseBLModal: React.FC<UseBLModalProps> = ({ record, open, onOpenChange }) =
                   <Select value={usedForBeneficiary} onValueChange={setUsedForBeneficiary}>
                     <SelectTrigger className="flex-1"><SelectValue placeholder="Select beneficiary" /></SelectTrigger>
                     <SelectContent className="bg-popover">
-                      {blPresets.beneficiaries?.map(b => <SelectItem key={b} value={b}>{b}</SelectItem>)}
+                      {getByType('beneficiary').map(b => <SelectItem key={b} value={b}>{b}</SelectItem>)}
                     </SelectContent>
                   </Select>
                   <Button variant="outline" size="icon" onClick={() => setShowCustomBeneficiary(true)} title="Add new">
