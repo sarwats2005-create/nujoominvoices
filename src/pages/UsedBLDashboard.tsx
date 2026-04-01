@@ -66,6 +66,7 @@ const UsedBLDashboard: React.FC = () => {
         r.bank.toLowerCase().includes(q) ||
         r.owner.toLowerCase().includes(q) ||
         r.used_for.toLowerCase().includes(q) ||
+        (r.used_for_beneficiary || '').toLowerCase().includes(q) ||
         r.invoice_amount.toString().includes(q)
       );
     }
