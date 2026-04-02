@@ -1,3 +1,14 @@
+export interface UnusedBLOriginalUsedData {
+  used_for: string;
+  used_for_beneficiary: string | null;
+  invoice_amount: number;
+  currency: string;
+  invoice_date: string;
+  bank: string;
+  dashboard_id: string;
+  used_for_manufacturer?: string;
+}
+
 export interface UnusedBL {
   id: string;
   user_id: string;
@@ -15,6 +26,9 @@ export interface UnusedBL {
   port_of_loading: string;
   status: 'UNUSED' | 'USED';
   used_at: string | null;
+  original_used_data: UnusedBLOriginalUsedData | null;
+  revert_reason: string | null;
+  reverted_at: string | null;
   created_at: string;
   updated_at: string;
 }
