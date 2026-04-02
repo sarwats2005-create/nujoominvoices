@@ -36,7 +36,7 @@ const UnusedBLOwnerDetail: React.FC = () => {
           .eq('user_id', user.id)
           .eq('owner', decodedOwner)
           .eq('is_active', true)
-          .order('created_at', { ascending: false }),
+          .eq('is_archived', false)
         (supabase as any).from('bl_dashboards')
           .select('*')
           .eq('user_id', user.id)
