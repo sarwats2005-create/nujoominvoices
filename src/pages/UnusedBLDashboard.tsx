@@ -264,10 +264,17 @@ const UnusedBLDashboard: React.FC = () => {
                     <TableCell className="hidden md:table-cell">{formatDate(record.bl_date)}</TableCell>
                     <TableCell className="hidden lg:table-cell">{record.port_of_loading}</TableCell>
                     <TableCell>
-                      <Badge variant={record.status === 'UNUSED' ? 'default' : 'secondary'}
-                        className={record.status === 'USED' ? 'bg-success/20 text-success border-success/30' : ''}>
-                        {record.status === 'UNUSED' ? t('unusedStatus') : t('usedStatus')}
-                      </Badge>
+                      <div className="flex items-center gap-1">
+                        <Badge variant={record.status === 'UNUSED' ? 'default' : 'secondary'}
+                          className={record.status === 'USED' ? 'bg-success/20 text-success border-success/30' : ''}>
+                          {record.status === 'UNUSED' ? t('unusedStatus') : t('usedStatus')}
+                        </Badge>
+                        {record.reverted_at && (
+                          <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-amber-500/30 text-xs" title={`Reverted: ${record.revert_reason || ''}`}>
+                            Reverted
+                          </Badge>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell onClick={e => e.stopPropagation()}>
                       <div className="flex items-center gap-1.5">
