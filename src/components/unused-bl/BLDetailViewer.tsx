@@ -79,11 +79,16 @@ const BLDetailViewer: React.FC<BLDetailViewerProps> = ({ record, open, onOpenCha
 
         <div className="mt-6 space-y-6">
           {/* Status */}
-          <div className="flex justify-center">
+          <div className="flex justify-center gap-2">
             <Badge variant={record.status === 'UNUSED' ? 'default' : 'secondary'}
               className={`text-sm px-4 py-1 ${record.status === 'USED' ? 'bg-success/20 text-success border-success/30' : ''}`}>
               {record.status}
             </Badge>
+            {record.reverted_at && (
+              <Badge variant="outline" className="text-sm px-4 py-1 bg-amber-500/10 text-amber-600 border-amber-500/30">
+                Reverted
+              </Badge>
+            )}
           </div>
 
           {/* Details */}
@@ -103,6 +108,28 @@ const BLDetailViewer: React.FC<BLDetailViewerProps> = ({ record, open, onOpenCha
             <DetailRow label={t('portOfLoading')} value={record.port_of_loading} />
             {record.used_at && <DetailRow label="Used At" value={formatDate(record.used_at)} />}
           </div>
+
+          {/* Previous Usage Data (if reverted) */}
+          {record.original_used_data && (
+            <div className="space-y-2">
+              <h3 className="font-semibold text-sm flex items-center gap-2">
+                <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-amber-500/30 text-xs">Reverted</Badge>
+                Previous Usage
+              </h3>
+              <div className="bg-amber-500/5 border border-amber-500/20 rounded-lg p-4">
+                <DetailRow label="Used For" value={record.original_used_data.used_for} />
+                {record.original_used_data.used_for_beneficiary && (
+                  <DetailRow label="Beneficiary" value={record.original_used_data.used_for_beneficiary} />
+                )}
+                <DetailRow label="Invoice Amount" value={`${record.original_used_data.currency || 'USD'} ${record.original_used_data.invoice_amount?.toLocaleString()}`} />
+                <DetailRow label="Invoice Date" value={formatDate(record.original_used_data.invoice_date)} />
+                <DetailRow label="Bank" value={record.original_used_data.bank} />
+                {record.revert_reason && <DetailRow label="Revert Reason" value={record.revert_reason} />}
+                {record.reverted_at && <DetailRow label="Reverted At" value={formatDate(record.reverted_at)} />}
+              </div>
+              <p className="text-xs text-muted-foreground italic">Pre-filled from previous usage when marking as used again.</p>
+            </div>
+          )}
 
           {/* Files */}
           <div className="space-y-3">

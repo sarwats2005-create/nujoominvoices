@@ -57,6 +57,9 @@ const UseBLModal: React.FC<UseBLModalProps> = ({ record, open, onOpenChange }) =
 
   const ownerOptions = getUniqueOwners();
 
+  // Pre-fill from original_used_data if this B/L was previously reverted
+  const hasOriginalData = record.original_used_data != null;
+
   useEffect(() => {
     const fetchDashboards = async () => {
       if (!user) return;
@@ -66,8 +69,27 @@ const UseBLModal: React.FC<UseBLModalProps> = ({ record, open, onOpenChange }) =
         if (data.length === 1) setDashboardId(data[0].id);
       }
     };
-    if (open) fetchDashboards();
-  }, [open, user]);
+    if (open) {
+      fetchDashboards();
+      // Pre-fill from previous usage data
+      if (hasOriginalData && record.original_used_data) {
+        const od = record.original_used_data;
+        setUsingFor(od.used_for || '');
+        setUsedForBeneficiary(od.used_for_beneficiary || '');
+        setBank(od.bank || '');
+        setCurrency(od.currency || 'USD');
+        if (od.invoice_amount) setInvoiceAmount(od.invoice_amount.toString());
+        if (od.dashboard_id) setDashboardId(od.dashboard_id);
+        if (od.invoice_date) {
+          try {
+            const d = new Date(od.invoice_date);
+            setInvoiceDate(d);
+            setInvoiceDateText(format(d, 'dd/MM/yyyy'));
+          } catch {}
+        }
+      }
+    }
+  }, [open, user, hasOriginalData]);
 
   const parseDateText = (text: string): Date | null => {
     const match = text.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
@@ -162,6 +184,12 @@ const UseBLModal: React.FC<UseBLModalProps> = ({ record, open, onOpenChange }) =
               <div><span className="text-muted-foreground">Category:</span> <Badge variant="secondary" className="text-xs">{record.product_category}</Badge></div>
             </div>
           </div>
+
+          {hasOriginalData && (
+            <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg px-4 py-2 text-sm text-muted-foreground">
+              ℹ️ Pre-filled from previous usage. Modify as needed.
+            </div>
+          )}
 
           {error && (
             <div className="bg-destructive/10 text-destructive px-4 py-2 rounded-md text-sm flex items-center gap-2">
