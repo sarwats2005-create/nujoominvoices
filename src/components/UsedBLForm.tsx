@@ -1,16 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useBLPresets } from '@/hooks/useBLPresets';
 import { useUnusedBLSettings } from '@/hooks/useUnusedBLSettings';
 import { currencies } from '@/contexts/SettingsContext';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CalendarIcon, Save, Plus, X, AlertTriangle } from 'lucide-react';
+import SettingsBackedSelect from '@/components/SettingsBackedSelect';
+import { CalendarIcon, Save, Plus, AlertTriangle } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { formatDateToString, parseDateString } from '@/lib/dateUtils';
@@ -40,13 +39,8 @@ const UsedBLForm: React.FC<UsedBLFormProps> = ({
   isSubmitting = false,
 }) => {
   const { t } = useLanguage();
-  const { getByType, addPreset } = useBLPresets();
   const { getByType: getUnusedSettingsByType } = useUnusedBLSettings();
   const ownerOptions = getUnusedSettingsByType('owner');
-
-  const bankPresets = getByType('bank');
-  const usedForPresets = getByType('used_for');
-  const beneficiaryPresets = getByType('beneficiary');
 
   const [blNo, setBlNo] = useState(initialData?.bl_no || '');
   const [containerNo, setContainerNo] = useState(initialData?.container_no || '');
@@ -61,14 +55,6 @@ const UsedBLForm: React.FC<UsedBLFormProps> = ({
   const [notes, setNotes] = useState(initialData?.notes || '');
   const [currency, setCurrency] = useState(initialData?.currency || 'USD');
   const [calendarOpen, setCalendarOpen] = useState(false);
-  const [customBank, setCustomBank] = useState('');
-  const [customOwner, setCustomOwner] = useState('');
-  const [customUsedFor, setCustomUsedFor] = useState('');
-  const [customBeneficiary, setCustomBeneficiary] = useState('');
-  const [showCustomBank, setShowCustomBank] = useState(false);
-  const [showCustomOwner, setShowCustomOwner] = useState(false);
-  const [showCustomUsedFor, setShowCustomUsedFor] = useState(false);
-  const [showCustomBeneficiary, setShowCustomBeneficiary] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -77,17 +63,8 @@ const UsedBLForm: React.FC<UsedBLFormProps> = ({
     }
   }, [containerNo, onContainerCheck]);
 
-  const getCurrencySymbol = (code: string) => {
-    return currencies.find(c => c.code === code)?.symbol || code;
-  };
-
   const buildFormData = (): UsedBLInsert | null => {
-    const finalBank = showCustomBank ? customBank : bank;
-    const finalOwner = showCustomOwner ? customOwner : owner;
-    const finalUsedFor = showCustomUsedFor ? customUsedFor : usedFor;
-    const finalBeneficiary = showCustomBeneficiary ? customBeneficiary : beneficiary;
-
-    if (!blNo || !containerNo || !invoiceAmount || !invoiceDate || !finalBank || !finalOwner || !finalUsedFor) {
+    if (!blNo || !containerNo || !invoiceAmount || !invoiceDate || !bank || !owner || !usedFor) {
       setError(t('requiredField'));
       return null;
     }
@@ -104,10 +81,10 @@ const UsedBLForm: React.FC<UsedBLFormProps> = ({
       container_no: containerNo.toUpperCase(),
       invoice_amount: amount,
       invoice_date: formatDateToString(invoiceDate),
-      bank: finalBank.toUpperCase(),
-      owner: finalOwner.toUpperCase(),
-      used_for: finalUsedFor.toUpperCase(),
-      used_for_beneficiary: finalBeneficiary ? finalBeneficiary.toUpperCase() : null,
+      bank: bank.toUpperCase(),
+      owner: owner.toUpperCase(),
+      used_for: usedFor.toUpperCase(),
+      used_for_beneficiary: beneficiary ? beneficiary.toUpperCase() : null,
       notes: notes || null,
       currency,
     };
@@ -117,15 +94,6 @@ const UsedBLForm: React.FC<UsedBLFormProps> = ({
     e.preventDefault();
     const data = buildFormData();
     if (!data) return;
-
-    // Auto-add new values to presets
-    const finalBank = showCustomBank ? customBank.trim().toUpperCase() : bank;
-    const finalUsedFor = showCustomUsedFor ? customUsedFor.trim().toUpperCase() : usedFor;
-    const finalBeneficiary = showCustomBeneficiary ? customBeneficiary.trim().toUpperCase() : beneficiary;
-
-    if (finalBank && !bankPresets.includes(finalBank)) addPreset('bank', finalBank);
-    if (finalUsedFor && !usedForPresets.includes(finalUsedFor)) addPreset('used_for', finalUsedFor);
-    if (finalBeneficiary && !beneficiaryPresets.includes(finalBeneficiary)) addPreset('beneficiary', finalBeneficiary);
 
     const result = await onSubmit(data);
     if (!result.success) {
@@ -291,35 +259,13 @@ const UsedBLForm: React.FC<UsedBLFormProps> = ({
             BANK:
           </div>
           <div className="w-3/5 px-3 py-2">
-            {showCustomBank ? (
-              <div className="flex items-center gap-1">
-                <Input
-                  value={customBank}
-                  onChange={(e) => setCustomBank(e.target.value.toUpperCase())}
-                  placeholder="Type bank name"
-                  className="border-0 shadow-none focus-visible:ring-0 h-8 uppercase"
-                />
-                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => { setShowCustomBank(false); setCustomBank(''); }}>
-                  <X className="h-3 w-3" />
-                </Button>
-              </div>
-            ) : (
-              <div className="flex items-center gap-1">
-                <Select value={bank} onValueChange={setBank}>
-                  <SelectTrigger className="border-0 shadow-none focus:ring-0 h-8">
-                    <SelectValue placeholder="Select bank" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-popover">
-                    {bankPresets.map(b => (
-                      <SelectItem key={b} value={b}>{b}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0" onClick={() => setShowCustomBank(true)} title="Type custom">
-                  <Plus className="h-3 w-3" />
-                </Button>
-              </div>
-            )}
+            <SettingsBackedSelect
+              presetType="bank"
+              value={bank}
+              onChange={setBank}
+              placeholder="Select bank"
+              variant="inline"
+            />
           </div>
         </div>
 
@@ -329,35 +275,14 @@ const UsedBLForm: React.FC<UsedBLFormProps> = ({
             OWNER:
           </div>
           <div className="w-3/5 px-3 py-2">
-            {showCustomOwner ? (
-              <div className="flex items-center gap-1">
-                <Input
-                  value={customOwner}
-                  onChange={(e) => setCustomOwner(e.target.value.toUpperCase())}
-                  placeholder="Type owner name"
-                  className="border-0 shadow-none focus-visible:ring-0 h-8 uppercase"
-                />
-                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => { setShowCustomOwner(false); setCustomOwner(''); }}>
-                  <X className="h-3 w-3" />
-                </Button>
-              </div>
-            ) : (
-              <div className="flex items-center gap-1">
-                <Select value={owner} onValueChange={setOwner}>
-                  <SelectTrigger className="border-0 shadow-none focus:ring-0 h-8">
-                    <SelectValue placeholder="Select owner" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-popover">
-                    {ownerOptions.map(o => (
-                      <SelectItem key={o} value={o}>{o}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0" onClick={() => setShowCustomOwner(true)} title="Type custom">
-                  <Plus className="h-3 w-3" />
-                </Button>
-              </div>
-            )}
+            <SettingsBackedSelect
+              presetType="owner"
+              value={owner}
+              onChange={setOwner}
+              placeholder="Select owner"
+              extraOptions={ownerOptions}
+              variant="inline"
+            />
           </div>
         </div>
 
@@ -367,35 +292,13 @@ const UsedBLForm: React.FC<UsedBLFormProps> = ({
             USED FOR:
           </div>
           <div className="w-3/5 px-3 py-2">
-            {showCustomUsedFor ? (
-              <div className="flex items-center gap-1">
-                <Input
-                  value={customUsedFor}
-                  onChange={(e) => setCustomUsedFor(e.target.value.toUpperCase())}
-                  placeholder="Type usage"
-                  className="border-0 shadow-none focus-visible:ring-0 h-8 uppercase"
-                />
-                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => { setShowCustomUsedFor(false); setCustomUsedFor(''); }}>
-                  <X className="h-3 w-3" />
-                </Button>
-              </div>
-            ) : (
-              <div className="flex items-center gap-1">
-                <Select value={usedFor} onValueChange={setUsedFor}>
-                  <SelectTrigger className="border-0 shadow-none focus:ring-0 h-8">
-                    <SelectValue placeholder="Select usage" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-popover">
-                    {usedForPresets.map(u => (
-                      <SelectItem key={u} value={u}>{u}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0" onClick={() => setShowCustomUsedFor(true)} title="Type custom">
-                  <Plus className="h-3 w-3" />
-                </Button>
-              </div>
-            )}
+            <SettingsBackedSelect
+              presetType="used_for"
+              value={usedFor}
+              onChange={setUsedFor}
+              placeholder="Select usage"
+              variant="inline"
+            />
           </div>
         </div>
 
@@ -405,35 +308,13 @@ const UsedBLForm: React.FC<UsedBLFormProps> = ({
             BENEFICIARY:
           </div>
           <div className="w-3/5 px-3 py-2">
-            {showCustomBeneficiary ? (
-              <div className="flex items-center gap-1">
-                <Input
-                  value={customBeneficiary}
-                  onChange={(e) => setCustomBeneficiary(e.target.value.toUpperCase())}
-                  placeholder="Type beneficiary"
-                  className="border-0 shadow-none focus-visible:ring-0 h-8 uppercase"
-                />
-                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => { setShowCustomBeneficiary(false); setCustomBeneficiary(''); }}>
-                  <X className="h-3 w-3" />
-                </Button>
-              </div>
-            ) : (
-              <div className="flex items-center gap-1">
-                <Select value={beneficiary} onValueChange={setBeneficiary}>
-                  <SelectTrigger className="border-0 shadow-none focus:ring-0 h-8">
-                    <SelectValue placeholder="Select beneficiary" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-popover">
-                    {beneficiaryPresets.map(b => (
-                      <SelectItem key={b} value={b}>{b}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0" onClick={() => setShowCustomBeneficiary(true)} title="Type custom">
-                  <Plus className="h-3 w-3" />
-                </Button>
-              </div>
-            )}
+            <SettingsBackedSelect
+              presetType="beneficiary"
+              value={beneficiary}
+              onChange={setBeneficiary}
+              placeholder="Select beneficiary"
+              variant="inline"
+            />
           </div>
         </div>
 
