@@ -19,10 +19,6 @@ import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import type { UnusedBL } from '@/types/unusedBL';
 import BLDetailViewer from './BLDetailViewer';
-import { format } from 'date-fns';
-import { useNavigate } from 'react-router-dom';
-import type { UnusedBL } from '@/types/unusedBL';
-import BLDetailViewer from './BLDetailViewer';
 
 interface UseBLModalProps {
   record: UnusedBL;
@@ -53,8 +49,6 @@ const UseBLModal: React.FC<UseBLModalProps> = ({ record, open, onOpenChange }) =
   const [calendarOpen, setCalendarOpen] = useState(false);
 
   const ownerOptions = getUniqueOwners();
-
-  // Pre-fill from original_used_data if this B/L was previously reverted
   const hasOriginalData = record.original_used_data != null;
 
   useEffect(() => {
@@ -68,7 +62,6 @@ const UseBLModal: React.FC<UseBLModalProps> = ({ record, open, onOpenChange }) =
     };
     if (open) {
       fetchDashboards();
-      // Pre-fill from previous usage data
       if (hasOriginalData && record.original_used_data) {
         const od = record.original_used_data;
         setUsingFor(od.used_for || '');
@@ -107,21 +100,9 @@ const UseBLModal: React.FC<UseBLModalProps> = ({ record, open, onOpenChange }) =
     return Number(num).toLocaleString();
   };
 
-  const handleAddBeneficiary = async () => {
-    if (!customBeneficiary.trim()) return;
-    await addPreset('beneficiary', customBeneficiary.trim().toUpperCase());
-    setUsedForBeneficiary(customBeneficiary.trim().toUpperCase());
-    setCustomBeneficiary('');
-    setShowCustomBeneficiary(false);
-  };
-
   const handleConfirm = async () => {
-    const finalBank = showCustomBank ? customBank : bank;
-    const finalUsingFor = showCustomUsingFor ? customUsingFor : usingFor;
-    const finalBeneficiary = showCustomBeneficiary ? customBeneficiary : usedForBeneficiary;
-    
-    if (!finalUsingFor.trim()) { setError('Customer name is required'); return; }
-    if (!finalBank.trim()) { setError('Bank is required'); return; }
+    if (!usingFor.trim()) { setError('Customer name is required'); return; }
+    if (!bank.trim()) { setError('Bank is required'); return; }
     if (!invoiceAmount || parseFloat(invoiceAmount) <= 0) { setError('Valid invoice amount is required'); return; }
     if (!invoiceDate) { setError('Invoice date is required'); return; }
     if (!usedForManufacturer.trim()) { setError('Used for manufacturer is required'); return; }
@@ -130,13 +111,13 @@ const UseBLModal: React.FC<UseBLModalProps> = ({ record, open, onOpenChange }) =
     setError('');
     setSubmitting(true);
     const ok = await useBL(record.id, {
-      using_for: finalUsingFor.trim().toUpperCase(),
-      bank: finalBank.trim().toUpperCase(),
+      using_for: usingFor.trim().toUpperCase(),
+      bank: bank.trim().toUpperCase(),
       invoice_amount: parseFloat(invoiceAmount.replace(/,/g, '')),
       currency,
       invoice_date: format(invoiceDate, 'yyyy-MM-dd'),
       used_for_manufacturer: usedForManufacturer.trim().toUpperCase(),
-      used_for_beneficiary: finalBeneficiary.trim().toUpperCase() || '',
+      used_for_beneficiary: usedForBeneficiary.trim().toUpperCase() || '',
       dashboard_id: dashboardId,
     });
     setSubmitting(false);
@@ -196,81 +177,38 @@ const UseBLModal: React.FC<UseBLModalProps> = ({ record, open, onOpenChange }) =
 
           {/* Conversion form */}
           <div className="space-y-4">
-            {/* Customer Name (Using For) - lookup from owners */}
+            {/* Customer Name (Using For) */}
             <div className="space-y-1.5">
               <Label>{t('usingFor')} (Customer) <span className="text-destructive">*</span></Label>
-              {showCustomUsingFor ? (
-                <div className="flex gap-1.5">
-                  <Input value={customUsingFor} onChange={e => setCustomUsingFor(e.target.value.toUpperCase())} placeholder="Type customer name" className="uppercase" />
-                  <Button variant="ghost" size="icon" onClick={() => { setShowCustomUsingFor(false); setCustomUsingFor(''); }}>
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              ) : (
-                <div className="flex gap-1.5">
-                  <Select value={usingFor} onValueChange={setUsingFor}>
-                    <SelectTrigger className="flex-1"><SelectValue placeholder="Select from owners" /></SelectTrigger>
-                    <SelectContent className="bg-popover">
-                      {ownerOptions.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                  <Button variant="outline" size="icon" onClick={() => setShowCustomUsingFor(true)} title="Add new">
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                </div>
-              )}
+              <SettingsBackedSelect
+                presetType="used_for"
+                value={usingFor}
+                onChange={setUsingFor}
+                placeholder="Select customer"
+                extraOptions={ownerOptions}
+              />
             </div>
 
-            {/* Beneficiary - lookup from settings with add new */}
+            {/* Beneficiary */}
             <div className="space-y-1.5">
               <Label>{t('beneficiary') || 'Used For Beneficiary'}</Label>
-              {showCustomBeneficiary ? (
-                <div className="flex gap-1.5">
-                  <Input value={customBeneficiary} onChange={e => setCustomBeneficiary(e.target.value.toUpperCase())} placeholder="Type beneficiary name" className="uppercase" />
-                  <Button variant="outline" size="icon" onClick={handleAddBeneficiary} title="Add & Save">
-                    <CheckCircle className="h-4 w-4" />
-                  </Button>
-                  <Button variant="ghost" size="icon" onClick={() => { setShowCustomBeneficiary(false); setCustomBeneficiary(''); }}>
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              ) : (
-                <div className="flex gap-1.5">
-                  <Select value={usedForBeneficiary} onValueChange={setUsedForBeneficiary}>
-                    <SelectTrigger className="flex-1"><SelectValue placeholder="Select beneficiary" /></SelectTrigger>
-                    <SelectContent className="bg-popover">
-                      {getByType('beneficiary').map(b => <SelectItem key={b} value={b}>{b}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                  <Button variant="outline" size="icon" onClick={() => setShowCustomBeneficiary(true)} title="Add new">
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                </div>
-              )}
+              <SettingsBackedSelect
+                presetType="beneficiary"
+                value={usedForBeneficiary}
+                onChange={setUsedForBeneficiary}
+                placeholder="Select beneficiary"
+              />
             </div>
 
+            {/* Bank */}
             <div className="space-y-1.5">
               <Label>{t('bank')} <span className="text-destructive">*</span></Label>
-              {showCustomBank ? (
-                <div className="flex gap-1.5">
-                  <Input value={customBank} onChange={e => setCustomBank(e.target.value.toUpperCase())} placeholder="Type bank name" className="uppercase" />
-                  <Button variant="ghost" size="icon" onClick={() => { setShowCustomBank(false); setCustomBank(''); }}>
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              ) : (
-                <div className="flex gap-1.5">
-                  <Select value={bank} onValueChange={setBank}>
-                    <SelectTrigger className="flex-1"><SelectValue placeholder="Select bank" /></SelectTrigger>
-                    <SelectContent className="bg-popover">
-                      {getByType('bank').map(b => <SelectItem key={b} value={b}>{b}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                  <Button variant="outline" size="icon" onClick={() => setShowCustomBank(true)}>
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                </div>
-              )}
+              <SettingsBackedSelect
+                presetType="bank"
+                value={bank}
+                onChange={setBank}
+                placeholder="Select bank"
+              />
             </div>
 
             <div className="space-y-1.5">
