@@ -33,14 +33,11 @@ interface UseBLModalProps {
 const UseBLModal: React.FC<UseBLModalProps> = ({ record, open, onOpenChange }) => {
   const { t } = useLanguage();
   const { useBL, getUniqueOwners } = useUnusedBL();
-  const { getByType, addPreset } = useBLPresets();
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
   const [usingFor, setUsingFor] = useState('');
-  const [customUsingFor, setCustomUsingFor] = useState('');
-  const [showCustomUsingFor, setShowCustomUsingFor] = useState(false);
   const [bank, setBank] = useState('');
   const [invoiceAmount, setInvoiceAmount] = useState('');
   const [currency, setCurrency] = useState('USD');
@@ -48,16 +45,12 @@ const UseBLModal: React.FC<UseBLModalProps> = ({ record, open, onOpenChange }) =
   const [invoiceDateText, setInvoiceDateText] = useState('');
   const [usedForManufacturer, setUsedForManufacturer] = useState('');
   const [usedForBeneficiary, setUsedForBeneficiary] = useState('');
-  const [customBeneficiary, setCustomBeneficiary] = useState('');
-  const [showCustomBeneficiary, setShowCustomBeneficiary] = useState(false);
   const [dashboardId, setDashboardId] = useState('');
   const [dashboards, setDashboards] = useState<{ id: string; name: string }[]>([]);
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [showDetail, setShowDetail] = useState(false);
   const [calendarOpen, setCalendarOpen] = useState(false);
-  const [customBank, setCustomBank] = useState('');
-  const [showCustomBank, setShowCustomBank] = useState(false);
 
   const ownerOptions = getUniqueOwners();
 
