@@ -133,6 +133,24 @@ export const useUsedBL = (dashboardId?: string | null) => {
     return { success: true };
   };
 
+  const archiveToFolder = async (ids: string[], folderId: string | null): Promise<number> => {
+    if (!user) return 0;
+    let archived = 0;
+    for (const id of ids) {
+      const { error } = await supabase
+        .from('used_bl_counting' as any)
+        .update({ is_archived: true, archive_folder_id: folderId } as any)
+        .eq('id', id)
+        .eq('user_id', user.id);
+      if (!error) archived++;
+    }
+    if (archived > 0) {
+      setRecords(prev => prev.filter(r => !ids.includes(r.id)));
+      fetchArchivedRecords();
+    }
+    return archived;
+  };
+
   const updateRecord = async (id: string, updates: UsedBLUpdate): Promise<{ success: boolean; error?: string }> => {
     if (!user) return { success: false, error: 'Not authenticated' };
 
