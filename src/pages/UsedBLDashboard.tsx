@@ -2,6 +2,7 @@ import React, { useState, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useUsedBL } from '@/hooks/useUsedBL';
+import { useArchiveFolders } from '@/hooks/useArchiveFolders';
 import { useAdmin } from '@/hooks/useAdmin';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
@@ -10,14 +11,17 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { format } from 'date-fns';
 import { parseDateString } from '@/lib/dateUtils';
-import { Plus, Search, ArrowUpDown, Trash2, Edit, Eye, Copy, Download, Upload, FileText, Archive, ArchiveRestore } from 'lucide-react';
+import { Plus, Search, ArrowUpDown, Trash2, Edit, Eye, Copy, Download, Upload, FileText, Archive, ArchiveRestore, Folder } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import BLDashboardSelector from '@/components/BLDashboardSelector';
+import ArchiveFolderManager from '@/components/ArchiveFolderManager';
 import type { UsedBL } from '@/types/usedBL';
 
 type SortKey = 'bl_no' | 'container_no' | 'invoice_amount' | 'invoice_date' | 'bank' | 'owner' | 'used_for' | 'used_for_beneficiary';
@@ -27,10 +31,11 @@ const UsedBLDashboard: React.FC = () => {
   const navigate = useNavigate();
   const {
     records, loading, softDeleteRecord, addMultipleRecords,
-    archivedRecords, loadingArchived, archiveRecord, unarchiveRecord,
+    archivedRecords, loadingArchived, archiveRecord, unarchiveRecord, archiveToFolder,
     blDashboards, currentBLDashboardId, currentDashboardName,
     setCurrentBLDashboardId, addBLDashboard,
   } = useUsedBL();
+  const { folders, addFolder, updateFolder, deleteFolder } = useArchiveFolders(currentBLDashboardId);
   const { isAdmin } = useAdmin();
   const { toast } = useToast();
 
@@ -44,6 +49,8 @@ const UsedBLDashboard: React.FC = () => {
   const [showArchived, setShowArchived] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [showBulkArchiveDialog, setShowBulkArchiveDialog] = useState(false);
+  const [archiveFolderId, setArchiveFolderId] = useState<string>('none');
+  const [archiveFolderFilter, setArchiveFolderFilter] = useState<string>('all');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const formatAmount = (amount: number, curr?: string) => {
