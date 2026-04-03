@@ -14,6 +14,44 @@ export type Database = {
   }
   public: {
     Tables: {
+      archive_folders: {
+        Row: {
+          color: string | null
+          created_at: string
+          dashboard_id: string | null
+          id: string
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          dashboard_id?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          dashboard_id?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "archive_folders_dashboard_id_fkey"
+            columns: ["dashboard_id"]
+            isOneToOne: false
+            referencedRelation: "bl_dashboards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       auth_rate_limits: {
         Row: {
           attempt_count: number
