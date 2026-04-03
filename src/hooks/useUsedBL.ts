@@ -353,6 +353,7 @@ export const useUsedBL = (dashboardId?: string | null) => {
     softDeleteRecord,
     archiveRecord,
     unarchiveRecord,
+    archiveToFolder,
     getRecord,
     checkContainerExists,
     addMultipleRecords,
