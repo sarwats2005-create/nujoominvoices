@@ -494,7 +494,7 @@ const UsedBLDashboard: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Archived Section */}
+      {/* Archive Folders + Archived Section */}
       <Card>
         <CardContent className="p-0">
           <button
@@ -511,10 +511,39 @@ const UsedBLDashboard: React.FC = () => {
 
           {showArchived && (
             <div className="border-t border-border">
+              {/* Folder Manager */}
+              <div className="px-4 py-3 border-b border-border bg-muted/10">
+                <ArchiveFolderManager
+                  folders={folders}
+                  onAdd={addFolder}
+                  onUpdate={updateFolder}
+                  onDelete={deleteFolder}
+                  archivedCounts={archivedCounts}
+                />
+              </div>
+
+              {/* Folder Filter Tabs */}
+              {folders.length > 0 && (
+                <div className="px-4 py-2 border-b border-border flex flex-wrap gap-1.5">
+                  <Badge variant={archiveFolderFilter === 'all' ? 'default' : 'outline'} className="cursor-pointer text-xs" onClick={() => setArchiveFolderFilter('all')}>
+                    All ({archivedRecords.length})
+                  </Badge>
+                  <Badge variant={archiveFolderFilter === 'unfiled' ? 'default' : 'outline'} className="cursor-pointer text-xs" onClick={() => setArchiveFolderFilter('unfiled')}>
+                    Unfiled ({archivedCounts['unfiled'] || 0})
+                  </Badge>
+                  {folders.map(f => (
+                    <Badge key={f.id} variant={archiveFolderFilter === f.id ? 'default' : 'outline'} className="cursor-pointer text-xs gap-1" onClick={() => setArchiveFolderFilter(f.id)}>
+                      <div className="h-2 w-2 rounded-full" style={{ backgroundColor: f.color }} />
+                      {f.name} ({archivedCounts[f.id] || 0})
+                    </Badge>
+                  ))}
+                </div>
+              )}
+
               {loadingArchived ? (
                 <div className="py-8 text-center text-muted-foreground text-sm">Loading archived records...</div>
-              ) : archivedRecords.length === 0 ? (
-                <div className="py-8 text-center text-muted-foreground text-sm">No archived records</div>
+              ) : filteredArchivedRecords.length === 0 ? (
+                <div className="py-8 text-center text-muted-foreground text-sm">No archived records{archiveFolderFilter !== 'all' ? ' in this folder' : ''}</div>
               ) : (
                 <div className="overflow-x-auto">
                   <Table>
@@ -527,31 +556,46 @@ const UsedBLDashboard: React.FC = () => {
                         <TableHead className="text-xs">BANK</TableHead>
                         <TableHead className="text-xs">OWNER</TableHead>
                         <TableHead className="text-xs">CUSTOMER</TableHead>
+                        {folders.length > 0 && <TableHead className="text-xs">FOLDER</TableHead>}
                         <TableHead className="text-right text-xs">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {archivedRecords.map((record) => (
-                        <TableRow key={record.id} className="opacity-70 hover:opacity-100 transition-opacity">
-                          <TableCell className="font-mono text-xs">{record.bl_no}</TableCell>
-                          <TableCell className="font-mono text-xs">{record.container_no}</TableCell>
-                          <TableCell className="text-xs font-semibold">{formatAmount(record.invoice_amount, (record as any).currency)}</TableCell>
-                          <TableCell className="text-xs">{format(parseDateString(record.invoice_date), 'dd/MM/yyyy')}</TableCell>
-                          <TableCell><Badge variant="outline" className="text-xs">{record.bank}</Badge></TableCell>
-                          <TableCell className="text-xs">{record.owner}</TableCell>
-                          <TableCell className="text-xs">{record.used_for}</TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex justify-end gap-1">
-                              <Button variant="outline" size="sm" className="h-7 gap-1 text-xs" onClick={() => handleUnarchive(record.id)}>
-                                <ArchiveRestore className="h-3.5 w-3.5" /> Restore
-                              </Button>
-                              <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => setDeleteId(record.id)}>
-                                <Trash2 className="h-3.5 w-3.5" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
+                      {filteredArchivedRecords.map((record) => {
+                        const folderName = getFolderName((record as any).archive_folder_id);
+                        const folderColor = getFolderColor((record as any).archive_folder_id);
+                        return (
+                          <TableRow key={record.id} className="opacity-70 hover:opacity-100 transition-opacity">
+                            <TableCell className="font-mono text-xs">{record.bl_no}</TableCell>
+                            <TableCell className="font-mono text-xs">{record.container_no}</TableCell>
+                            <TableCell className="text-xs font-semibold">{formatAmount(record.invoice_amount, (record as any).currency)}</TableCell>
+                            <TableCell className="text-xs">{format(parseDateString(record.invoice_date), 'dd/MM/yyyy')}</TableCell>
+                            <TableCell><Badge variant="outline" className="text-xs">{record.bank}</Badge></TableCell>
+                            <TableCell className="text-xs">{record.owner}</TableCell>
+                            <TableCell className="text-xs">{record.used_for}</TableCell>
+                            {folders.length > 0 && (
+                              <TableCell>
+                                {folderName ? (
+                                  <Badge variant="outline" className="text-[10px] gap-1">
+                                    <div className="h-2 w-2 rounded-full" style={{ backgroundColor: folderColor }} />
+                                    {folderName}
+                                  </Badge>
+                                ) : <span className="text-xs text-muted-foreground">—</span>}
+                              </TableCell>
+                            )}
+                            <TableCell className="text-right">
+                              <div className="flex justify-end gap-1">
+                                <Button variant="outline" size="sm" className="h-7 gap-1 text-xs" onClick={() => handleUnarchive(record.id)}>
+                                  <ArchiveRestore className="h-3.5 w-3.5" /> Restore
+                                </Button>
+                                <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => setDeleteId(record.id)}>
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
                     </TableBody>
                   </Table>
                 </div>
@@ -561,21 +605,40 @@ const UsedBLDashboard: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Archive Dialog */}
-      <AlertDialog open={!!archiveId} onOpenChange={() => setArchiveId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Archive Record</AlertDialogTitle>
-            <AlertDialogDescription>
-              This record will be moved to the archive. It won't be counted in account statements or totals. You can restore it anytime.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleArchive}>Archive</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {/* Archive Dialog with folder picker */}
+      <Dialog open={!!archiveId} onOpenChange={() => { setArchiveId(null); setArchiveFolderId('none'); }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Archive Record</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            This record will be moved to the archive. You can restore it anytime.
+          </p>
+          {folders.length > 0 && (
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium">Folder (optional)</label>
+              <Select value={archiveFolderId} onValueChange={setArchiveFolderId}>
+                <SelectTrigger><SelectValue placeholder="No folder" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No folder</SelectItem>
+                  {folders.map(f => (
+                    <SelectItem key={f.id} value={f.id}>
+                      <div className="flex items-center gap-2">
+                        <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: f.color }} />
+                        {f.name}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setArchiveId(null); setArchiveFolderId('none'); }}>Cancel</Button>
+            <Button onClick={handleArchive}>Archive</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Delete Dialog */}
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
@@ -595,21 +658,40 @@ const UsedBLDashboard: React.FC = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Bulk Archive Dialog */}
-      <AlertDialog open={showBulkArchiveDialog} onOpenChange={setShowBulkArchiveDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Archive {selectedIds.size} Record{selectedIds.size !== 1 ? 's' : ''}</AlertDialogTitle>
-            <AlertDialogDescription>
-              These records will be moved to the archive. They won't be counted in account statements or totals. You can restore them anytime.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleBulkArchive}>Archive All</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {/* Bulk Archive Dialog with folder picker */}
+      <Dialog open={showBulkArchiveDialog} onOpenChange={setShowBulkArchiveDialog}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Archive {selectedIds.size} Record{selectedIds.size !== 1 ? 's' : ''}</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            These records will be moved to the archive. You can restore them anytime.
+          </p>
+          {folders.length > 0 && (
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium">Folder (optional)</label>
+              <Select value={archiveFolderId} onValueChange={setArchiveFolderId}>
+                <SelectTrigger><SelectValue placeholder="No folder" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No folder</SelectItem>
+                  {folders.map(f => (
+                    <SelectItem key={f.id} value={f.id}>
+                      <div className="flex items-center gap-2">
+                        <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: f.color }} />
+                        {f.name}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowBulkArchiveDialog(false)}>Cancel</Button>
+            <Button onClick={handleBulkArchive}>Archive All</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
