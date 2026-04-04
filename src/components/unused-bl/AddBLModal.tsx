@@ -69,7 +69,7 @@ const AddBLModal: React.FC<AddBLModalProps> = ({ open, onOpenChange }) => {
     setClearanceCompany(''); setProductDescription(''); setProductCategory('');
     setBlDate(undefined); setBlDateText(''); setClearanceDate(undefined); setClearanceDateText('');
     setQuantityValue(''); setQuantityUnit(''); setShipperName(''); setPortOfLoading('');
-    setContainerWarning(''); setError(''); setAddingNew(null);
+    setReceivedDate(undefined); setReceivedDateText(''); setContainerWarning(''); setError(''); setAddingNew(null);
   };
 
   const parseDateText = (text: string): Date | null => {
