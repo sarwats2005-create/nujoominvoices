@@ -6,11 +6,14 @@ import { useToast } from '@/hooks/use-toast';
 import UsedBLCard from '@/components/UsedBLCard';
 import RevertBLModal from '@/components/unused-bl/RevertBLModal';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Undo2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { parseDateString } from '@/lib/dateUtils';
 import jsPDF from 'jspdf';
 import type { UsedBL } from '@/types/usedBL';
+import type { UnusedBL } from '@/types/unusedBL';
+import { supabase } from '@/integrations/supabase/client';
 
 const UsedBLDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -19,6 +22,7 @@ const UsedBLDetails: React.FC = () => {
   const { revertBL } = useUnusedBL();
   const { toast } = useToast();
   const [record, setRecord] = useState<UsedBL | null>(null);
+  const [sourceRecord, setSourceRecord] = useState<UnusedBL | null>(null);
   const [loading, setLoading] = useState(true);
   const [revertOpen, setRevertOpen] = useState(false);
 
@@ -27,6 +31,14 @@ const UsedBLDetails: React.FC = () => {
       if (!id) return;
       const data = await getRecord(id);
       setRecord(data);
+      // Fetch source unused_bl details if available
+      if (data?.source_unused_bl_id) {
+        const { data: src } = await (supabase as any).from('unused_bl')
+          .select('*')
+          .eq('id', data.source_unused_bl_id)
+          .single();
+        if (src) setSourceRecord(src as UnusedBL);
+      }
       setLoading(false);
     };
     load();
@@ -99,6 +111,10 @@ const UsedBLDetails: React.FC = () => {
     toast({ title: 'PDF exported' });
   };
 
+  const formatDate = (d: string) => {
+    try { return format(new Date(d), 'dd/MM/yyyy'); } catch { return d; }
+  };
+
   if (loading) {
     return (<div className="min-h-[400px] flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>);
   }
@@ -106,6 +122,13 @@ const UsedBLDetails: React.FC = () => {
   if (!record) {
     return (<div className="min-h-[400px] flex flex-col items-center justify-center gap-4"><p className="text-muted-foreground">Record not found</p><Button variant="outline" onClick={() => navigate('/used-bl')}><ArrowLeft className="h-4 w-4 mr-2" /> Back to List</Button></div>);
   }
+
+  const DetailRow: React.FC<{ label: string; value: React.ReactNode }> = ({ label, value }) => (
+    <div className="flex justify-between py-2 border-b border-border last:border-0">
+      <span className="text-sm text-muted-foreground">{label}</span>
+      <span className="text-sm font-medium text-foreground text-right max-w-[60%]">{value}</span>
+    </div>
+  );
 
   return (
     <div className="animate-fade-in py-4 space-y-4">
@@ -126,6 +149,30 @@ const UsedBLDetails: React.FC = () => {
         onPrint={handlePrint}
         onExportPDF={handleExportPDF}
       />
+
+      {/* Source B/L Details — mirrors the Unused B/L detail viewer */}
+      {sourceRecord && (
+        <div className="w-full max-w-lg mx-auto space-y-3">
+          <h3 className="font-semibold text-sm flex items-center gap-2">
+            <Badge variant="outline" className="text-xs">Source B/L</Badge>
+            Original B/L Details
+          </h3>
+          <div className="bg-muted/20 rounded-lg p-4">
+            <DetailRow label="Clearance Company" value={sourceRecord.clearance_company} />
+            <DetailRow label="Product Description" value={sourceRecord.product_description} />
+            <DetailRow label="Product Category" value={<Badge variant="secondary">{sourceRecord.product_category}</Badge>} />
+            <DetailRow label="B/L Date" value={formatDate(sourceRecord.bl_date)} />
+            <DetailRow label="Clearance Date" value={formatDate(sourceRecord.clearance_date)} />
+            {sourceRecord.quantity_value != null && (
+              <DetailRow label="Quantity" value={`${sourceRecord.quantity_value} ${sourceRecord.quantity_unit || ''}`} />
+            )}
+            {sourceRecord.shipper_name && <DetailRow label="Shipper" value={sourceRecord.shipper_name} />}
+            <DetailRow label="Port of Loading" value={sourceRecord.port_of_loading} />
+            {sourceRecord.received_date && <DetailRow label="Received Date" value={formatDate(sourceRecord.received_date)} />}
+          </div>
+        </div>
+      )}
+
       {revertOpen && (
         <RevertBLModal
           open={revertOpen}
