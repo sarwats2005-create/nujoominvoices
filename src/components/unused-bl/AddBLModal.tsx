@@ -91,6 +91,12 @@ const AddBLModal: React.FC<AddBLModalProps> = ({ open, onOpenChange }) => {
     if (d) setClearanceDate(d);
   };
 
+  const handleReceivedDateText = (text: string) => {
+    setReceivedDateText(text);
+    const d = parseDateText(text);
+    if (d) setReceivedDate(d);
+  };
+
   const handleContainerChange = async (val: string) => {
     const upper = val.toUpperCase();
     setContainerNo(upper);
