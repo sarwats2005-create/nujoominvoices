@@ -160,6 +160,9 @@ const UseBLModal: React.FC<UseBLModalProps> = ({ record, open, onOpenChange }) =
               <div><span className="text-muted-foreground">Container:</span> <span className="font-mono">{record.container_no}</span></div>
               <div><span className="text-muted-foreground">Owner:</span> {record.owner}</div>
               <div><span className="text-muted-foreground">Category:</span> <Badge variant="secondary" className="text-xs">{record.product_category}</Badge></div>
+              {record.received_date && (
+                <div className="col-span-2"><span className="text-muted-foreground">Received:</span> {format(new Date(record.received_date), 'dd/MM/yyyy')}</div>
+              )}
             </div>
           </div>
 

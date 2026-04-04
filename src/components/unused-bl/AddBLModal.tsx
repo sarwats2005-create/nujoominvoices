@@ -383,7 +383,27 @@ const AddBLModal: React.FC<AddBLModalProps> = ({ open, onOpenChange }) => {
             </div>
           </div>
 
-          {/* Quantity */}
+          {/* Received Date */}
+          <div className="sm:col-span-2 space-y-1.5">
+            <Label>Received Date <span className="text-destructive">*</span></Label>
+            <div className="flex gap-1.5">
+              <Input value={receivedDateText} onChange={e => handleReceivedDateText(e.target.value)}
+                placeholder="DD/MM/YYYY" className="flex-1" />
+              <Popover open={receivedDateOpen} onOpenChange={setReceivedDateOpen}>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="icon" className="h-10 w-10 shrink-0">
+                    <CalendarIcon className="h-4 w-4" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar mode="single" selected={receivedDate}
+                    onSelect={d => { setReceivedDate(d); if (d) setReceivedDateText(format(d, 'dd/MM/yyyy')); setReceivedDateOpen(false); }}
+                    className="pointer-events-auto" />
+                </PopoverContent>
+              </Popover>
+            </div>
+          </div>
+
           <div className="space-y-1.5">
             <Label>{t('quantity')}</Label>
             <div className="flex gap-1.5">
