@@ -1,0 +1,1 @@
+ALTER TABLE public.unused_bl ADD COLUMN received_date date NULL;

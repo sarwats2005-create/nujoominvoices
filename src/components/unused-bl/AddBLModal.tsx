@@ -48,6 +48,9 @@ const AddBLModal: React.FC<AddBLModalProps> = ({ open, onOpenChange }) => {
   const [quantityUnit, setQuantityUnit] = useState('');
   const [shipperName, setShipperName] = useState('');
   const [portOfLoading, setPortOfLoading] = useState('');
+  const [receivedDate, setReceivedDate] = useState<Date | undefined>();
+  const [receivedDateText, setReceivedDateText] = useState('');
+  const [receivedDateOpen, setReceivedDateOpen] = useState(false);
   const [containerWarning, setContainerWarning] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -66,7 +69,7 @@ const AddBLModal: React.FC<AddBLModalProps> = ({ open, onOpenChange }) => {
     setClearanceCompany(''); setProductDescription(''); setProductCategory('');
     setBlDate(undefined); setBlDateText(''); setClearanceDate(undefined); setClearanceDateText('');
     setQuantityValue(''); setQuantityUnit(''); setShipperName(''); setPortOfLoading('');
-    setContainerWarning(''); setError(''); setAddingNew(null);
+    setReceivedDate(undefined); setReceivedDateText(''); setContainerWarning(''); setError(''); setAddingNew(null);
   };
 
   const parseDateText = (text: string): Date | null => {
@@ -86,6 +89,12 @@ const AddBLModal: React.FC<AddBLModalProps> = ({ open, onOpenChange }) => {
     setClearanceDateText(text);
     const d = parseDateText(text);
     if (d) setClearanceDate(d);
+  };
+
+  const handleReceivedDateText = (text: string) => {
+    setReceivedDateText(text);
+    const d = parseDateText(text);
+    if (d) setReceivedDate(d);
   };
 
   const handleContainerChange = async (val: string) => {
@@ -146,6 +155,7 @@ const AddBLModal: React.FC<AddBLModalProps> = ({ open, onOpenChange }) => {
     if (!blDate) { setError('B/L date is required'); return false; }
     if (!clearanceDate) { setError('Clearance date is required'); return false; }
     if (!portOfLoading) { setError('Port of loading is required'); return false; }
+    if (!receivedDate) { setError('Received date is required'); return false; }
     setError('');
     return true;
   };
@@ -163,6 +173,7 @@ const AddBLModal: React.FC<AddBLModalProps> = ({ open, onOpenChange }) => {
     quantity_unit: quantityUnit || null,
     shipper_name: shipperName.trim() || null,
     port_of_loading: portOfLoading,
+    received_date: format(receivedDate!, 'yyyy-MM-dd'),
   });
 
   const handleSave = async () => {
@@ -372,7 +383,27 @@ const AddBLModal: React.FC<AddBLModalProps> = ({ open, onOpenChange }) => {
             </div>
           </div>
 
-          {/* Quantity */}
+          {/* Received Date */}
+          <div className="sm:col-span-2 space-y-1.5">
+            <Label>Received Date <span className="text-destructive">*</span></Label>
+            <div className="flex gap-1.5">
+              <Input value={receivedDateText} onChange={e => handleReceivedDateText(e.target.value)}
+                placeholder="DD/MM/YYYY" className="flex-1" />
+              <Popover open={receivedDateOpen} onOpenChange={setReceivedDateOpen}>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="icon" className="h-10 w-10 shrink-0">
+                    <CalendarIcon className="h-4 w-4" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar mode="single" selected={receivedDate}
+                    onSelect={d => { setReceivedDate(d); if (d) setReceivedDateText(format(d, 'dd/MM/yyyy')); setReceivedDateOpen(false); }}
+                    className="pointer-events-auto" />
+                </PopoverContent>
+              </Popover>
+            </div>
+          </div>
+
           <div className="space-y-1.5">
             <Label>{t('quantity')}</Label>
             <div className="flex gap-1.5">

@@ -106,6 +106,7 @@ const BLDetailViewer: React.FC<BLDetailViewerProps> = ({ record, open, onOpenCha
             )}
             {record.shipper_name && <DetailRow label={t('shipperName')} value={record.shipper_name} />}
             <DetailRow label={t('portOfLoading')} value={record.port_of_loading} />
+            {record.received_date && <DetailRow label="Received Date" value={formatDate(record.received_date)} />}
             {record.used_at && <DetailRow label="Used At" value={formatDate(record.used_at)} />}
           </div>
 

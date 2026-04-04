@@ -24,6 +24,7 @@ export interface UnusedBL {
   quantity_unit: string | null;
   shipper_name: string | null;
   port_of_loading: string;
+  received_date: string | null;
   status: 'UNUSED' | 'USED';
   used_at: string | null;
   original_used_data: UnusedBLOriginalUsedData | null;
