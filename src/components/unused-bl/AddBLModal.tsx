@@ -48,6 +48,9 @@ const AddBLModal: React.FC<AddBLModalProps> = ({ open, onOpenChange }) => {
   const [quantityUnit, setQuantityUnit] = useState('');
   const [shipperName, setShipperName] = useState('');
   const [portOfLoading, setPortOfLoading] = useState('');
+  const [receivedDate, setReceivedDate] = useState<Date | undefined>();
+  const [receivedDateText, setReceivedDateText] = useState('');
+  const [receivedDateOpen, setReceivedDateOpen] = useState(false);
   const [containerWarning, setContainerWarning] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
