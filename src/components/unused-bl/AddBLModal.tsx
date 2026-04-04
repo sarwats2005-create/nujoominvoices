@@ -167,6 +167,7 @@ const AddBLModal: React.FC<AddBLModalProps> = ({ open, onOpenChange }) => {
     quantity_unit: quantityUnit || null,
     shipper_name: shipperName.trim() || null,
     port_of_loading: portOfLoading,
+    received_date: format(receivedDate!, 'yyyy-MM-dd'),
   });
 
   const handleSave = async () => {
