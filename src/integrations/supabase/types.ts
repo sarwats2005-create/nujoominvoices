@@ -731,6 +731,7 @@ export type Database = {
           product_description: string
           quantity_unit: string | null
           quantity_value: number | null
+          received_date: string | null
           revert_reason: string | null
           reverted_at: string | null
           shipper_name: string | null
@@ -754,6 +755,7 @@ export type Database = {
           product_description: string
           quantity_unit?: string | null
           quantity_value?: number | null
+          received_date?: string | null
           revert_reason?: string | null
           reverted_at?: string | null
           shipper_name?: string | null
@@ -777,6 +779,7 @@ export type Database = {
           product_description?: string
           quantity_unit?: string | null
           quantity_value?: number | null
+          received_date?: string | null
           revert_reason?: string | null
           reverted_at?: string | null
           shipper_name?: string | null
