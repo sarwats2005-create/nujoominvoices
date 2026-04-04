@@ -149,6 +149,7 @@ const AddBLModal: React.FC<AddBLModalProps> = ({ open, onOpenChange }) => {
     if (!blDate) { setError('B/L date is required'); return false; }
     if (!clearanceDate) { setError('Clearance date is required'); return false; }
     if (!portOfLoading) { setError('Port of loading is required'); return false; }
+    if (!receivedDate) { setError('Received date is required'); return false; }
     setError('');
     return true;
   };
