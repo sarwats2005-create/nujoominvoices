@@ -460,15 +460,29 @@ const UsedBLDashboard: React.FC = () => {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  sortedRecords.map((record) => (
-                    <TableRow key={record.id} className="cursor-pointer hover:bg-accent/30 transition-colors" onClick={() => navigate(`/used-bl/${record.id}`)}>
+                  sortedRecords.map((record) => {
+                    const sibInfo = getSiblingInfo(record);
+                    return (
+                    <TableRow key={record.id} className={cn(
+                      "cursor-pointer hover:bg-accent/30 transition-colors",
+                      sibInfo && "border-l-2 border-l-primary"
+                    )} onClick={() => navigate(`/used-bl/${record.id}`)}>
                       <TableCell onClick={(e) => e.stopPropagation()}>
                         <Checkbox
                           checked={selectedIds.has(record.id)}
                           onCheckedChange={() => toggleSelect(record.id)}
                         />
                       </TableCell>
-                      <TableCell className="font-mono font-medium text-xs sm:text-sm">{record.bl_no}</TableCell>
+                      <TableCell className="font-mono font-medium text-xs sm:text-sm">
+                        <div className="flex items-center gap-1.5">
+                          {record.bl_no}
+                          {sibInfo && (
+                            <Badge variant="outline" className="text-[10px] px-1 py-0 border-primary/40 text-primary">
+                              {sibInfo.index}/{sibInfo.count}
+                            </Badge>
+                          )}
+                        </div>
+                      </TableCell>
                       <TableCell className="font-mono text-xs sm:text-sm">{record.container_no}</TableCell>
                       <TableCell className="font-semibold text-xs sm:text-sm">{formatAmount(record.invoice_amount, (record as any).currency)}</TableCell>
                       <TableCell className="text-xs sm:text-sm">{format(parseDateString(record.invoice_date), 'dd/MM/yyyy')}</TableCell>
@@ -496,7 +510,8 @@ const UsedBLDashboard: React.FC = () => {
                         </div>
                       </TableCell>
                     </TableRow>
-                  ))
+                    );
+                  })
                 )}
               </TableBody>
             </Table>
