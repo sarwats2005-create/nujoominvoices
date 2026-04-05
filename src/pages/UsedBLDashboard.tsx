@@ -81,14 +81,37 @@ const UsedBLDashboard: React.FC = () => {
   }, [records, searchQuery, bankFilter, ownerFilter]);
 
   const sortedRecords = useMemo(() => {
-    return [...filteredRecords].sort((a, b) => {
+    const sorted = [...filteredRecords].sort((a, b) => {
       let comparison = 0;
       if (sortKey === 'invoice_amount') comparison = a.invoice_amount - b.invoice_amount;
       else if (sortKey === 'invoice_date') comparison = parseDateString(a.invoice_date).getTime() - parseDateString(b.invoice_date).getTime();
       else comparison = String(a[sortKey]).localeCompare(String(b[sortKey]));
       return sortAsc ? comparison : -comparison;
     });
+    return sorted;
   }, [filteredRecords, sortKey, sortAsc]);
+
+  // Group records by source_unused_bl_id for visual grouping
+  const siblingMap = useMemo(() => {
+    const map = new Map<string, string[]>();
+    sortedRecords.forEach(r => {
+      const srcId = (r as any).source_unused_bl_id;
+      if (srcId) {
+        const existing = map.get(srcId) || [];
+        existing.push(r.id);
+        map.set(srcId, existing);
+      }
+    });
+    return map;
+  }, [sortedRecords]);
+
+  const getSiblingInfo = (record: UsedBL): { count: number; index: number } | null => {
+    const srcId = (record as any).source_unused_bl_id;
+    if (!srcId) return null;
+    const siblings = siblingMap.get(srcId);
+    if (!siblings || siblings.length <= 1) return null;
+    return { count: siblings.length, index: siblings.indexOf(record.id) + 1 };
+  };
 
   const totalsByCurrency = useMemo(() => {
     const totals: Record<string, number> = {};
