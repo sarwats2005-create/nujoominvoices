@@ -220,21 +220,6 @@ export const useUnusedBL = () => {
       dashboard_id: usedRecord.dashboard_id,
     };
 
-    // Restore unused_bl to UNUSED
-    const { error: restoreError } = await db('unused_bl')
-      .update({
-        status: 'UNUSED',
-        used_at: null,
-        original_used_data: originalUsedData,
-        revert_reason: reason,
-        reverted_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', sourceUnusedId)
-      .eq('user_id', user.id);
-
-    if (restoreError) return false;
-
     // Soft-delete the used record
     const { error: deleteError } = await db('used_bl_counting')
       .update({ is_active: false })
@@ -243,11 +228,37 @@ export const useUnusedBL = () => {
 
     if (deleteError) return false;
 
+    // Check if there are remaining active sibling records
+    const { data: siblings } = await db('used_bl_counting')
+      .select('id')
+      .eq('source_unused_bl_id', sourceUnusedId)
+      .eq('is_active', true);
+
+    const remainingSiblings = (siblings || []).length;
+
+    // Only revert to UNUSED if no active siblings remain
+    if (remainingSiblings === 0) {
+      const { error: restoreError } = await db('unused_bl')
+        .update({
+          status: 'UNUSED',
+          used_at: null,
+          original_used_data: originalUsedData,
+          revert_reason: reason,
+          reverted_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', sourceUnusedId)
+        .eq('user_id', user.id);
+
+      if (restoreError) return false;
+    }
+
     // Log the revert
     await logChange(sourceUnusedId, usedRecord.bl_no, 'reverted', {
       used_for: { from: usedRecord.used_for, to: null },
       invoice_amount: { from: usedRecord.invoice_amount, to: null },
       dashboard_id: { from: usedRecord.dashboard_id, to: null },
+      remaining_invoices: remainingSiblings,
     }, reason, usedRecord.dashboard_id);
 
     await fetchRecords();
