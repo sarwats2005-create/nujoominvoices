@@ -1,104 +1,58 @@
 
 
-## Prototype Review and Recommendations
+# Multi-Invoice per B/L System
 
-After reviewing your entire codebase — the Used B/L module, Unused B/L module, Owner Account Statement, Invoice Dashboard, Settings, and data flow — here are the gaps and recommendations organized by priority:
+## What this does
+Currently, one Unused B/L can only be converted to one Used B/L record. This upgrade allows a single B/L to be used for **multiple invoices** (each with its own currency, amount, customer, bank, etc.). The Used B/L dashboard and Account Statement will visually group these sibling records together.
 
----
+## Architecture Changes
 
-### 1. Data Integrity: Duplicate B/L Validation Across Dashboards
+### 1. Database — No schema changes needed
+The `used_bl_counting` table already has `source_unused_bl_id` linking back to the source Unused B/L. Multiple rows can share the same `source_unused_bl_id`. We just need to stop marking the Unused B/L as "USED" after the first invoice (or track a count).
 
-**Problem**: `checkContainerExists` in `useUsedBL` only checks within the current dashboard. A user could accidentally enter the same B/L number or container across different dashboards without warning.
+### 2. Hook Changes — `useUnusedBL.ts`
+- **`useBL` function**: Instead of marking the Unused B/L status as `USED` on every call, change logic to:
+  - Insert the new `used_bl_counting` row (same as now)
+  - Update `unused_bl.status = 'USED'` and `used_at` (keep doing this — the B/L is indeed used)
+  - But allow calling `useBL` again on an already-USED record (remove the implicit filter that only shows UNUSED records in the modal context)
+- **`revertBL` function**: Only revert the Unused B/L to `UNUSED` status if ALL sibling used records are deleted/deactivated (check count of active `used_bl_counting` rows with same `source_unused_bl_id`)
 
-**Fix**: Add a cross-dashboard duplicate check that warns (not blocks) when the same `bl_no` or `container_no` exists in another dashboard.
+### 3. UseBLModal — Multi-invoice support
+- Redesign `UseBLModal.tsx` to support adding **multiple invoice entries** in one session:
+  - Add an "Add Another Invoice" button that appends a new invoice form row
+  - Each row has: Customer, Beneficiary, Bank, Currency, Amount, Date, Manufacturer, Dashboard
+  - On confirm, loop through all entries and call `useBL` for each
+- Also allow re-opening the "Use" action on an already-USED B/L from the Unused B/L page (show USED records with an "Add Invoice" option)
 
----
+### 4. Used B/L Dashboard — Visual grouping
+- In `UsedBLDashboard.tsx`, after sorting/filtering, group records that share the same `source_unused_bl_id`
+- Render sibling records stacked together with a thin colored left-border outline (e.g., `border-l-2 border-primary`) and a subtle shared background
+- Show a small badge like "1 of 2" or "Shared B/L" on grouped rows
+- Allow adding more invoices to the same B/L from the Used B/L dashboard via an "Add Invoice" button on grouped rows
 
-### 2. Missing: Archived Records in Account Statement
+### 5. Used B/L Details — Edit & Add more invoices
+- On `UsedBLDetails.tsx`, show all sibling records for the same source B/L
+- Add an "Add Another Invoice" button that opens a form to create another `used_bl_counting` row with the same `source_unused_bl_id` and B/L metadata
+- Each sibling record remains independently editable via the existing edit page
 
-**Problem**: `UnusedBLOwnerDetail` fetches used records with `eq('is_active', true)` but does not distinguish archived vs non-archived. The PDF doesn't label which records are archived. If someone archives a record, it still shows in the statement without context.
+### 6. Account Statement — Grouped display
+- In `UnusedBLOwnerDetail.tsx`, when listing used records for an owner, group records sharing the same `source_unused_bl_id` (or same `bl_no`)
+- Display them stacked with a visual indicator (thin outline, indented sub-rows)
+- In the PDF exports (both Professional and Government), render multi-invoice B/Ls as a parent row + indented child rows with subtotals per B/L
 
-**Fix**: Add an "Archived" badge or separate section in the statement, and include/exclude archived records with a toggle.
+## Files to modify
+1. **`src/hooks/useUnusedBL.ts`** — Update `useBL` to allow multi-use, update `revertBL` to check sibling count
+2. **`src/components/unused-bl/UseBLModal.tsx`** — Add multi-invoice form with "Add Another Invoice" button
+3. **`src/pages/UnusedBLDashboard.tsx`** — Show "Add Invoice" action on USED records  
+4. **`src/pages/UsedBLDashboard.tsx`** — Group sibling records visually with outline styling
+5. **`src/pages/UsedBLDetails.tsx`** — Show siblings, add "Add Invoice" button
+6. **`src/pages/UnusedBLOwnerDetail.tsx`** — Group multi-invoice B/Ls in statement + PDF
 
----
-
-### 3. Missing: Date Range Filter on Account Statement
-
-**Problem**: The owner account statement exports ALL records ever. For accounting accuracy, users need to filter by date range (e.g., "January 2026 statement only").
-
-**Fix**: Add a date range picker on the `UnusedBLOwnerDetail` page that filters both the UI tables and the PDF export.
-
----
-
-### 4. Missing: Currency Handling in Used B/L
-
-**Problem**: The Used B/L form hardcodes `$` as the currency symbol. The `UseBLModal` (unused-to-used flow) has a currency field, but `UsedBLInsert` type and the `used_bl_counting` table don't store currency. All amounts are assumed USD.
-
-**Fix**: Add a `currency` column to `used_bl_counting` and include it in the form, display, and PDF exports. The account statement grand total should group or convert by currency.
-
----
-
-### 5. Missing: Beneficiary in Search and Filters
-
-**Problem**: The `UsedBLDashboard` search filters by `bl_no`, `container_no`, `bank`, `owner`, `used_for`, and `invoice_amount` — but NOT `used_for_beneficiary`. Also, there's no dedicated beneficiary filter chip row like banks/owners have.
-
-**Fix**: Add `used_for_beneficiary` to the search query and optionally add a beneficiary filter row.
-
----
-
-### 6. Missing: Audit Trail / Change History
-
-**Problem**: When a record is edited, there's no history of what changed, when, or by whom. For financial record-keeping this is critical.
-
-**Fix**: Create a `bl_change_log` table that records field-level changes with timestamps. Display a "History" tab on the record detail page.
-
----
-
-### 7. Account Statement: Missing "Unused B/L" Amount/Value
-
-**Problem**: The insights section counts recorded B/Ls and used B/Ls, but doesn't show how many remain UNUSED. The unused ones have no monetary value tracked, which makes the statement incomplete for owners who want to know their remaining capacity.
-
-**Fix**: Add "Remaining Unused B/L: X" to the insights section in both UI and PDF.
-
----
-
-### 8. PDF Export: No Company Branding
-
-**Problem**: The PDF says "Generated by Nujoom Invoices" but doesn't include the user's uploaded logo or company contact info from Settings.
-
-**Fix**: Embed the logo (from `SettingsContext`) and contact info into the PDF header.
-
----
-
-### 9. Data Consistency: BL Presets Are Local Storage Only
-
-**Problem**: `blPresets` (banks, owners, usedFor, beneficiaries) are stored in `localStorage` via `SettingsContext`. If the user logs in from another device, all presets are lost. Meanwhile, `unused_bl_settings` uses the database.
-
-**Fix**: Migrate `blPresets` to a database table (or reuse `unused_bl_settings` with new types like `bank`, `used_for`, `beneficiary`) so they sync across devices.
-
----
-
-### 10. Minor Accuracy Issues
-
-- **CSV Export** doesn't include the `beneficiary` column — it exports 8 columns but skips beneficiary
-- **CSV Import** doesn't parse a beneficiary column either
-- **PDF Export** from `UsedBLDashboard` doesn't include beneficiary column
-- **Owner filter** on `UsedBLDashboard` should be case-insensitive (currently exact match on uppercase values)
-
----
-
-### Priority Order for Implementation
-
-| Priority | Item | Impact |
-|----------|------|--------|
-| High | #4 Currency handling | Financial accuracy |
-| High | #9 Sync presets to database | Data reliability |
-| High | #3 Date range on statement | Accounting accuracy |
-| Medium | #1 Cross-dashboard duplicate check | Data integrity |
-| Medium | #10 CSV/PDF beneficiary columns | Completeness |
-| Medium | #2 Archived records in statement | Clarity |
-| Medium | #5 Beneficiary in search | Usability |
-| Low | #6 Audit trail | Compliance |
-| Low | #7 Unused B/L count in statement | Completeness |
-| Low | #8 Logo in PDF | Branding |
+## Implementation order
+1. Hook logic changes (allow multi-use, smart revert)
+2. UseBLModal multi-invoice form
+3. Unused B/L dashboard "Add Invoice" on USED records
+4. Used B/L dashboard visual grouping
+5. Used B/L details — sibling display + add more
+6. Account statement grouping + PDF updates
 
