@@ -590,6 +590,15 @@ const UnusedBLOwnerDetail: React.FC = () => {
           dashTotals[c] = (dashTotals[c] || 0) + (r.invoice_amount || 0);
         });
 
+        // Group by bl_no for multi-invoice display
+        const blGroups = new Map<string, UsedBL[]>();
+        records.forEach(r => {
+          const key = r.bl_no;
+          const existing = blGroups.get(key) || [];
+          existing.push(r);
+          blGroups.set(key, existing);
+        });
+
         return (
           <Card key={dashId}>
             <CardHeader className="pb-3">
@@ -619,16 +628,27 @@ const UnusedBLOwnerDetail: React.FC = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {records.map(r => (
-                      <TableRow key={r.id}>
-                        <TableCell className="font-mono font-medium">{r.bl_no}</TableCell>
-                        <TableCell className="font-mono">{r.container_no}</TableCell>
-                        <TableCell>{r.used_for}</TableCell>
-                        <TableCell className="hidden md:table-cell">{r.used_for_beneficiary || '—'}</TableCell>
-                        <TableCell className="hidden md:table-cell">{r.bank}</TableCell>
-                        <TableCell className="font-mono font-bold">{formatAmount(r.invoice_amount, r.currency)}</TableCell>
-                        <TableCell className="hidden md:table-cell">{formatDate(r.invoice_date)}</TableCell>
-                      </TableRow>
+                    {Array.from(blGroups.entries()).map(([blNo, group]) => (
+                      group.map((r, idx) => (
+                        <TableRow key={r.id} className={group.length > 1 ? 'border-l-2 border-l-primary' : ''}>
+                          <TableCell className="font-mono font-medium">
+                            <div className="flex items-center gap-1">
+                              {r.bl_no}
+                              {group.length > 1 && (
+                                <Badge variant="outline" className="text-[10px] px-1 py-0 border-primary/40 text-primary">
+                                  {idx + 1}/{group.length}
+                                </Badge>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell className="font-mono">{r.container_no}</TableCell>
+                          <TableCell>{r.used_for}</TableCell>
+                          <TableCell className="hidden md:table-cell">{r.used_for_beneficiary || '—'}</TableCell>
+                          <TableCell className="hidden md:table-cell">{r.bank}</TableCell>
+                          <TableCell className="font-mono font-bold">{formatAmount(r.invoice_amount, r.currency)}</TableCell>
+                          <TableCell className="hidden md:table-cell">{formatDate(r.invoice_date)}</TableCell>
+                        </TableRow>
+                      ))
                     ))}
                   </TableBody>
                 </Table>
