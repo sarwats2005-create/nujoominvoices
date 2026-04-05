@@ -314,7 +314,7 @@ export const useUnusedBL = () => {
       unused: records.filter(r => r.status === 'UNUSED').length,
       used: records.filter(r => r.status === 'USED').length,
     },
-    createRecord, deleteRecord, updateRecord, uploadFiles, getFiles, getSignedUrl, useBL, revertBL,
+    createRecord, deleteRecord, updateRecord, uploadFiles, getFiles, getSignedUrl, useBL, revertBL, addInvoiceToUsedBL,
     checkDuplicateBLNo, checkContainerWarning, refetch: fetchRecords, getUniqueOwners, getChangeLog,
   };
 };
