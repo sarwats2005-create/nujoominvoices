@@ -137,10 +137,13 @@ export const useUnusedBL = () => {
     const { error: insertError } = await db('used_bl_counting').insert(insertData);
     if (insertError) return false;
 
-    const { error: updateError } = await db('unused_bl')
-      .update({ status: 'USED', used_at: new Date().toISOString() })
-      .eq('id', blId);
-    if (updateError) return false;
+    // Always mark the source as USED (idempotent for multi-invoice)
+    if (record.status !== 'USED') {
+      const { error: updateError } = await db('unused_bl')
+        .update({ status: 'USED', used_at: new Date().toISOString() })
+        .eq('id', blId);
+      if (updateError) return false;
+    }
 
     // Log the transition
     await logChange(blId, record.bl_no, 'used', {
@@ -152,6 +155,42 @@ export const useUnusedBL = () => {
     }, null, formData.dashboard_id);
 
     await fetchRecords();
+    return true;
+  };
+
+  const addInvoiceToUsedBL = async (sourceUnusedBlId: string, formData: UseBLFormData): Promise<boolean> => {
+    if (!user) return false;
+    // Fetch source record from DB directly (may not be in local records if status filter hides it)
+    const { data: srcData } = await db('unused_bl').select('*').eq('id', sourceUnusedBlId).single();
+    if (!srcData) return false;
+    const src = srcData as UnusedBL;
+
+    const insertData: any = {
+      user_id: user.id,
+      dashboard_id: formData.dashboard_id,
+      bl_no: src.bl_no,
+      container_no: src.container_no,
+      invoice_amount: formData.invoice_amount,
+      invoice_date: formData.invoice_date,
+      bank: formData.bank,
+      owner: src.owner,
+      used_for: formData.using_for,
+      used_for_beneficiary: formData.used_for_beneficiary || null,
+      currency: formData.currency || 'USD',
+      source_unused_bl_id: sourceUnusedBlId,
+    };
+
+    const { error: insertError } = await db('used_bl_counting').insert(insertData);
+    if (insertError) return false;
+
+    await logChange(sourceUnusedBlId, src.bl_no, 'used', {
+      used_for: { from: null, to: formData.using_for },
+      invoice_amount: { from: null, to: formData.invoice_amount },
+      currency: { from: null, to: formData.currency },
+      bank: { from: null, to: formData.bank },
+      dashboard_id: { from: null, to: formData.dashboard_id },
+    }, null, formData.dashboard_id);
+
     return true;
   };
 
