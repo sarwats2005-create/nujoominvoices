@@ -286,14 +286,31 @@ const UnusedBLOwnerDetail: React.FC = () => {
       doc.text(`Used B/L — ${dashName} (${records.length})`, 14, yPos);
       yPos += 4;
 
+      // Group by bl_no for multi-invoice rendering
+      const blGroups = new Map<string, typeof records>();
+      records.forEach(r => {
+        const key = r.bl_no;
+        const existing = blGroups.get(key) || [];
+        existing.push(r);
+        blGroups.set(key, existing);
+      });
+
+      const tableBody: any[][] = [];
+      blGroups.forEach((group) => {
+        group.forEach((r, idx) => {
+          const prefix = group.length > 1 ? `${r.bl_no} [${idx + 1}/${group.length}]` : r.bl_no;
+          tableBody.push([
+            prefix, r.container_no, r.used_for, r.used_for_beneficiary || '—',
+            r.bank, formatAmount(r.invoice_amount, r.currency), r.currency || 'USD',
+            formatDate(r.invoice_date),
+          ]);
+        });
+      });
+
       autoTable(doc, {
         startY: yPos,
         head: [['B/L No', 'Container', 'Used For', 'Beneficiary', 'Bank', 'Amount', 'Currency', 'Invoice Date']],
-        body: records.map(r => [
-          r.bl_no, r.container_no, r.used_for, r.used_for_beneficiary || '—',
-          r.bank, formatAmount(r.invoice_amount, r.currency), r.currency || 'USD',
-          formatDate(r.invoice_date),
-        ]),
+        body: tableBody,
         styles: { fontSize: 7, cellPadding: 2 },
         headStyles: { fillColor: [39, 174, 96], textColor: 255, fontStyle: 'bold' },
         alternateRowStyles: { fillColor: [245, 245, 245] },
