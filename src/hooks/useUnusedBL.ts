@@ -137,10 +137,13 @@ export const useUnusedBL = () => {
     const { error: insertError } = await db('used_bl_counting').insert(insertData);
     if (insertError) return false;
 
-    const { error: updateError } = await db('unused_bl')
-      .update({ status: 'USED', used_at: new Date().toISOString() })
-      .eq('id', blId);
-    if (updateError) return false;
+    // Always mark the source as USED (idempotent for multi-invoice)
+    if (record.status !== 'USED') {
+      const { error: updateError } = await db('unused_bl')
+        .update({ status: 'USED', used_at: new Date().toISOString() })
+        .eq('id', blId);
+      if (updateError) return false;
+    }
 
     // Log the transition
     await logChange(blId, record.bl_no, 'used', {
@@ -152,6 +155,42 @@ export const useUnusedBL = () => {
     }, null, formData.dashboard_id);
 
     await fetchRecords();
+    return true;
+  };
+
+  const addInvoiceToUsedBL = async (sourceUnusedBlId: string, formData: UseBLFormData): Promise<boolean> => {
+    if (!user) return false;
+    // Fetch source record from DB directly (may not be in local records if status filter hides it)
+    const { data: srcData } = await db('unused_bl').select('*').eq('id', sourceUnusedBlId).single();
+    if (!srcData) return false;
+    const src = srcData as UnusedBL;
+
+    const insertData: any = {
+      user_id: user.id,
+      dashboard_id: formData.dashboard_id,
+      bl_no: src.bl_no,
+      container_no: src.container_no,
+      invoice_amount: formData.invoice_amount,
+      invoice_date: formData.invoice_date,
+      bank: formData.bank,
+      owner: src.owner,
+      used_for: formData.using_for,
+      used_for_beneficiary: formData.used_for_beneficiary || null,
+      currency: formData.currency || 'USD',
+      source_unused_bl_id: sourceUnusedBlId,
+    };
+
+    const { error: insertError } = await db('used_bl_counting').insert(insertData);
+    if (insertError) return false;
+
+    await logChange(sourceUnusedBlId, src.bl_no, 'used', {
+      used_for: { from: null, to: formData.using_for },
+      invoice_amount: { from: null, to: formData.invoice_amount },
+      currency: { from: null, to: formData.currency },
+      bank: { from: null, to: formData.bank },
+      dashboard_id: { from: null, to: formData.dashboard_id },
+    }, null, formData.dashboard_id);
+
     return true;
   };
 
@@ -181,21 +220,6 @@ export const useUnusedBL = () => {
       dashboard_id: usedRecord.dashboard_id,
     };
 
-    // Restore unused_bl to UNUSED
-    const { error: restoreError } = await db('unused_bl')
-      .update({
-        status: 'UNUSED',
-        used_at: null,
-        original_used_data: originalUsedData,
-        revert_reason: reason,
-        reverted_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', sourceUnusedId)
-      .eq('user_id', user.id);
-
-    if (restoreError) return false;
-
     // Soft-delete the used record
     const { error: deleteError } = await db('used_bl_counting')
       .update({ is_active: false })
@@ -204,11 +228,37 @@ export const useUnusedBL = () => {
 
     if (deleteError) return false;
 
+    // Check if there are remaining active sibling records
+    const { data: siblings } = await db('used_bl_counting')
+      .select('id')
+      .eq('source_unused_bl_id', sourceUnusedId)
+      .eq('is_active', true);
+
+    const remainingSiblings = (siblings || []).length;
+
+    // Only revert to UNUSED if no active siblings remain
+    if (remainingSiblings === 0) {
+      const { error: restoreError } = await db('unused_bl')
+        .update({
+          status: 'UNUSED',
+          used_at: null,
+          original_used_data: originalUsedData,
+          revert_reason: reason,
+          reverted_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', sourceUnusedId)
+        .eq('user_id', user.id);
+
+      if (restoreError) return false;
+    }
+
     // Log the revert
     await logChange(sourceUnusedId, usedRecord.bl_no, 'reverted', {
       used_for: { from: usedRecord.used_for, to: null },
       invoice_amount: { from: usedRecord.invoice_amount, to: null },
       dashboard_id: { from: usedRecord.dashboard_id, to: null },
+      remaining_invoices: remainingSiblings,
     }, reason, usedRecord.dashboard_id);
 
     await fetchRecords();
@@ -264,7 +314,7 @@ export const useUnusedBL = () => {
       unused: records.filter(r => r.status === 'UNUSED').length,
       used: records.filter(r => r.status === 'USED').length,
     },
-    createRecord, deleteRecord, updateRecord, uploadFiles, getFiles, getSignedUrl, useBL, revertBL,
+    createRecord, deleteRecord, updateRecord, uploadFiles, getFiles, getSignedUrl, useBL, revertBL, addInvoiceToUsedBL,
     checkDuplicateBLNo, checkContainerWarning, refetch: fetchRecords, getUniqueOwners, getChangeLog,
   };
 };

@@ -14,10 +14,10 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import SettingsBackedSelect from '@/components/SettingsBackedSelect';
-import { CalendarIcon, Eye, CheckCircle, AlertTriangle } from 'lucide-react';
+import { CalendarIcon, Eye, CheckCircle, AlertTriangle, Plus, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
-import type { UnusedBL } from '@/types/unusedBL';
+import type { UnusedBL, UseBLFormData } from '@/types/unusedBL';
 import BLDetailViewer from './BLDetailViewer';
 
 interface UseBLModalProps {
@@ -26,6 +26,32 @@ interface UseBLModalProps {
   onOpenChange: (open: boolean) => void;
 }
 
+interface InvoiceEntry {
+  id: string;
+  usingFor: string;
+  usedForBeneficiary: string;
+  bank: string;
+  invoiceAmount: string;
+  currency: string;
+  invoiceDate: Date | undefined;
+  invoiceDateText: string;
+  usedForManufacturer: string;
+  dashboardId: string;
+}
+
+const createEmptyEntry = (): InvoiceEntry => ({
+  id: crypto.randomUUID(),
+  usingFor: '',
+  usedForBeneficiary: '',
+  bank: '',
+  invoiceAmount: '',
+  currency: 'USD',
+  invoiceDate: undefined,
+  invoiceDateText: '',
+  usedForManufacturer: '',
+  dashboardId: '',
+});
+
 const UseBLModal: React.FC<UseBLModalProps> = ({ record, open, onOpenChange }) => {
   const { t } = useLanguage();
   const { useBL, getUniqueOwners } = useUnusedBL();
@@ -33,20 +59,11 @@ const UseBLModal: React.FC<UseBLModalProps> = ({ record, open, onOpenChange }) =
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  const [usingFor, setUsingFor] = useState('');
-  const [bank, setBank] = useState('');
-  const [invoiceAmount, setInvoiceAmount] = useState('');
-  const [currency, setCurrency] = useState('USD');
-  const [invoiceDate, setInvoiceDate] = useState<Date | undefined>();
-  const [invoiceDateText, setInvoiceDateText] = useState('');
-  const [usedForManufacturer, setUsedForManufacturer] = useState('');
-  const [usedForBeneficiary, setUsedForBeneficiary] = useState('');
-  const [dashboardId, setDashboardId] = useState('');
+  const [entries, setEntries] = useState<InvoiceEntry[]>([createEmptyEntry()]);
   const [dashboards, setDashboards] = useState<{ id: string; name: string }[]>([]);
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [showDetail, setShowDetail] = useState(false);
-  const [calendarOpen, setCalendarOpen] = useState(false);
 
   const ownerOptions = getUniqueOwners();
   const hasOriginalData = record.original_used_data != null;
@@ -57,26 +74,29 @@ const UseBLModal: React.FC<UseBLModalProps> = ({ record, open, onOpenChange }) =
       const { data } = await supabase.from('bl_dashboards').select('id, name').eq('user_id', user.id);
       if (data) {
         setDashboards(data);
-        if (data.length === 1) setDashboardId(data[0].id);
+        if (data.length === 1) {
+          setEntries(prev => prev.map(e => ({ ...e, dashboardId: e.dashboardId || data[0].id })));
+        }
       }
     };
     if (open) {
       fetchDashboards();
       if (hasOriginalData && record.original_used_data) {
         const od = record.original_used_data;
-        setUsingFor(od.used_for || '');
-        setUsedForBeneficiary(od.used_for_beneficiary || '');
-        setBank(od.bank || '');
-        setCurrency(od.currency || 'USD');
-        if (od.invoice_amount) setInvoiceAmount(od.invoice_amount.toString());
-        if (od.dashboard_id) setDashboardId(od.dashboard_id);
-        if (od.invoice_date) {
-          try {
-            const d = new Date(od.invoice_date);
-            setInvoiceDate(d);
-            setInvoiceDateText(format(d, 'dd/MM/yyyy'));
-          } catch {}
-        }
+        setEntries([{
+          ...createEmptyEntry(),
+          usingFor: od.used_for || '',
+          usedForBeneficiary: od.used_for_beneficiary || '',
+          bank: od.bank || '',
+          currency: od.currency || 'USD',
+          invoiceAmount: od.invoice_amount ? od.invoice_amount.toString() : '',
+          dashboardId: od.dashboard_id || '',
+          invoiceDate: od.invoice_date ? new Date(od.invoice_date) : undefined,
+          invoiceDateText: od.invoice_date ? format(new Date(od.invoice_date), 'dd/MM/yyyy') : '',
+          usedForManufacturer: '',
+        }]);
+      } else {
+        setEntries([createEmptyEntry()]);
       }
     }
   }, [open, user, hasOriginalData]);
@@ -88,10 +108,14 @@ const UseBLModal: React.FC<UseBLModalProps> = ({ record, open, onOpenChange }) =
     return isNaN(d.getTime()) ? null : d;
   };
 
-  const handleDateText = (text: string) => {
-    setInvoiceDateText(text);
+  const updateEntry = (id: string, field: keyof InvoiceEntry, value: any) => {
+    setEntries(prev => prev.map(e => e.id === id ? { ...e, [field]: value } : e));
+  };
+
+  const handleDateText = (entryId: string, text: string) => {
+    updateEntry(entryId, 'invoiceDateText', text);
     const d = parseDateText(text);
-    if (d) setInvoiceDate(d);
+    if (d) updateEntry(entryId, 'invoiceDate', d);
   };
 
   const formatAmount = (value: string) => {
@@ -100,31 +124,56 @@ const UseBLModal: React.FC<UseBLModalProps> = ({ record, open, onOpenChange }) =
     return Number(num).toLocaleString();
   };
 
+  const addEntry = () => {
+    const last = entries[entries.length - 1];
+    setEntries(prev => [...prev, {
+      ...createEmptyEntry(),
+      dashboardId: last?.dashboardId || '',
+      bank: last?.bank || '',
+      currency: last?.currency || 'USD',
+    }]);
+  };
+
+  const removeEntry = (id: string) => {
+    if (entries.length <= 1) return;
+    setEntries(prev => prev.filter(e => e.id !== id));
+  };
+
   const handleConfirm = async () => {
-    if (!usingFor.trim()) { setError('Customer name is required'); return; }
-    if (!bank.trim()) { setError('Bank is required'); return; }
-    if (!invoiceAmount || parseFloat(invoiceAmount) <= 0) { setError('Valid invoice amount is required'); return; }
-    if (!invoiceDate) { setError('Invoice date is required'); return; }
-    if (!usedForManufacturer.trim()) { setError('Used for manufacturer is required'); return; }
-    if (!dashboardId) { setError('Please select a target dashboard'); return; }
+    for (let i = 0; i < entries.length; i++) {
+      const e = entries[i];
+      const num = i + 1;
+      if (!e.usingFor.trim()) { setError(`Invoice #${num}: Customer name is required`); return; }
+      if (!e.bank.trim()) { setError(`Invoice #${num}: Bank is required`); return; }
+      if (!e.invoiceAmount || parseFloat(e.invoiceAmount.replace(/,/g, '')) <= 0) { setError(`Invoice #${num}: Valid amount required`); return; }
+      if (!e.invoiceDate) { setError(`Invoice #${num}: Invoice date is required`); return; }
+      if (!e.usedForManufacturer.trim()) { setError(`Invoice #${num}: Manufacturer is required`); return; }
+      if (!e.dashboardId) { setError(`Invoice #${num}: Select a target dashboard`); return; }
+    }
 
     setError('');
     setSubmitting(true);
-    const ok = await useBL(record.id, {
-      using_for: usingFor.trim().toUpperCase(),
-      bank: bank.trim().toUpperCase(),
-      invoice_amount: parseFloat(invoiceAmount.replace(/,/g, '')),
-      currency,
-      invoice_date: format(invoiceDate, 'yyyy-MM-dd'),
-      used_for_manufacturer: usedForManufacturer.trim().toUpperCase(),
-      used_for_beneficiary: usedForBeneficiary.trim().toUpperCase() || '',
-      dashboard_id: dashboardId,
-    });
+
+    let allOk = true;
+    for (const e of entries) {
+      const ok = await useBL(record.id, {
+        using_for: e.usingFor.trim().toUpperCase(),
+        bank: e.bank.trim().toUpperCase(),
+        invoice_amount: parseFloat(e.invoiceAmount.replace(/,/g, '')),
+        currency: e.currency,
+        invoice_date: format(e.invoiceDate!, 'yyyy-MM-dd'),
+        used_for_manufacturer: e.usedForManufacturer.trim().toUpperCase(),
+        used_for_beneficiary: e.usedForBeneficiary.trim().toUpperCase() || '',
+        dashboard_id: e.dashboardId,
+      });
+      if (!ok) { allOk = false; break; }
+    }
+
     setSubmitting(false);
 
-    if (ok) {
+    if (allOk) {
       toast({
-        title: t('movedToUsedBL'),
+        title: entries.length > 1 ? `${entries.length} invoices created for this B/L` : t('movedToUsedBL'),
         description: (
           <Button variant="outline" size="sm" onClick={() => navigate('/used-bl')} className="mt-2">
             {t('viewInUsedBL')}
@@ -133,17 +182,20 @@ const UseBLModal: React.FC<UseBLModalProps> = ({ record, open, onOpenChange }) =
       });
       onOpenChange(false);
     } else {
-      setError('Failed to convert. Please try again.');
+      setError('Failed to convert one or more invoices. Please try again.');
     }
   };
 
   return (
     <>
       <Dialog open={open && !showDetail} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <CheckCircle className="h-5 w-5 text-primary" /> {t('useThisBL')}
+              {record.status === 'USED' && (
+                <Badge variant="outline" className="bg-success/10 text-success border-success/30 text-xs ml-2">Adding Invoice</Badge>
+              )}
             </DialogTitle>
           </DialogHeader>
 
@@ -178,95 +230,91 @@ const UseBLModal: React.FC<UseBLModalProps> = ({ record, open, onOpenChange }) =
             </div>
           )}
 
-          {/* Conversion form */}
+          {/* Invoice entries */}
           <div className="space-y-4">
-            {/* Customer Name (Using For) */}
-            <div className="space-y-1.5">
-              <Label>{t('usingFor')} (Customer) <span className="text-destructive">*</span></Label>
-              <SettingsBackedSelect
-                presetType="used_for"
-                value={usingFor}
-                onChange={setUsingFor}
-                placeholder="Select customer"
-                extraOptions={ownerOptions}
-              />
-            </div>
+            {entries.map((entry, idx) => (
+              <div key={entry.id} className={`space-y-3 ${entries.length > 1 ? 'border-l-2 border-primary pl-4 pb-2' : ''}`}>
+                {entries.length > 1 && (
+                  <div className="flex items-center justify-between">
+                    <Badge variant="secondary" className="text-xs">Invoice #{idx + 1}</Badge>
+                    <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => removeEntry(entry.id)}>
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                )}
 
-            {/* Beneficiary */}
-            <div className="space-y-1.5">
-              <Label>{t('beneficiary') || 'Used For Beneficiary'}</Label>
-              <SettingsBackedSelect
-                presetType="beneficiary"
-                value={usedForBeneficiary}
-                onChange={setUsedForBeneficiary}
-                placeholder="Select beneficiary"
-              />
-            </div>
+                <div className="space-y-1.5">
+                  <Label>{t('usingFor')} (Customer) <span className="text-destructive">*</span></Label>
+                  <SettingsBackedSelect presetType="used_for" value={entry.usingFor} onChange={v => updateEntry(entry.id, 'usingFor', v)} placeholder="Select customer" extraOptions={ownerOptions} />
+                </div>
 
-            {/* Bank */}
-            <div className="space-y-1.5">
-              <Label>{t('bank')} <span className="text-destructive">*</span></Label>
-              <SettingsBackedSelect
-                presetType="bank"
-                value={bank}
-                onChange={setBank}
-                placeholder="Select bank"
-              />
-            </div>
+                <div className="space-y-1.5">
+                  <Label>{t('beneficiary') || 'Used For Beneficiary'}</Label>
+                  <SettingsBackedSelect presetType="beneficiary" value={entry.usedForBeneficiary} onChange={v => updateEntry(entry.id, 'usedForBeneficiary', v)} placeholder="Select beneficiary" />
+                </div>
 
-            <div className="space-y-1.5">
-              <Label>{t('invoiceAmount')} <span className="text-destructive">*</span></Label>
-              <div className="flex gap-2">
-                <Select value={currency} onValueChange={setCurrency}>
-                  <SelectTrigger className="w-[90px]"><SelectValue /></SelectTrigger>
-                  <SelectContent className="bg-popover">
-                    {currencies.map(c => (
-                      <SelectItem key={c.code} value={c.code}>{c.symbol} {c.code}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Input value={formatAmount(invoiceAmount)} onChange={e => setInvoiceAmount(e.target.value.replace(/,/g, ''))}
-                  placeholder="0" type="text" inputMode="numeric" className="flex-1" />
+                <div className="space-y-1.5">
+                  <Label>{t('bank')} <span className="text-destructive">*</span></Label>
+                  <SettingsBackedSelect presetType="bank" value={entry.bank} onChange={v => updateEntry(entry.id, 'bank', v)} placeholder="Select bank" />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label>{t('invoiceAmount')} <span className="text-destructive">*</span></Label>
+                  <div className="flex gap-2">
+                    <Select value={entry.currency} onValueChange={v => updateEntry(entry.id, 'currency', v)}>
+                      <SelectTrigger className="w-[90px]"><SelectValue /></SelectTrigger>
+                      <SelectContent className="bg-popover">
+                        {currencies.map(c => <SelectItem key={c.code} value={c.code}>{c.symbol} {c.code}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                    <Input value={formatAmount(entry.invoiceAmount)} onChange={e => updateEntry(entry.id, 'invoiceAmount', e.target.value.replace(/,/g, ''))} placeholder="0" type="text" inputMode="numeric" className="flex-1" />
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label>{t('invoiceDate')} <span className="text-destructive">*</span></Label>
+                  <div className="flex gap-1.5">
+                    <Input value={entry.invoiceDateText} onChange={e => handleDateText(entry.id, e.target.value)} placeholder="DD/MM/YYYY" className="flex-1" />
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" size="icon"><CalendarIcon className="h-4 w-4" /></Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar mode="single" selected={entry.invoiceDate}
+                          onSelect={d => { updateEntry(entry.id, 'invoiceDate', d); if (d) updateEntry(entry.id, 'invoiceDateText', format(d, 'dd/MM/yyyy')); }}
+                          className="pointer-events-auto" />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label>{t('usedForManufacturer')} <span className="text-destructive">*</span></Label>
+                  <Input value={entry.usedForManufacturer} onChange={e => updateEntry(entry.id, 'usedForManufacturer', e.target.value)} placeholder="Company name used for" />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label>{t('selectBLDashboardTarget')} <span className="text-destructive">*</span></Label>
+                  <Select value={entry.dashboardId} onValueChange={v => updateEntry(entry.id, 'dashboardId', v)}>
+                    <SelectTrigger><SelectValue placeholder="Select dashboard" /></SelectTrigger>
+                    <SelectContent className="bg-popover">
+                      {dashboards.map(d => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-            </div>
-
-            <div className="space-y-1.5">
-              <Label>{t('invoiceDate')} <span className="text-destructive">*</span></Label>
-              <div className="flex gap-1.5">
-                <Input value={invoiceDateText} onChange={e => handleDateText(e.target.value)} placeholder="DD/MM/YYYY" className="flex-1" />
-                <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" size="icon"><CalendarIcon className="h-4 w-4" /></Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar mode="single" selected={invoiceDate}
-                      onSelect={d => { setInvoiceDate(d); if (d) setInvoiceDateText(format(d, 'dd/MM/yyyy')); setCalendarOpen(false); }}
-                      className="pointer-events-auto" />
-                  </PopoverContent>
-                </Popover>
-              </div>
-            </div>
-
-            <div className="space-y-1.5">
-              <Label>{t('usedForManufacturer')} <span className="text-destructive">*</span></Label>
-              <Input value={usedForManufacturer} onChange={e => setUsedForManufacturer(e.target.value)} placeholder="Company name used for" />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label>{t('selectBLDashboardTarget')} <span className="text-destructive">*</span></Label>
-              <Select value={dashboardId} onValueChange={setDashboardId}>
-                <SelectTrigger><SelectValue placeholder="Select dashboard" /></SelectTrigger>
-                <SelectContent className="bg-popover">
-                  {dashboards.map(d => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
+            ))}
           </div>
+
+          {/* Add another invoice */}
+          <Button variant="outline" onClick={addEntry} className="gap-2 w-full border-dashed">
+            <Plus className="h-4 w-4" /> Add Another Invoice for this B/L
+          </Button>
 
           <div className="flex gap-2 justify-end pt-4 border-t">
             <Button variant="outline" onClick={() => onOpenChange(false)}>{t('cancel')}</Button>
             <Button onClick={handleConfirm} disabled={submitting} className="gap-2">
-              <CheckCircle className="h-4 w-4" /> {t('confirmUse')}
+              <CheckCircle className="h-4 w-4" /> {entries.length > 1 ? `Create ${entries.length} Invoices` : t('confirmUse')}
             </Button>
           </div>
         </DialogContent>

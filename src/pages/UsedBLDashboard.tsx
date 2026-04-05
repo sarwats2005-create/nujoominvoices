@@ -81,14 +81,37 @@ const UsedBLDashboard: React.FC = () => {
   }, [records, searchQuery, bankFilter, ownerFilter]);
 
   const sortedRecords = useMemo(() => {
-    return [...filteredRecords].sort((a, b) => {
+    const sorted = [...filteredRecords].sort((a, b) => {
       let comparison = 0;
       if (sortKey === 'invoice_amount') comparison = a.invoice_amount - b.invoice_amount;
       else if (sortKey === 'invoice_date') comparison = parseDateString(a.invoice_date).getTime() - parseDateString(b.invoice_date).getTime();
       else comparison = String(a[sortKey]).localeCompare(String(b[sortKey]));
       return sortAsc ? comparison : -comparison;
     });
+    return sorted;
   }, [filteredRecords, sortKey, sortAsc]);
+
+  // Group records by source_unused_bl_id for visual grouping
+  const siblingMap = useMemo(() => {
+    const map = new Map<string, string[]>();
+    sortedRecords.forEach(r => {
+      const srcId = (r as any).source_unused_bl_id;
+      if (srcId) {
+        const existing = map.get(srcId) || [];
+        existing.push(r.id);
+        map.set(srcId, existing);
+      }
+    });
+    return map;
+  }, [sortedRecords]);
+
+  const getSiblingInfo = (record: UsedBL): { count: number; index: number } | null => {
+    const srcId = (record as any).source_unused_bl_id;
+    if (!srcId) return null;
+    const siblings = siblingMap.get(srcId);
+    if (!siblings || siblings.length <= 1) return null;
+    return { count: siblings.length, index: siblings.indexOf(record.id) + 1 };
+  };
 
   const totalsByCurrency = useMemo(() => {
     const totals: Record<string, number> = {};
@@ -437,15 +460,29 @@ const UsedBLDashboard: React.FC = () => {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  sortedRecords.map((record) => (
-                    <TableRow key={record.id} className="cursor-pointer hover:bg-accent/30 transition-colors" onClick={() => navigate(`/used-bl/${record.id}`)}>
+                  sortedRecords.map((record) => {
+                    const sibInfo = getSiblingInfo(record);
+                    return (
+                    <TableRow key={record.id} className={cn(
+                      "cursor-pointer hover:bg-accent/30 transition-colors",
+                      sibInfo && "border-l-2 border-l-primary"
+                    )} onClick={() => navigate(`/used-bl/${record.id}`)}>
                       <TableCell onClick={(e) => e.stopPropagation()}>
                         <Checkbox
                           checked={selectedIds.has(record.id)}
                           onCheckedChange={() => toggleSelect(record.id)}
                         />
                       </TableCell>
-                      <TableCell className="font-mono font-medium text-xs sm:text-sm">{record.bl_no}</TableCell>
+                      <TableCell className="font-mono font-medium text-xs sm:text-sm">
+                        <div className="flex items-center gap-1.5">
+                          {record.bl_no}
+                          {sibInfo && (
+                            <Badge variant="outline" className="text-[10px] px-1 py-0 border-primary/40 text-primary">
+                              {sibInfo.index}/{sibInfo.count}
+                            </Badge>
+                          )}
+                        </div>
+                      </TableCell>
                       <TableCell className="font-mono text-xs sm:text-sm">{record.container_no}</TableCell>
                       <TableCell className="font-semibold text-xs sm:text-sm">{formatAmount(record.invoice_amount, (record as any).currency)}</TableCell>
                       <TableCell className="text-xs sm:text-sm">{format(parseDateString(record.invoice_date), 'dd/MM/yyyy')}</TableCell>
@@ -473,7 +510,8 @@ const UsedBLDashboard: React.FC = () => {
                         </div>
                       </TableCell>
                     </TableRow>
-                  ))
+                    );
+                  })
                 )}
               </TableBody>
             </Table>

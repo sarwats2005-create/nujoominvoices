@@ -294,6 +294,11 @@ const UnusedBLDashboard: React.FC = () => {
                             </Button>
                           </>
                         )}
+                        {record.status === 'USED' && (
+                          <Button variant="outline" size="sm" className="h-8 gap-1 text-xs text-primary border-primary/30 hover:bg-primary/10" onClick={() => setUseModalRecord(record)}>
+                            <Plus className="h-3.5 w-3.5" /> Add Invoice
+                          </Button>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>
