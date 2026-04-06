@@ -11,7 +11,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Slider } from '@/components/ui/slider';
 import { useToast } from '@/hooks/use-toast';
 import { useSoundEffects } from '@/hooks/useSoundEffects';
-import { Settings as SettingsIcon, Languages, Image, Building2, Trash2, LayoutDashboard, Mail, Phone, MapPin, Coins, Download, Smartphone, Check, Volume2 } from 'lucide-react';
+import { Settings as SettingsIcon, Languages, Image, Building2, Trash2, LayoutDashboard, Mail, Phone, MapPin, Coins, Download, Smartphone, Check, Volume2, Shield } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useAdmin } from '@/hooks/useAdmin';
 import DashboardSelector from '@/components/DashboardSelector';
 import BLPresetsManager from '@/components/BLPresetsManager';
 import BLDashboardManager from '@/components/BLDashboardManager';
