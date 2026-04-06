@@ -20,6 +20,8 @@ import BLDashboardManager from '@/components/BLDashboardManager';
 import UnusedBLSettingsPanel from '@/components/unused-bl/UnusedBLSettingsPanel';
 
 const Settings: React.FC = () => {
+  const navigate = useNavigate();
+  const { isAdmin } = useAdmin();
   const { t, language, setLanguage } = useLanguage();
   const { logo, setLogo, contactInfo, setContactInfo, currency, setCurrency, soundVolume, setSoundVolume } = useSettings();
   const { playWinSound } = useSoundEffects();
