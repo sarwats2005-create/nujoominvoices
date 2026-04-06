@@ -54,7 +54,7 @@ const createEmptyEntry = (): InvoiceEntry => ({
 
 const UseBLModal: React.FC<UseBLModalProps> = ({ record, open, onOpenChange }) => {
   const { t } = useLanguage();
-  const { useBL, getUniqueOwners } = useUnusedBL();
+  const { useBL, addInvoiceToUsedBL, getUniqueOwners } = useUnusedBL();
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
