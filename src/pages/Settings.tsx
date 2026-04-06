@@ -245,6 +245,24 @@ const Settings: React.FC = () => {
 
       {/* Unused B/L Settings */}
       <UnusedBLSettingsPanel />
+
+      {/* Admin Panel */}
+      {isAdmin && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Shield className="h-5 w-5" />
+              {t('adminPanel')}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Button onClick={() => navigate('/admin')} variant="outline" className="flex items-center gap-2">
+              <Shield className="h-4 w-4" />
+              {t('adminPanel')}
+            </Button>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
