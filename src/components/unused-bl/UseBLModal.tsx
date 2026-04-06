@@ -54,7 +54,7 @@ const createEmptyEntry = (): InvoiceEntry => ({
 
 const UseBLModal: React.FC<UseBLModalProps> = ({ record, open, onOpenChange }) => {
   const { t } = useLanguage();
-  const { useBL, getUniqueOwners } = useUnusedBL();
+  const { useBL, addInvoiceToUsedBL, getUniqueOwners } = useUnusedBL();
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -155,8 +155,10 @@ const UseBLModal: React.FC<UseBLModalProps> = ({ record, open, onOpenChange }) =
     setSubmitting(true);
 
     let allOk = true;
-    for (const e of entries) {
-      const ok = await useBL(record.id, {
+    const isAlreadyUsed = record.status === 'USED';
+    for (let i = 0; i < entries.length; i++) {
+      const e = entries[i];
+      const formData: UseBLFormData = {
         using_for: e.usingFor.trim().toUpperCase(),
         bank: e.bank.trim().toUpperCase(),
         invoice_amount: parseFloat(e.invoiceAmount.replace(/,/g, '')),
@@ -165,7 +167,14 @@ const UseBLModal: React.FC<UseBLModalProps> = ({ record, open, onOpenChange }) =
         used_for_manufacturer: e.usedForManufacturer.trim().toUpperCase(),
         used_for_beneficiary: e.usedForBeneficiary.trim().toUpperCase() || '',
         dashboard_id: e.dashboardId,
-      });
+      };
+      // Use addInvoiceToUsedBL for already-used records (fetches from DB directly),
+      // useBL for first-time use (updates status to USED)
+      const ok = isAlreadyUsed && i === 0
+        ? await addInvoiceToUsedBL(record.id, formData)
+        : i === 0
+          ? await useBL(record.id, formData)
+          : await addInvoiceToUsedBL(record.id, formData);
       if (!ok) { allOk = false; break; }
     }
 
