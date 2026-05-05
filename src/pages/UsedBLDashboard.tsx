@@ -769,6 +769,20 @@ const UsedBLDashboard: React.FC = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Add Invoice for existing Used B/L */}
+      {addInvoiceSource && (
+        <UseBLModal
+          record={addInvoiceSource}
+          open={!!addInvoiceSource}
+          onOpenChange={(open) => {
+            if (!open) {
+              setAddInvoiceSource(null);
+              window.location.reload();
+            }
+          }}
+        />
+      )}
     </div>
   );
 };
