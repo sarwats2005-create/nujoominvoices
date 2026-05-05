@@ -22,7 +22,10 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import BLDashboardSelector from '@/components/BLDashboardSelector';
 import ArchiveFolderManager from '@/components/ArchiveFolderManager';
+import UseBLModal from '@/components/unused-bl/UseBLModal';
+import { supabase } from '@/integrations/supabase/client';
 import type { UsedBL } from '@/types/usedBL';
+import type { UnusedBL } from '@/types/unusedBL';
 
 type SortKey = 'bl_no' | 'container_no' | 'invoice_amount' | 'invoice_date' | 'bank' | 'owner' | 'used_for' | 'used_for_beneficiary';
 
@@ -51,6 +54,7 @@ const UsedBLDashboard: React.FC = () => {
   const [showBulkArchiveDialog, setShowBulkArchiveDialog] = useState(false);
   const [archiveFolderId, setArchiveFolderId] = useState<string>('none');
   const [archiveFolderFilter, setArchiveFolderFilter] = useState<string>('all');
+  const [addInvoiceSource, setAddInvoiceSource] = useState<UnusedBL | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const formatAmount = (amount: number, curr?: string) => {
@@ -88,7 +92,23 @@ const UsedBLDashboard: React.FC = () => {
       else comparison = String(a[sortKey]).localeCompare(String(b[sortKey]));
       return sortAsc ? comparison : -comparison;
     });
-    return sorted;
+    // Cluster sibling records (same source_unused_bl_id) together while preserving sort order of the first occurrence.
+    const result: typeof sorted = [];
+    const seenSources = new Set<string>();
+    sorted.forEach(r => {
+      const srcId = (r as any).source_unused_bl_id as string | undefined;
+      if (!srcId || seenSources.has(srcId)) return;
+      if (srcId) {
+        seenSources.add(srcId);
+        sorted.forEach(s => {
+          if ((s as any).source_unused_bl_id === srcId) result.push(s);
+        });
+      }
+    });
+    sorted.forEach(r => {
+      if (!result.includes(r)) result.push(r);
+    });
+    return result;
   }, [filteredRecords, sortKey, sortAsc]);
 
   // Group records by source_unused_bl_id for visual grouping
@@ -143,6 +163,20 @@ const UsedBLDashboard: React.FC = () => {
     if (count > 0) toast({ title: 'Record archived successfully' });
     setArchiveId(null);
     setArchiveFolderId('none');
+  };
+
+  const handleAddInvoiceForBL = async (record: UsedBL) => {
+    const srcId = (record as any).source_unused_bl_id;
+    if (!srcId) {
+      toast({ title: 'Cannot add invoice', description: 'This record has no source B/L link.', variant: 'destructive' });
+      return;
+    }
+    const { data, error } = await (supabase as any).from('unused_bl').select('*').eq('id', srcId).single();
+    if (error || !data) {
+      toast({ title: 'Source B/L not found', variant: 'destructive' });
+      return;
+    }
+    setAddInvoiceSource(data as UnusedBL);
   };
 
   const handleUnarchive = async (id: string) => {
@@ -465,7 +499,7 @@ const UsedBLDashboard: React.FC = () => {
                     return (
                     <TableRow key={record.id} className={cn(
                       "cursor-pointer hover:bg-accent/30 transition-colors",
-                      sibInfo && "border-l-2 border-l-primary"
+                      sibInfo && "border-l-4 border-l-primary bg-primary/5"
                     )} onClick={() => navigate(`/used-bl/${record.id}`)}>
                       <TableCell onClick={(e) => e.stopPropagation()}>
                         <Checkbox
@@ -492,12 +526,17 @@ const UsedBLDashboard: React.FC = () => {
                       <TableCell className="text-xs sm:text-sm">{(record as any).used_for_beneficiary || '—'}</TableCell>
                       <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                         <div className="flex justify-end gap-1">
-                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => navigate(`/used-bl/${record.id}`)}>
+                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => navigate(`/used-bl/${record.id}`)} title="View">
                             <Eye className="h-3.5 w-3.5" />
                           </Button>
-                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => navigate(`/used-bl/${record.id}/edit`)}>
+                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => navigate(`/used-bl/${record.id}/edit`)} title="Edit">
                             <Edit className="h-3.5 w-3.5" />
                           </Button>
+                          {(record as any).source_unused_bl_id && (
+                            <Button variant="ghost" size="icon" className="h-7 w-7 text-primary" onClick={() => handleAddInvoiceForBL(record)} title="Add another invoice for this B/L">
+                              <Plus className="h-3.5 w-3.5" />
+                            </Button>
+                          )}
                           <Button variant="outline" size="sm" className="h-7 gap-1 text-xs" onClick={() => setArchiveId(record.id)} title="Archive">
                             <Archive className="h-3.5 w-3.5" /> Archive
                           </Button>
@@ -730,6 +769,20 @@ const UsedBLDashboard: React.FC = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Add Invoice for existing Used B/L */}
+      {addInvoiceSource && (
+        <UseBLModal
+          record={addInvoiceSource}
+          open={!!addInvoiceSource}
+          onOpenChange={(open) => {
+            if (!open) {
+              setAddInvoiceSource(null);
+              window.location.reload();
+            }
+          }}
+        />
+      )}
     </div>
   );
 };
