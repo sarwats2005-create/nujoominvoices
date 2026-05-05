@@ -18,6 +18,7 @@ import { ArrowLeft, Download, Package, CheckCircle, FolderOpen, FileText, Users,
 import { format, startOfMonth, endOfMonth, isWithinInterval, parseISO } from 'date-fns';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { ensureUnicodeFont } from '@/lib/pdfFont';
 import type { UsedBL, BLDashboard } from '@/types/usedBL';
 
 const UnusedBLOwnerDetail: React.FC = () => {
