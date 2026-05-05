@@ -499,7 +499,7 @@ const UsedBLDashboard: React.FC = () => {
                     return (
                     <TableRow key={record.id} className={cn(
                       "cursor-pointer hover:bg-accent/30 transition-colors",
-                      sibInfo && "border-l-2 border-l-primary"
+                      sibInfo && "border-l-4 border-l-primary bg-primary/5"
                     )} onClick={() => navigate(`/used-bl/${record.id}`)}>
                       <TableCell onClick={(e) => e.stopPropagation()}>
                         <Checkbox
