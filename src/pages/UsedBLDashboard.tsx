@@ -165,6 +165,20 @@ const UsedBLDashboard: React.FC = () => {
     setArchiveFolderId('none');
   };
 
+  const handleAddInvoiceForBL = async (record: UsedBL) => {
+    const srcId = (record as any).source_unused_bl_id;
+    if (!srcId) {
+      toast({ title: 'Cannot add invoice', description: 'This record has no source B/L link.', variant: 'destructive' });
+      return;
+    }
+    const { data, error } = await (supabase as any).from('unused_bl').select('*').eq('id', srcId).single();
+    if (error || !data) {
+      toast({ title: 'Source B/L not found', variant: 'destructive' });
+      return;
+    }
+    setAddInvoiceSource(data as UnusedBL);
+  };
+
   const handleUnarchive = async (id: string) => {
     const ok = await unarchiveRecord(id);
     if (ok) toast({ title: 'Record restored from archive' });
