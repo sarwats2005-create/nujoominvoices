@@ -161,8 +161,10 @@ const UnusedBLOwnerDetail: React.FC = () => {
   };
 
   // ============= PDF EXPORT =============
-  const exportPDF = useCallback(() => {
+  const exportPDF = useCallback(async () => {
     const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const fontName = await ensureUnicodeFont(doc);
+    doc.setFont(fontName, 'normal');
     const isGov = statementFormat === 'government';
     const pageWidth = 210;
     let yPos = 15;
