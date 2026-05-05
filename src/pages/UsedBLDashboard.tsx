@@ -22,7 +22,10 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import BLDashboardSelector from '@/components/BLDashboardSelector';
 import ArchiveFolderManager from '@/components/ArchiveFolderManager';
+import UseBLModal from '@/components/unused-bl/UseBLModal';
+import { supabase } from '@/integrations/supabase/client';
 import type { UsedBL } from '@/types/usedBL';
+import type { UnusedBL } from '@/types/unusedBL';
 
 type SortKey = 'bl_no' | 'container_no' | 'invoice_amount' | 'invoice_date' | 'bank' | 'owner' | 'used_for' | 'used_for_beneficiary';
 
