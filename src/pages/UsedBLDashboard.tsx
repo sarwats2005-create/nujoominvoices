@@ -92,7 +92,23 @@ const UsedBLDashboard: React.FC = () => {
       else comparison = String(a[sortKey]).localeCompare(String(b[sortKey]));
       return sortAsc ? comparison : -comparison;
     });
-    return sorted;
+    // Cluster sibling records (same source_unused_bl_id) together while preserving sort order of the first occurrence.
+    const result: typeof sorted = [];
+    const seenSources = new Set<string>();
+    sorted.forEach(r => {
+      const srcId = (r as any).source_unused_bl_id as string | undefined;
+      if (!srcId || seenSources.has(srcId)) return;
+      if (srcId) {
+        seenSources.add(srcId);
+        sorted.forEach(s => {
+          if ((s as any).source_unused_bl_id === srcId) result.push(s);
+        });
+      }
+    });
+    sorted.forEach(r => {
+      if (!result.includes(r)) result.push(r);
+    });
+    return result;
   }, [filteredRecords, sortKey, sortAsc]);
 
   // Group records by source_unused_bl_id for visual grouping
