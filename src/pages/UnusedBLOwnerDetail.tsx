@@ -108,16 +108,17 @@ const UnusedBLOwnerDetail: React.FC = () => {
   // All used for calculations (active only, no archived)
   const allDisplayedUsed = useMemo(() => [...filteredUsed, ...filteredArchived], [filteredUsed, filteredArchived]);
 
-  // Group by dashboard
+  // Group by dashboard — skip records whose dashboard_id doesn't resolve to a real dashboard
   const usedByDashboard = useMemo(() => {
     const groups: Record<string, UsedBL[]> = {};
     filteredUsed.forEach(r => {
-      const key = r.dashboard_id || 'unknown';
+      if (!r.dashboard_id || !dashboardMap[r.dashboard_id]) return;
+      const key = r.dashboard_id;
       if (!groups[key]) groups[key] = [];
       groups[key].push(r);
     });
     return groups;
-  }, [filteredUsed]);
+  }, [filteredUsed, dashboardMap]);
 
   // Customer breakdown
   const customerBreakdown = useMemo(() => {
