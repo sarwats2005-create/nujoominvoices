@@ -54,6 +54,7 @@ const UsedBLDashboard: React.FC = () => {
   const [showBulkArchiveDialog, setShowBulkArchiveDialog] = useState(false);
   const [archiveFolderId, setArchiveFolderId] = useState<string>('none');
   const [archiveFolderFilter, setArchiveFolderFilter] = useState<string>('all');
+  const [addInvoiceSource, setAddInvoiceSource] = useState<UnusedBL | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const formatAmount = (amount: number, curr?: string) => {
