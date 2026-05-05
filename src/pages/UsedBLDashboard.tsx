@@ -526,12 +526,17 @@ const UsedBLDashboard: React.FC = () => {
                       <TableCell className="text-xs sm:text-sm">{(record as any).used_for_beneficiary || '—'}</TableCell>
                       <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                         <div className="flex justify-end gap-1">
-                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => navigate(`/used-bl/${record.id}`)}>
+                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => navigate(`/used-bl/${record.id}`)} title="View">
                             <Eye className="h-3.5 w-3.5" />
                           </Button>
-                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => navigate(`/used-bl/${record.id}/edit`)}>
+                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => navigate(`/used-bl/${record.id}/edit`)} title="Edit">
                             <Edit className="h-3.5 w-3.5" />
                           </Button>
+                          {(record as any).source_unused_bl_id && (
+                            <Button variant="ghost" size="icon" className="h-7 w-7 text-primary" onClick={() => handleAddInvoiceForBL(record)} title="Add another invoice for this B/L">
+                              <Plus className="h-3.5 w-3.5" />
+                            </Button>
+                          )}
                           <Button variant="outline" size="sm" className="h-7 gap-1 text-xs" onClick={() => setArchiveId(record.id)} title="Archive">
                             <Archive className="h-3.5 w-3.5" /> Archive
                           </Button>
