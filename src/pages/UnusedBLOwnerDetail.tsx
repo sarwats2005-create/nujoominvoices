@@ -272,8 +272,8 @@ const UnusedBLOwnerDetail: React.FC = () => {
           formatDate(r.bl_date), r.port_of_loading,
           r.status + (r.reverted_at ? ' (Reverted)' : ''),
         ]),
-        styles: { fontSize: 7, cellPadding: 2 },
-        headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: 'bold' },
+        styles: { fontSize: 7, cellPadding: 2, font: fontName },
+        headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: 'bold', font: fontName },
         alternateRowStyles: { fillColor: [245, 245, 245] },
         margin: { left: 14, right: 14 },
       });
@@ -315,8 +315,8 @@ const UnusedBLOwnerDetail: React.FC = () => {
         startY: yPos,
         head: [['B/L No', 'Container', 'Used For', 'Beneficiary', 'Bank', 'Amount', 'Currency', 'Invoice Date']],
         body: tableBody,
-        styles: { fontSize: 7, cellPadding: 2 },
-        headStyles: { fillColor: [39, 174, 96], textColor: 255, fontStyle: 'bold' },
+        styles: { fontSize: 7, cellPadding: 2, font: fontName },
+        headStyles: { fillColor: [39, 174, 96], textColor: 255, fontStyle: 'bold', font: fontName },
         alternateRowStyles: { fillColor: [245, 245, 245] },
         margin: { left: 14, right: 14 },
       });
@@ -352,8 +352,8 @@ const UnusedBLOwnerDetail: React.FC = () => {
           r.bl_no, r.container_no, r.used_for, r.bank,
           formatAmount(r.invoice_amount, r.currency), r.currency || 'USD', formatDate(r.invoice_date),
         ]),
-        styles: { fontSize: 7, cellPadding: 2, textColor: [128, 128, 128] },
-        headStyles: { fillColor: [160, 160, 160], textColor: 255, fontStyle: 'bold' },
+        styles: { fontSize: 7, cellPadding: 2, textColor: [128, 128, 128], font: fontName },
+        headStyles: { fillColor: [160, 160, 160], textColor: 255, fontStyle: 'bold', font: fontName },
         margin: { left: 14, right: 14 },
       });
       yPos = (doc as any).lastAutoTable.finalY + 8;
