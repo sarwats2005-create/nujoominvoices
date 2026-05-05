@@ -187,7 +187,7 @@ const UnusedBLOwnerDetail: React.FC = () => {
 
     if (isGov) {
       doc.setFontSize(10);
-      doc.setFont('helvetica', 'normal');
+      doc.setFont(fontName, 'normal');
       if (contactInfo.address) { doc.text(contactInfo.address, headerX, yPos + 5); }
       if (contactInfo.phone) { doc.text(`Tel: ${contactInfo.phone}`, headerX, yPos + 10); }
       if (contactInfo.email) { doc.text(contactInfo.email, headerX, yPos + 15); }
@@ -200,12 +200,12 @@ const UnusedBLOwnerDetail: React.FC = () => {
     }
 
     doc.setFontSize(18);
-    doc.setFont('helvetica', 'bold');
+    doc.setFont(fontName, 'bold');
     doc.text(`Account Statement — ${decodedOwner}`, pageWidth / 2, yPos, { align: 'center' });
     yPos += 8;
 
     doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
+    doc.setFont(fontName, 'normal');
     doc.text(`Period: ${formatDate(dateFrom)} to ${formatDate(dateTo)}`, pageWidth / 2, yPos, { align: 'center' });
     yPos += 5;
     doc.text(`Generated: ${format(new Date(), 'dd/MM/yyyy HH:mm')}`, pageWidth / 2, yPos, { align: 'center' });
@@ -213,12 +213,12 @@ const UnusedBLOwnerDetail: React.FC = () => {
 
     // === INSIGHTS ===
     doc.setFontSize(12);
-    doc.setFont('helvetica', 'bold');
+    doc.setFont(fontName, 'bold');
     doc.text('Summary Insights', 14, yPos);
     yPos += 7;
 
     doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
+    doc.setFont(fontName, 'normal');
     const insights = [
       `Recorded B/Ls: ${stats.totalBL}`,
       `Used B/Ls: ${stats.usedInDashboard}`,
@@ -234,10 +234,10 @@ const UnusedBLOwnerDetail: React.FC = () => {
 
     // Currency totals
     yPos += 2;
-    doc.setFont('helvetica', 'bold');
+    doc.setFont(fontName, 'bold');
     doc.text('Invoice Totals by Currency:', 18, yPos);
     yPos += 5;
-    doc.setFont('helvetica', 'normal');
+    doc.setFont(fontName, 'normal');
     Object.entries(totalsByCurrency).forEach(([curr, total]) => {
       doc.text(`  ${curr}: ${getCurrSymbol(curr)}${Math.round(total).toLocaleString()}`, 22, yPos);
       yPos += 5;
@@ -245,10 +245,10 @@ const UnusedBLOwnerDetail: React.FC = () => {
 
     // Customer breakdown
     yPos += 3;
-    doc.setFont('helvetica', 'bold');
+    doc.setFont(fontName, 'bold');
     doc.text(`Used for ${stats.totalCustomers} customer(s):`, 18, yPos);
     yPos += 5;
-    doc.setFont('helvetica', 'normal');
+    doc.setFont(fontName, 'normal');
     Object.entries(customerBreakdown).forEach(([customer, count]) => {
       doc.text(`  • ${customer}: ${count} B/L(s)`, 22, yPos);
       yPos += 5;
@@ -260,7 +260,7 @@ const UnusedBLOwnerDetail: React.FC = () => {
     if (filteredUnused.length > 0) {
       if (yPos > 240) { doc.addPage(); addWatermark(doc); yPos = 20; }
       doc.setFontSize(11);
-      doc.setFont('helvetica', 'bold');
+      doc.setFont(fontName, 'bold');
       doc.text(`Recorded B/Ls (${filteredUnused.length})`, 14, yPos);
       yPos += 4;
 
@@ -286,7 +286,7 @@ const UnusedBLOwnerDetail: React.FC = () => {
       if (yPos > 240) { doc.addPage(); addWatermark(doc); yPos = 20; }
 
       doc.setFontSize(11);
-      doc.setFont('helvetica', 'bold');
+      doc.setFont(fontName, 'bold');
       doc.text(`Used B/L — ${dashName} (${records.length})`, 14, yPos);
       yPos += 4;
 
@@ -329,7 +329,7 @@ const UnusedBLOwnerDetail: React.FC = () => {
         dashTotals[c] = (dashTotals[c] || 0) + (r.invoice_amount || 0);
       });
       doc.setFontSize(9);
-      doc.setFont('helvetica', 'bold');
+      doc.setFont(fontName, 'bold');
       const subtotalStr = Object.entries(dashTotals).map(([c, t]) => `${getCurrSymbol(c)}${Math.round(t).toLocaleString()} ${c}`).join(' | ');
       doc.text(`Subtotal (${dashName}): ${subtotalStr}`, 14, yPos);
       yPos += 8;
@@ -339,7 +339,7 @@ const UnusedBLOwnerDetail: React.FC = () => {
     if (includeArchived && filteredArchived.length > 0) {
       if (yPos > 240) { doc.addPage(); addWatermark(doc); yPos = 20; }
       doc.setFontSize(11);
-      doc.setFont('helvetica', 'bold');
+      doc.setFont(fontName, 'bold');
       doc.setTextColor(128, 128, 128);
       doc.text(`Archived Records (${filteredArchived.length})`, 14, yPos);
       doc.setTextColor(0, 0, 0);
@@ -363,7 +363,7 @@ const UnusedBLOwnerDetail: React.FC = () => {
     if (Object.keys(totalsByCurrency).length > 0) {
       if (yPos > 270) { doc.addPage(); addWatermark(doc); yPos = 20; }
       doc.setFontSize(11);
-      doc.setFont('helvetica', 'bold');
+      doc.setFont(fontName, 'bold');
       const grandStr = Object.entries(totalsByCurrency).map(([c, t]) => `${getCurrSymbol(c)}${Math.round(t).toLocaleString()} ${c}`).join(' | ');
       doc.text(`Grand Total: ${grandStr}`, 14, yPos);
       yPos += 10;
@@ -374,7 +374,7 @@ const UnusedBLOwnerDetail: React.FC = () => {
       if (yPos > 250) { doc.addPage(); addWatermark(doc); yPos = 20; }
       yPos += 10;
       doc.setFontSize(10);
-      doc.setFont('helvetica', 'normal');
+      doc.setFont(fontName, 'normal');
       doc.text('Prepared by: _________________________', 14, yPos);
       doc.text('Date: _____________', pageWidth - 60, yPos);
       yPos += 15;
@@ -396,7 +396,7 @@ const UnusedBLOwnerDetail: React.FC = () => {
       doc.setPage(i);
       addWatermark(doc);
       doc.setFontSize(8);
-      doc.setFont('helvetica', 'normal');
+      doc.setFont(fontName, 'normal');
       doc.setTextColor(150, 150, 150);
       doc.text(`Page ${i} of ${pageCount}`, pageWidth / 2, 290, { align: 'center' });
       doc.text(isGov ? (contactInfo.address || 'Nujoom Invoices') : 'Generated by Nujoom Invoices', 14, 290);
