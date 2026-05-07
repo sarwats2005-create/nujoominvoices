@@ -36,7 +36,7 @@ const UsedBLDashboard: React.FC = () => {
     records, loading, softDeleteRecord, addMultipleRecords,
     archivedRecords, loadingArchived, archiveRecord, unarchiveRecord, archiveToFolder,
     blDashboards, currentBLDashboardId, currentDashboardName,
-    setCurrentBLDashboardId, addBLDashboard,
+    setCurrentBLDashboardId, addBLDashboard, refetch,
   } = useUsedBL();
   const { folders, addFolder, updateFolder, deleteFolder } = useArchiveFolders(currentBLDashboardId);
   const { isAdmin } = useAdmin();
@@ -778,7 +778,7 @@ const UsedBLDashboard: React.FC = () => {
           onOpenChange={(open) => {
             if (!open) {
               setAddInvoiceSource(null);
-              window.location.reload();
+              refetch();
             }
           }}
         />
