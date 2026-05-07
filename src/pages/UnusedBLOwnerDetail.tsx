@@ -32,6 +32,7 @@ const UnusedBLOwnerDetail: React.FC = () => {
   const [archivedUsedRecords, setArchivedUsedRecords] = useState<UsedBL[]>([]);
   const [dashboards, setDashboards] = useState<BLDashboard[]>([]);
   const [includeArchived, setIncludeArchived] = useState(false);
+  const [showLinkedInvoices, setShowLinkedInvoices] = useState(true);
   const [dateFrom, setDateFrom] = useState(() => format(startOfMonth(new Date()), 'yyyy-MM-dd'));
   const [dateTo, setDateTo] = useState(() => format(endOfMonth(new Date()), 'yyyy-MM-dd'));
   const [statementFormat, setStatementFormat] = useState<'professional' | 'government'>('professional');
@@ -87,10 +88,10 @@ const UnusedBLOwnerDetail: React.FC = () => {
     } catch { return true; }
   }, [dateFrom, dateTo]);
 
-  // Active used records filtered by date
+  // Active used records filtered by date — and optionally hide linked extra invoices
   const filteredUsed = useMemo(() =>
-    usedRecords.filter(r => inDateRange(r.invoice_date)),
-    [usedRecords, inDateRange]
+    usedRecords.filter(r => inDateRange(r.invoice_date) && (showLinkedInvoices || !(r as any).source_unused_bl_id)),
+    [usedRecords, inDateRange, showLinkedInvoices]
   );
 
   // Filtered unused by date (bl_date)
@@ -439,6 +440,12 @@ const UnusedBLOwnerDetail: React.FC = () => {
                 <Label className="text-xs">To</Label>
                 <Input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className="w-[150px]" />
               </div>
+            </div>
+
+            {/* Linked invoices toggle */}
+            <div className="flex items-center gap-2">
+              <Switch checked={showLinkedInvoices} onCheckedChange={setShowLinkedInvoices} />
+              <Label className="text-sm">Show Added Invoices</Label>
             </div>
 
             {/* Archived toggle */}
