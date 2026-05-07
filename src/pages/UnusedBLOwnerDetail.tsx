@@ -442,6 +442,12 @@ const UnusedBLOwnerDetail: React.FC = () => {
               </div>
             </div>
 
+            {/* Linked invoices toggle */}
+            <div className="flex items-center gap-2">
+              <Switch checked={showLinkedInvoices} onCheckedChange={setShowLinkedInvoices} />
+              <Label className="text-sm">Show Added Invoices</Label>
+            </div>
+
             {/* Archived toggle */}
             <div className="flex items-center gap-2">
               <Switch checked={includeArchived} onCheckedChange={setIncludeArchived} />
