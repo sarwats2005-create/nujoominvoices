@@ -159,10 +159,9 @@ export const useUnusedBL = () => {
   };
 
   const addInvoiceToUsedBL = async (sourceUnusedBlId: string, formData: UseBLFormData): Promise<boolean> => {
-    if (!user) return false;
-    // Fetch source record from DB directly (may not be in local records if status filter hides it)
-    const { data: srcData } = await db('unused_bl').select('*').eq('id', sourceUnusedBlId).single();
-    if (!srcData) return false;
+    if (!user) { console.error('[addInvoiceToUsedBL] no user'); return false; }
+    const { data: srcData, error: srcErr } = await db('unused_bl').select('*').eq('id', sourceUnusedBlId).single();
+    if (srcErr || !srcData) { console.error('[addInvoiceToUsedBL] source fetch failed', srcErr); return false; }
     const src = srcData as UnusedBL;
 
     const insertData: any = {
@@ -181,7 +180,14 @@ export const useUnusedBL = () => {
     };
 
     const { error: insertError } = await db('used_bl_counting').insert(insertData);
-    if (insertError) return false;
+    if (insertError) { console.error('[addInvoiceToUsedBL] insert failed', insertError, insertData); return false; }
+
+    // Ensure source is marked USED (in case it was UNUSED before)
+    if (src.status !== 'USED') {
+      await db('unused_bl')
+        .update({ status: 'USED', used_at: new Date().toISOString() })
+        .eq('id', sourceUnusedBlId);
+    }
 
     await logChange(sourceUnusedBlId, src.bl_no, 'used', {
       used_for: { from: null, to: formData.using_for },
@@ -191,6 +197,7 @@ export const useUnusedBL = () => {
       dashboard_id: { from: null, to: formData.dashboard_id },
     }, null, formData.dashboard_id);
 
+    await fetchRecords();
     return true;
   };
 
