@@ -32,6 +32,7 @@ const UnusedBLOwnerDetail: React.FC = () => {
   const [archivedUsedRecords, setArchivedUsedRecords] = useState<UsedBL[]>([]);
   const [dashboards, setDashboards] = useState<BLDashboard[]>([]);
   const [includeArchived, setIncludeArchived] = useState(false);
+  const [showLinkedInvoices, setShowLinkedInvoices] = useState(true);
   const [dateFrom, setDateFrom] = useState(() => format(startOfMonth(new Date()), 'yyyy-MM-dd'));
   const [dateTo, setDateTo] = useState(() => format(endOfMonth(new Date()), 'yyyy-MM-dd'));
   const [statementFormat, setStatementFormat] = useState<'professional' | 'government'>('professional');
