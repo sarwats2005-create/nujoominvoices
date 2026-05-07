@@ -88,10 +88,10 @@ const UnusedBLOwnerDetail: React.FC = () => {
     } catch { return true; }
   }, [dateFrom, dateTo]);
 
-  // Active used records filtered by date
+  // Active used records filtered by date — and optionally hide linked extra invoices
   const filteredUsed = useMemo(() =>
-    usedRecords.filter(r => inDateRange(r.invoice_date)),
-    [usedRecords, inDateRange]
+    usedRecords.filter(r => inDateRange(r.invoice_date) && (showLinkedInvoices || !(r as any).source_unused_bl_id)),
+    [usedRecords, inDateRange, showLinkedInvoices]
   );
 
   // Filtered unused by date (bl_date)
