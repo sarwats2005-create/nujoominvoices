@@ -120,8 +120,10 @@ const BLAnalytics: React.FC<BLAnalyticsProps> = ({ records }) => {
   const totalUsed = records.filter(r => r.status === 'USED').length;
   const usageRate = totalRecorded > 0 ? Math.round((totalUsed / totalRecorded) * 100) : 0;
 
-  const exportPDF = () => {
+  const exportPDF = async () => {
     const doc = new jsPDF();
+    const fontName = await ensureUnicodeFont(doc);
+    doc.setFont(fontName, 'normal');
     const now = format(new Date(), 'dd/MM/yyyy HH:mm');
 
     // Title
