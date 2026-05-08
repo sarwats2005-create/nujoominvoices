@@ -315,13 +315,15 @@ const Dashboard: React.FC = () => {
     printWindow.print();
   };
 
-  const handleExportPDF = (settings: PrintSettings) => {
+  const handleExportPDF = async (settings: PrintSettings) => {
     const isLandscape = settings.orientation === 'landscape';
     const doc = new jsPDF({
       orientation: settings.orientation,
       unit: 'mm',
       format: settings.paperSize,
     });
+    const fontName = await ensureUnicodeFont(doc);
+    doc.setFont(fontName, 'normal');
 
     const margins = settings.margins;
 
