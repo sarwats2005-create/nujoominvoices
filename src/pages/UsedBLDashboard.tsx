@@ -19,6 +19,7 @@ import { Plus, Search, ArrowUpDown, Trash2, Edit, Eye, Copy, Download, Upload, F
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 import jsPDF from 'jspdf';
+import { ensureUnicodeFont } from '@/lib/pdfFont';
 import autoTable from 'jspdf-autotable';
 import BLDashboardSelector from '@/components/BLDashboardSelector';
 import ArchiveFolderManager from '@/components/ArchiveFolderManager';
@@ -334,8 +335,10 @@ const UsedBLDashboard: React.FC = () => {
     event.target.value = '';
   };
 
-  const handleExportPDF = () => {
+  const handleExportPDF = async () => {
     const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+    const fontName = await ensureUnicodeFont(doc);
+    doc.setFont(fontName, 'normal');
     doc.setFontSize(18);
     doc.setTextColor(30, 58, 95);
     doc.text(currentDashboardName || 'USED B/L COUNTING', 14, 15);
@@ -352,8 +355,8 @@ const UsedBLDashboard: React.FC = () => {
         r.bank, r.owner, r.used_for, r.used_for_beneficiary || '—',
       ]),
       startY: 28,
-      styles: { fontSize: 8, cellPadding: 2 },
-      headStyles: { fillColor: [30, 58, 95], textColor: [255, 255, 255], fontStyle: 'bold' },
+      styles: { fontSize: 8, cellPadding: 2, font: fontName },
+      headStyles: { fillColor: [30, 58, 95], textColor: [255, 255, 255], fontStyle: 'bold', font: fontName },
       alternateRowStyles: { fillColor: [249, 249, 249] },
     });
     doc.save(`${currentDashboardName || 'used-bl'}-${format(new Date(), 'yyyy-MM-dd')}.pdf`);

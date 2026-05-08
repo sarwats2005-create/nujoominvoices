@@ -20,6 +20,7 @@ import {
 import BarcodeScanner from '@/components/pos/BarcodeScanner';
 import type { CartItem, Customer, Product, ProductVariant } from '@/types/pos';
 import jsPDF from 'jspdf';
+import { ensureUnicodeFontSync } from '@/lib/pdfFont';
 import { format } from 'date-fns';
 
 // IndexedDB helper for persisting the directory handle
@@ -171,6 +172,8 @@ const POS: React.FC = () => {
   const buildReceiptPDF = (data: any): jsPDF => {
     const snap = lastSaleCartRef.current;
     const doc = new jsPDF({ unit: 'mm', format: [80, 200] });
+    const fontName = ensureUnicodeFontSync(doc);
+    doc.setFont(fontName, 'normal');
     let y = 10;
     doc.setFontSize(12);
     doc.text('RECEIPT', 40, y, { align: 'center' }); y += 6;

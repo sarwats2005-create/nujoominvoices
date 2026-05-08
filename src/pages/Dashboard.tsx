@@ -22,6 +22,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import CountUp from '@/components/CountUp';
 import PrintSettingsDialog, { PrintSettings } from '@/components/PrintSettingsDialog';
 import jsPDF from 'jspdf';
+import { ensureUnicodeFont } from '@/lib/pdfFont';
 import autoTable from 'jspdf-autotable';
 type SortKey = 'invoiceNumber' | 'amount' | 'date' | 'beneficiary' | 'bank' | 'status' | 'containerNumber' | 'swiftDate';
 const Dashboard: React.FC = () => {
@@ -315,13 +316,15 @@ const Dashboard: React.FC = () => {
     printWindow.print();
   };
 
-  const handleExportPDF = (settings: PrintSettings) => {
+  const handleExportPDF = async (settings: PrintSettings) => {
     const isLandscape = settings.orientation === 'landscape';
     const doc = new jsPDF({
       orientation: settings.orientation,
       unit: 'mm',
       format: settings.paperSize,
     });
+    const fontName = await ensureUnicodeFont(doc);
+    doc.setFont(fontName, 'normal');
 
     const margins = settings.margins;
 
