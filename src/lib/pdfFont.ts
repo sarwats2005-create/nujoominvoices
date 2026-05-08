@@ -4,8 +4,8 @@
 //
 // Why: jsPDF only renders glyphs in visual order with no shaping or BiDi.
 // Without this, Arabic appears as disconnected, left-to-right letters.
-// We monkey-patch jsPDF.prototype.text once so all existing PDF exports
-// across the app benefit without touching each call site.
+// We monkey-patch jsPDF.prototype.text once (on module import) so every
+// PDF export across the app benefits without touching call sites.
 import jsPDF from 'jspdf';
 // @ts-ignore - no types
 import { ArabicShaper } from 'arabic-persian-reshaper';
@@ -13,6 +13,7 @@ import bidiFactory from 'bidi-js';
 
 const bidi = bidiFactory();
 
+let fontBase64: string | null = null;
 let fontBase64Promise: Promise<string> | null = null;
 const FONT_URL =
   'https://cdn.jsdelivr.net/gh/aliftype/amiri@1.000/fonts/ttf/Amiri-Regular.ttf';
@@ -31,6 +32,7 @@ const arrayBufferToBase64 = (buffer: ArrayBuffer): string => {
 };
 
 const loadFontBase64 = (): Promise<string> => {
+  if (fontBase64) return Promise.resolve(fontBase64);
   if (!fontBase64Promise) {
     fontBase64Promise = fetch(FONT_URL)
       .then((r) => {
@@ -38,6 +40,10 @@ const loadFontBase64 = (): Promise<string> => {
         return r.arrayBuffer();
       })
       .then(arrayBufferToBase64)
+      .then((b64) => {
+        fontBase64 = b64;
+        return b64;
+      })
       .catch((e) => {
         fontBase64Promise = null;
         throw e;
@@ -59,7 +65,6 @@ export const containsArabic = (s: unknown): boolean =>
  */
 export const shapeArabic = (input: string): string => {
   if (!containsArabic(input)) return input;
-  // Process each line independently to preserve newlines.
   return input
     .split(/\r?\n/)
     .map((line) => {
@@ -86,14 +91,11 @@ const shapeAny = (text: any): any => {
   return text;
 };
 
-let textPatched = false;
-const patchJsPDFText = () => {
-  if (textPatched) return;
-  const proto: any = (jsPDF as any).API ?? (jsPDF as any).prototype;
-  if (!proto || typeof proto.text !== 'function') return;
+// ---- Install global jsPDF patches once at module import ----
+const proto: any = (jsPDF as any).API ?? (jsPDF as any).prototype;
+if (proto && typeof proto.text === 'function' && !(proto.text as any).__arPatched) {
   const original = proto.text;
-  proto.text = function patchedText(this: any, ...args: any[]) {
-    // jsPDF signatures: text(text, x, y, options?) | text(x, y, text, options?)
+  const patched = function patchedText(this: any, ...args: any[]) {
     if (typeof args[0] === 'string' || Array.isArray(args[0])) {
       args[0] = shapeAny(args[0]);
     } else if (typeof args[2] === 'string' || Array.isArray(args[2])) {
@@ -101,64 +103,78 @@ const patchJsPDFText = () => {
     }
     return original.apply(this, args);
   };
-  textPatched = true;
-};
+  (patched as any).__arPatched = true;
+  proto.text = patched;
+}
 
-// Patch autoTable cell content too, so tables with Arabic also render correctly.
-let autoTablePatched = false;
-const patchAutoTable = async () => {
-  if (autoTablePatched) return;
-  try {
-    const mod: any = await import('jspdf-autotable');
-    autoTablePatched = true;
-    // jspdf-autotable invokes doc.text internally, which is already patched.
-    // We additionally pre-shape `head`/`body` strings so column width
-    // calculations reflect the shaped glyphs.
-    const proto: any = (jsPDF as any).API ?? (jsPDF as any).prototype;
-    if (!proto.autoTable || (proto.autoTable as any).__arPatched) return;
-    const orig = proto.autoTable;
-    const wrap = function (this: any, options: any) {
-      if (options && typeof options === 'object') {
-        const mapRows = (rows: any) =>
-          Array.isArray(rows)
-            ? rows.map((row) =>
-                Array.isArray(row)
-                  ? row.map(shapeAny)
-                  : row && typeof row === 'object' && 'content' in row
-                  ? { ...row, content: shapeAny((row as any).content) }
-                  : shapeAny(row),
-              )
-            : rows;
-        if (options.head) options.head = mapRows(options.head);
-        if (options.body) options.body = mapRows(options.body);
-        if (options.foot) options.foot = mapRows(options.foot);
-      }
-      return orig.call(this, options);
-    };
-    (wrap as any).__arPatched = true;
-    proto.autoTable = wrap;
-  } catch {
-    // jspdf-autotable not present; ignore.
-  }
+// Patch autoTable input rows so column widths use shaped glyphs.
+import('jspdf-autotable').then(() => {
+  const p: any = (jsPDF as any).API ?? (jsPDF as any).prototype;
+  if (!p?.autoTable || (p.autoTable as any).__arPatched) return;
+  const orig = p.autoTable;
+  const wrap = function (this: any, options: any) {
+    if (options && typeof options === 'object') {
+      const mapRows = (rows: any) =>
+        Array.isArray(rows)
+          ? rows.map((row) =>
+              Array.isArray(row)
+                ? row.map(shapeAny)
+                : row && typeof row === 'object' && 'content' in row
+                ? { ...row, content: shapeAny((row as any).content) }
+                : shapeAny(row),
+            )
+          : rows;
+      if (options.head) options.head = mapRows(options.head);
+      if (options.body) options.body = mapRows(options.body);
+      if (options.foot) options.foot = mapRows(options.foot);
+    }
+    return orig.call(this, options);
+  };
+  (wrap as any).__arPatched = true;
+  p.autoTable = wrap;
+}).catch(() => {});
+
+// Kick off font fetch eagerly so sync callers can register it later.
+loadFontBase64().catch(() => {});
+
+/** Preload the Unicode font (call from app entry to warm cache). */
+export const preloadUnicodeFont = (): Promise<void> =>
+  loadFontBase64().then(() => undefined).catch(() => undefined);
+
+const registerInDoc = (doc: jsPDF, base64: string): string => {
+  const fileName = 'Amiri-Regular.ttf';
+  doc.addFileToVFS(fileName, base64);
+  doc.addFont(fileName, 'Amiri', 'normal');
+  doc.addFont(fileName, 'Amiri', 'bold');
+  doc.setFont('Amiri', 'normal');
+  return 'Amiri';
 };
 
 /**
- * Registers the Amiri Arabic font into the given jsPDF document and installs
- * the global shaping + BiDi pipeline. Returns the font name to use via
- * `doc.setFont(name, ...)`. Falls back to 'helvetica' if the font fails to load.
+ * Async: register Amiri (Arabic-capable) font in the doc and return its name.
+ * Falls back to 'helvetica' on failure.
  */
 export const ensureUnicodeFont = async (doc: jsPDF): Promise<string> => {
-  patchJsPDFText();
-  patchAutoTable();
   try {
     const base64 = await loadFontBase64();
-    const fileName = 'Amiri-Regular.ttf';
-    doc.addFileToVFS(fileName, base64);
-    doc.addFont(fileName, 'Amiri', 'normal');
-    doc.addFont(fileName, 'Amiri', 'bold');
-    doc.setFont('Amiri', 'normal');
-    return 'Amiri';
+    return registerInDoc(doc, base64);
   } catch {
     return 'helvetica';
   }
 };
+
+/**
+ * Sync: register Amiri if it has already been preloaded, else 'helvetica'.
+ * Use this when the calling code path cannot be made async (e.g. POS receipts).
+ */
+export const ensureUnicodeFontSync = (doc: jsPDF): string => {
+  if (fontBase64) {
+    try {
+      return registerInDoc(doc, fontBase64);
+    } catch {
+      return 'helvetica';
+    }
+  }
+  return 'helvetica';
+};
+
