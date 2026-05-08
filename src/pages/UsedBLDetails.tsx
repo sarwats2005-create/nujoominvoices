@@ -108,11 +108,13 @@ const UsedBLDetails: React.FC = () => {
     printWindow.print();
   };
 
-  const handleExportPDF = () => {
+  const handleExportPDF = async () => {
     if (!record) return;
     const currCode2 = record.currency || 'USD';
     const fmtAmt = (amount: number) => `${currCode2} ${Math.round(amount).toLocaleString()}`;
     const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const fontName = await ensureUnicodeFont(doc);
+    doc.setFont(fontName, 'normal');
     const startX = 30; let currentY = 30; const cardWidth = 150; const labelWidth = 60; const valueWidth = 90; const rowHeight = 12;
     doc.setFillColor(30, 58, 95); doc.rect(startX, currentY, cardWidth, 16, 'F');
     doc.setTextColor(255, 255, 255); doc.setFontSize(16);
