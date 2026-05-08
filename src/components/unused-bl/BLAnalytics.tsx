@@ -16,6 +16,7 @@ import type { UnusedBL } from '@/types/unusedBL';
 import type { UsedBL } from '@/types/usedBL';
 import { format, parseISO } from 'date-fns';
 import jsPDF from 'jspdf';
+import { ensureUnicodeFont } from '@/lib/pdfFont';
 import autoTable from 'jspdf-autotable';
 
 const COLORS = [
