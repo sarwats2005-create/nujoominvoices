@@ -13,6 +13,7 @@ import { ArrowLeft, Undo2, Plus, FileText } from 'lucide-react';
 import { format } from 'date-fns';
 import { parseDateString } from '@/lib/dateUtils';
 import jsPDF from 'jspdf';
+import { ensureUnicodeFont } from '@/lib/pdfFont';
 import type { UsedBL } from '@/types/usedBL';
 import type { UnusedBL } from '@/types/unusedBL';
 import { supabase } from '@/integrations/supabase/client';
