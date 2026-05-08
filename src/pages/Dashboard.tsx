@@ -22,6 +22,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import CountUp from '@/components/CountUp';
 import PrintSettingsDialog, { PrintSettings } from '@/components/PrintSettingsDialog';
 import jsPDF from 'jspdf';
+import { ensureUnicodeFont } from '@/lib/pdfFont';
 import autoTable from 'jspdf-autotable';
 type SortKey = 'invoiceNumber' | 'amount' | 'date' | 'beneficiary' | 'bank' | 'status' | 'containerNumber' | 'swiftDate';
 const Dashboard: React.FC = () => {
