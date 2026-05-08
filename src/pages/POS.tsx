@@ -20,6 +20,7 @@ import {
 import BarcodeScanner from '@/components/pos/BarcodeScanner';
 import type { CartItem, Customer, Product, ProductVariant } from '@/types/pos';
 import jsPDF from 'jspdf';
+import { ensureUnicodeFontSync } from '@/lib/pdfFont';
 import { format } from 'date-fns';
 
 // IndexedDB helper for persisting the directory handle
