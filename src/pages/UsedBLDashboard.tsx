@@ -355,8 +355,8 @@ const UsedBLDashboard: React.FC = () => {
         r.bank, r.owner, r.used_for, r.used_for_beneficiary || '—',
       ]),
       startY: 28,
-      styles: { fontSize: 8, cellPadding: 2 },
-      headStyles: { fillColor: [30, 58, 95], textColor: [255, 255, 255], fontStyle: 'bold' },
+      styles: { fontSize: 8, cellPadding: 2, font: fontName },
+      headStyles: { fillColor: [30, 58, 95], textColor: [255, 255, 255], fontStyle: 'bold', font: fontName },
       alternateRowStyles: { fillColor: [249, 249, 249] },
     });
     doc.save(`${currentDashboardName || 'used-bl'}-${format(new Date(), 'yyyy-MM-dd')}.pdf`);
