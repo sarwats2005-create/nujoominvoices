@@ -32,7 +32,13 @@ const UnusedBLOwnerDetail: React.FC = () => {
   const [archivedUsedRecords, setArchivedUsedRecords] = useState<UsedBL[]>([]);
   const [dashboards, setDashboards] = useState<BLDashboard[]>([]);
   const [includeArchived, setIncludeArchived] = useState(false);
-  const [showLinkedInvoices, setShowLinkedInvoices] = useState(true);
+  const [showLinkedInvoices, setShowLinkedInvoices] = useState<boolean>(() => {
+    const v = localStorage.getItem('owner_statement_show_linked');
+    return v === null ? true : v === 'true';
+  });
+  useEffect(() => {
+    localStorage.setItem('owner_statement_show_linked', String(showLinkedInvoices));
+  }, [showLinkedInvoices]);
   const [dateFrom, setDateFrom] = useState(() => format(startOfMonth(new Date()), 'yyyy-MM-dd'));
   const [dateTo, setDateTo] = useState(() => format(endOfMonth(new Date()), 'yyyy-MM-dd'));
   const [statementFormat, setStatementFormat] = useState<'professional' | 'government'>('professional');
