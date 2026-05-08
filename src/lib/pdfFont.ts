@@ -92,14 +92,33 @@ const shapeAny = (text: any): any => {
 };
 
 // ---- Install global jsPDF patches once at module import ----
+// jsPDF.text signatures we handle:
+//   text(text, x, y, options?)
+//   text(x, y, text, options?)  (legacy)
 const proto: any = (jsPDF as any).API ?? (jsPDF as any).prototype;
 if (proto && typeof proto.text === 'function' && !(proto.text as any).__arPatched) {
   const original = proto.text;
   const patched = function patchedText(this: any, ...args: any[]) {
+    let textArg: any;
+    let textIdx = -1;
+    let optsIdx = -1;
     if (typeof args[0] === 'string' || Array.isArray(args[0])) {
-      args[0] = shapeAny(args[0]);
+      textArg = args[0]; textIdx = 0; optsIdx = 3;
     } else if (typeof args[2] === 'string' || Array.isArray(args[2])) {
-      args[2] = shapeAny(args[2]);
+      textArg = args[2]; textIdx = 2; optsIdx = 3;
+    }
+    const hasArabic = Array.isArray(textArg)
+      ? textArg.some((s) => containsArabic(s))
+      : containsArabic(textArg);
+    if (textIdx >= 0) args[textIdx] = shapeAny(textArg);
+    if (hasArabic && textIdx >= 0) {
+      // Auto right-align + RTL direction when caller didn't specify.
+      const opts = (args[optsIdx] && typeof args[optsIdx] === 'object') ? { ...args[optsIdx] } : {};
+      if (!opts.align) opts.align = 'right';
+      // jsPDF respects these for proper RTL output of mixed strings.
+      if (!('isInputRtl' in opts)) opts.isInputRtl = true;
+      if (!('isOutputRtl' in opts)) opts.isOutputRtl = true;
+      args[optsIdx] = opts;
     }
     return original.apply(this, args);
   };
@@ -107,13 +126,17 @@ if (proto && typeof proto.text === 'function' && !(proto.text as any).__arPatche
   proto.text = patched;
 }
 
-// Patch autoTable input rows so column widths use shaped glyphs.
+// Patch autoTable: pre-shape rows for correct column widths AND auto
+// right-align cells whose original content contained Arabic.
 import('jspdf-autotable').then(() => {
   const p: any = (jsPDF as any).API ?? (jsPDF as any).prototype;
   if (!p?.autoTable || (p.autoTable as any).__arPatched) return;
   const orig = p.autoTable;
   const wrap = function (this: any, options: any) {
     if (options && typeof options === 'object') {
+      // Track which (section,row,col) cells originally contained Arabic so
+      // we can right-align them inside didParseCell — shaped glyphs still
+      // match our Arabic regex, so detection works post-shape too.
       const mapRows = (rows: any) =>
         Array.isArray(rows)
           ? rows.map((row) =>
@@ -127,12 +150,32 @@ import('jspdf-autotable').then(() => {
       if (options.head) options.head = mapRows(options.head);
       if (options.body) options.body = mapRows(options.body);
       if (options.foot) options.foot = mapRows(options.foot);
+
+      const userDidParseCell = options.didParseCell;
+      options.didParseCell = (data: any) => {
+        try {
+          const raw = data?.cell?.raw;
+          const txt =
+            typeof raw === 'string'
+              ? raw
+              : raw && typeof raw === 'object' && 'content' in raw
+              ? String((raw as any).content ?? '')
+              : Array.isArray(data?.cell?.text)
+              ? data.cell.text.join(' ')
+              : String(data?.cell?.text ?? '');
+          if (containsArabic(txt)) {
+            data.cell.styles.halign = 'right';
+          }
+        } catch { /* ignore */ }
+        if (typeof userDidParseCell === 'function') userDidParseCell(data);
+      };
     }
     return orig.call(this, options);
   };
   (wrap as any).__arPatched = true;
   p.autoTable = wrap;
 }).catch(() => {});
+
 
 // Kick off font fetch eagerly so sync callers can register it later.
 loadFontBase64().catch(() => {});
