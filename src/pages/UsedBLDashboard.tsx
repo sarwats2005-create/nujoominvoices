@@ -335,8 +335,10 @@ const UsedBLDashboard: React.FC = () => {
     event.target.value = '';
   };
 
-  const handleExportPDF = () => {
+  const handleExportPDF = async () => {
     const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+    const fontName = await ensureUnicodeFont(doc);
+    doc.setFont(fontName, 'normal');
     doc.setFontSize(18);
     doc.setTextColor(30, 58, 95);
     doc.text(currentDashboardName || 'USED B/L COUNTING', 14, 15);
