@@ -19,6 +19,7 @@ import { Plus, Search, ArrowUpDown, Trash2, Edit, Eye, Copy, Download, Upload, F
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 import jsPDF from 'jspdf';
+import { ensureUnicodeFont } from '@/lib/pdfFont';
 import autoTable from 'jspdf-autotable';
 import BLDashboardSelector from '@/components/BLDashboardSelector';
 import ArchiveFolderManager from '@/components/ArchiveFolderManager';
