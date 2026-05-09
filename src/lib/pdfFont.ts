@@ -37,14 +37,24 @@ const arrayBufferToBase64 = (buffer: ArrayBuffer): string => {
   return btoa(binary);
 };
 
+const fetchFirstOk = async (urls: string[]): Promise<ArrayBuffer> => {
+  let lastErr: unknown;
+  for (const url of urls) {
+    try {
+      const r = await fetch(url);
+      if (r.ok) return await r.arrayBuffer();
+      lastErr = new Error(`HTTP ${r.status} for ${url}`);
+    } catch (e) {
+      lastErr = e;
+    }
+  }
+  throw lastErr ?? new Error('Failed to fetch font');
+};
+
 const loadFontBase64 = (): Promise<string> => {
   if (fontBase64) return Promise.resolve(fontBase64);
   if (!fontBase64Promise) {
-    fontBase64Promise = fetch(FONT_URL)
-      .then((r) => {
-        if (!r.ok) throw new Error('Failed to fetch font');
-        return r.arrayBuffer();
-      })
+    fontBase64Promise = fetchFirstOk(FONT_URLS)
       .then(arrayBufferToBase64)
       .then((b64) => {
         fontBase64 = b64;
