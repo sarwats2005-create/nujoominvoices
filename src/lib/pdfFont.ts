@@ -15,8 +15,14 @@ const bidi = bidiFactory();
 
 let fontBase64: string | null = null;
 let fontBase64Promise: Promise<string> | null = null;
-const FONT_URL =
-  'https://cdn.jsdelivr.net/gh/aliftype/amiri@1.000/fonts/ttf/Amiri-Regular.ttf';
+// Multiple CDN fallbacks — the previous tag (1.000/ttf/) returns 404, which
+// caused the font fetch to fail silently and Arabic text to render via the
+// helvetica fallback as garbled Latin-1 bytes (e.g. "þ¹þŽþ§ ...").
+const FONT_URLS = [
+  'https://cdn.jsdelivr.net/gh/aliftype/amiri@1.003/fonts/Amiri-Regular.ttf',
+  'https://cdn.jsdelivr.net/npm/@expo-google-fonts/amiri@latest/Amiri_400Regular.ttf',
+  'https://raw.githubusercontent.com/aliftype/amiri/1.003/fonts/Amiri-Regular.ttf',
+];
 
 const arrayBufferToBase64 = (buffer: ArrayBuffer): string => {
   let binary = '';
