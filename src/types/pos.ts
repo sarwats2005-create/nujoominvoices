@@ -20,6 +20,8 @@ export interface Product {
   tax_rate: number;
   image_url: string | null;
   is_active: boolean;
+  track_stock?: boolean;
+  allow_negative_stock?: boolean;
   created_at: string;
   updated_at: string;
   category?: ProductCategory;

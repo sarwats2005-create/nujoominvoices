@@ -20,6 +20,16 @@ export const useCustomers = () => {
 
   useEffect(() => { fetchCustomers(); }, [fetchCustomers]);
 
+  // Realtime sync
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel('customers-realtime')
+      .on('postgres_changes' as any, { event: '*', schema: 'public', table: 'customers' }, fetchCustomers)
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user, fetchCustomers]);
+
   const addCustomer = async (data: Partial<Customer>): Promise<Customer | null> => {
     if (!user) return null;
     const { data: inserted, error } = await db('customers')

@@ -198,9 +198,11 @@ export type Database = {
           email: string | null
           id: string
           is_active: boolean
+          loyalty_points: number
           name: string
           notes: string | null
           phone: string | null
+          store_credit: number
           updated_at: string
           user_id: string
         }
@@ -211,9 +213,11 @@ export type Database = {
           email?: string | null
           id?: string
           is_active?: boolean
+          loyalty_points?: number
           name: string
           notes?: string | null
           phone?: string | null
+          store_credit?: number
           updated_at?: string
           user_id: string
         }
@@ -224,9 +228,11 @@ export type Database = {
           email?: string | null
           id?: string
           is_active?: boolean
+          loyalty_points?: number
           name?: string
           notes?: string | null
           phone?: string | null
+          store_credit?: number
           updated_at?: string
           user_id?: string
         }
@@ -252,6 +258,39 @@ export type Database = {
           id?: string
           name?: string
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      held_sales: {
+        Row: {
+          cart_snapshot: Json
+          created_at: string
+          customer_id: string | null
+          held_at: string
+          hold_label: string | null
+          id: string
+          notes: string | null
+          user_id: string
+        }
+        Insert: {
+          cart_snapshot: Json
+          created_at?: string
+          customer_id?: string | null
+          held_at?: string
+          hold_label?: string | null
+          id?: string
+          notes?: string | null
+          user_id: string
+        }
+        Update: {
+          cart_snapshot?: Json
+          created_at?: string
+          customer_id?: string | null
+          held_at?: string
+          hold_label?: string | null
+          id?: string
+          notes?: string | null
           user_id?: string
         }
         Relationships: []
@@ -351,6 +390,75 @@ export type Database = {
           },
         ]
       }
+      loyalty_settings: {
+        Row: {
+          created_at: string
+          currency: string
+          enabled: boolean
+          id: string
+          points_per_unit_currency: number
+          redemption_value: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          currency?: string
+          enabled?: boolean
+          id?: string
+          points_per_unit_currency?: number
+          redemption_value?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          currency?: string
+          enabled?: boolean
+          id?: string
+          points_per_unit_currency?: number
+          redemption_value?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      loyalty_transactions: {
+        Row: {
+          balance_after: number
+          created_at: string
+          customer_id: string
+          id: string
+          notes: string | null
+          points: number
+          sale_id: string | null
+          type: string
+          user_id: string
+        }
+        Insert: {
+          balance_after?: number
+          created_at?: string
+          customer_id: string
+          id?: string
+          notes?: string | null
+          points?: number
+          sale_id?: string | null
+          type: string
+          user_id: string
+        }
+        Update: {
+          balance_after?: number
+          created_at?: string
+          customer_id?: string
+          id?: string
+          notes?: string | null
+          points?: number
+          sale_id?: string | null
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       map_location: {
         Row: {
           address: string | null
@@ -380,6 +488,103 @@ export type Database = {
           zoom_level?: number | null
         }
         Relationships: []
+      }
+      pos_return_items: {
+        Row: {
+          created_at: string
+          id: string
+          product_id: string | null
+          product_name: string
+          quantity: number
+          refund_total: number
+          restock: boolean
+          return_id: string
+          sale_item_id: string | null
+          unit_price: number
+          variant_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          product_id?: string | null
+          product_name: string
+          quantity?: number
+          refund_total?: number
+          restock?: boolean
+          return_id: string
+          sale_item_id?: string | null
+          unit_price?: number
+          variant_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          product_id?: string | null
+          product_name?: string
+          quantity?: number
+          refund_total?: number
+          restock?: boolean
+          return_id?: string
+          sale_item_id?: string | null
+          unit_price?: number
+          variant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pos_return_items_return_id_fkey"
+            columns: ["return_id"]
+            isOneToOne: false
+            referencedRelation: "pos_returns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pos_returns: {
+        Row: {
+          created_at: string
+          customer_id: string | null
+          id: string
+          notes: string | null
+          original_sale_id: string | null
+          reason: string | null
+          refund_amount: number
+          refund_method: string
+          return_number: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          customer_id?: string | null
+          id?: string
+          notes?: string | null
+          original_sale_id?: string | null
+          reason?: string | null
+          refund_amount?: number
+          refund_method?: string
+          return_number: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          customer_id?: string | null
+          id?: string
+          notes?: string | null
+          original_sale_id?: string | null
+          reason?: string | null
+          refund_amount?: number
+          refund_method?: string
+          return_number?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pos_returns_original_sale_id_fkey"
+            columns: ["original_sale_id"]
+            isOneToOne: false
+            referencedRelation: "pos_sales"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       pos_sale_items: {
         Row: {
@@ -451,14 +656,20 @@ export type Database = {
       pos_sales: {
         Row: {
           created_at: string
+          currency: string
           customer_id: string | null
           discount_amount: number
           discount_type: string
           id: string
+          loyalty_earned: number
+          loyalty_redeemed: number
           notes: string | null
           payment_method: string
           payment_status: string
+          refunded_amount: number
           sale_number: string
+          status: string
+          store_credit_used: number
           subtotal: number
           tax_amount: number
           total: number
@@ -466,14 +677,20 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          currency?: string
           customer_id?: string | null
           discount_amount?: number
           discount_type?: string
           id?: string
+          loyalty_earned?: number
+          loyalty_redeemed?: number
           notes?: string | null
           payment_method?: string
           payment_status?: string
+          refunded_amount?: number
           sale_number: string
+          status?: string
+          store_credit_used?: number
           subtotal?: number
           tax_amount?: number
           total?: number
@@ -481,14 +698,20 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          currency?: string
           customer_id?: string | null
           discount_amount?: number
           discount_type?: string
           id?: string
+          loyalty_earned?: number
+          loyalty_redeemed?: number
           notes?: string | null
           payment_method?: string
           payment_status?: string
+          refunded_amount?: number
           sale_number?: string
+          status?: string
+          store_credit_used?: number
           subtotal?: number
           tax_amount?: number
           total?: number
@@ -503,6 +726,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      pos_settings: {
+        Row: {
+          created_at: string
+          currency: string
+          default_tax_rate: number
+          id: string
+          logo_url: string | null
+          low_stock_alert_enabled: boolean
+          receipt_footer: string | null
+          receipt_header: string | null
+          store_name: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          currency?: string
+          default_tax_rate?: number
+          id?: string
+          logo_url?: string | null
+          low_stock_alert_enabled?: boolean
+          receipt_footer?: string | null
+          receipt_header?: string | null
+          store_name?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          currency?: string
+          default_tax_rate?: number
+          id?: string
+          logo_url?: string | null
+          low_stock_alert_enabled?: boolean
+          receipt_footer?: string | null
+          receipt_header?: string | null
+          store_name?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       product_categories: {
         Row: {
@@ -586,6 +851,7 @@ export type Database = {
       }
       products: {
         Row: {
+          allow_negative_stock: boolean
           barcode: string | null
           category_id: string | null
           cost_price: number | null
@@ -598,10 +864,12 @@ export type Database = {
           price: number
           sku: string | null
           tax_rate: number | null
+          track_stock: boolean
           updated_at: string
           user_id: string
         }
         Insert: {
+          allow_negative_stock?: boolean
           barcode?: string | null
           category_id?: string | null
           cost_price?: number | null
@@ -614,10 +882,12 @@ export type Database = {
           price?: number
           sku?: string | null
           tax_rate?: number | null
+          track_stock?: boolean
           updated_at?: string
           user_id: string
         }
         Update: {
+          allow_negative_stock?: boolean
           barcode?: string | null
           category_id?: string | null
           cost_price?: number | null
@@ -630,6 +900,7 @@ export type Database = {
           price?: number
           sku?: string | null
           tax_rate?: number | null
+          track_stock?: boolean
           updated_at?: string
           user_id?: string
         }
@@ -664,8 +935,118 @@ export type Database = {
         }
         Relationships: []
       }
+      purchase_order_items: {
+        Row: {
+          created_at: string
+          id: string
+          po_id: string
+          product_id: string | null
+          product_name: string
+          quantity_ordered: number
+          quantity_received: number
+          total: number
+          unit_cost: number
+          variant_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          po_id: string
+          product_id?: string | null
+          product_name: string
+          quantity_ordered?: number
+          quantity_received?: number
+          total?: number
+          unit_cost?: number
+          variant_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          po_id?: string
+          product_id?: string | null
+          product_name?: string
+          quantity_ordered?: number
+          quantity_received?: number
+          total?: number
+          unit_cost?: number
+          variant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_order_items_po_id_fkey"
+            columns: ["po_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      purchase_orders: {
+        Row: {
+          created_at: string
+          currency: string
+          expected_date: string | null
+          id: string
+          notes: string | null
+          order_date: string
+          po_number: string
+          received_date: string | null
+          status: string
+          subtotal: number
+          supplier_id: string | null
+          tax: number
+          total: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          currency?: string
+          expected_date?: string | null
+          id?: string
+          notes?: string | null
+          order_date?: string
+          po_number: string
+          received_date?: string | null
+          status?: string
+          subtotal?: number
+          supplier_id?: string | null
+          tax?: number
+          total?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          currency?: string
+          expected_date?: string | null
+          id?: string
+          notes?: string | null
+          order_date?: string
+          po_number?: string
+          received_date?: string | null
+          status?: string
+          subtotal?: number
+          supplier_id?: string | null
+          tax?: number
+          total?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_orders_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       stock_movements: {
         Row: {
+          cost_price: number | null
           created_at: string
           id: string
           movement_type: string
@@ -677,6 +1058,7 @@ export type Database = {
           variant_id: string | null
         }
         Insert: {
+          cost_price?: number | null
           created_at?: string
           id?: string
           movement_type: string
@@ -688,6 +1070,7 @@ export type Database = {
           variant_id?: string | null
         }
         Update: {
+          cost_price?: number | null
           created_at?: string
           id?: string
           movement_type?: string
@@ -714,6 +1097,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      suppliers: {
+        Row: {
+          address: string | null
+          balance: number
+          created_at: string
+          email: string | null
+          id: string
+          is_active: boolean
+          name: string
+          notes: string | null
+          phone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          address?: string | null
+          balance?: number
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          address?: string | null
+          balance?: number
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       unused_bl: {
         Row: {

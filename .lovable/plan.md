@@ -1,58 +1,31 @@
+## POS & Inventory — Godmode Upgrade
 
+Transform the POS/Inventory module into a full retail platform: multi-variant products, suppliers + purchase orders, returns/refunds, held sales, loyalty + store credit, complete reporting, barcode label printing, CSV import/export, low-stock alerts, and live cross-device realtime sync.
 
-# Multi-Invoice per B/L System
+---
 
-## What this does
-Currently, one Unused B/L can only be converted to one Used B/L record. This upgrade allows a single B/L to be used for **multiple invoices** (each with its own currency, amount, customer, bank, etc.). The Used B/L dashboard and Account Statement will visually group these sibling records together.
+### 1. Database (single migration)
 
-## Architecture Changes
+New tables (all with RLS `auth.uid() = user_id` and `updated_at` triggers):
 
-### 1. Database — No schema changes needed
-The `used_bl_counting` table already has `source_unused_bl_id` linking back to the source Unused B/L. Multiple rows can share the same `source_unused_bl_id`. We just need to stop marking the Unused B/L as "USED" after the first invoice (or track a count).
+- **suppliers** — name, phone, email, address, notes, balance, is_active
+- **purchase_orders** — supplier_id, po_number, status (`draft|ordered|partial|received|cancelled`), order_date, expected_date, received_date, subtotal, tax, total, currency, notes
+- **purchase_order_items** — po_id, product_id, variant_id, quantity_ordered, quantity_received, unit_cost, total
+- **pos_returns** — original_sale_id, return_number, customer_id, refund_amount, refund_method (`cash|store_credit|original`), reason, notes
+- **pos_return_items** — return_id, sale_item_id, product_id, variant_id, quantity, unit_price, refund_total, restock (bool)
+- **held_sales** — cart_snapshot (jsonb), customer_id, hold_label, notes, held_at
+- **loyalty_settings** — points_per_unit_currency, redemption_value, currency, enabled
+- **loyalty_transactions** — customer_id, sale_id, type (`earn|redeem|adjust`), points, balance_after, notes
+- **pos_settings** — receipt_header, receipt_footer, default_tax_rate, low_stock_alert_enabled, currency, store_name, logo_url
 
-### 2. Hook Changes — `useUnusedBL.ts`
-- **`useBL` function**: Instead of marking the Unused B/L status as `USED` on every call, change logic to:
-  - Insert the new `used_bl_counting` row (same as now)
-  - Update `unused_bl.status = 'USED'` and `used_at` (keep doing this — the B/L is indeed used)
-  - But allow calling `useBL` again on an already-USED record (remove the implicit filter that only shows UNUSED records in the modal context)
-- **`revertBL` function**: Only revert the Unused B/L to `UNUSED` status if ALL sibling used records are deleted/deactivated (check count of active `used_bl_counting` rows with same `source_unused_bl_id`)
+Extend existing tables:
+- `customers`: add `loyalty_points` (numeric, default 0), `store_credit` (numeric, default 0)
+- `pos_sales`: add `status` (`completed|refunded|partial_refund`), `refunded_amount`, `loyalty_earned`, `loyalty_redeemed`, `store_credit_used`
+- `products`: add `track_stock` (bool), `allow_negative_stock` (bool)
+- `stock_movements`: add `cost_price` (snapshot for valuation)
 
-### 3. UseBLModal — Multi-invoice support
-- Redesign `UseBLModal.tsx` to support adding **multiple invoice entries** in one session:
-  - Add an "Add Another Invoice" button that appends a new invoice form row
-  - Each row has: Customer, Beneficiary, Bank, Currency, Amount, Date, Manufacturer, Dashboard
-  - On confirm, loop through all entries and call `useBL` for each
-- Also allow re-opening the "Use" action on an already-USED B/L from the Unused B/L page (show USED records with an "Add Invoice" option)
+Realtime: `ALTER PUBLICATION supabase_realtime ADD TABLE` for products, product_variants, product_categories, customers, pos_sales, pos_sale_items, stock_movements, suppliers, purchase_orders, purchase_order_items, pos_returns, held_sales, loyalty_transactions.
 
-### 4. Used B/L Dashboard — Visual grouping
-- In `UsedBLDashboard.tsx`, after sorting/filtering, group records that share the same `source_unused_bl_id`
-- Render sibling records stacked together with a thin colored left-border outline (e.g., `border-l-2 border-primary`) and a subtle shared background
-- Show a small badge like "1 of 2" or "Shared B/L" on grouped rows
-- Allow adding more invoices to the same B/L from the Used B/L dashboard via an "Add Invoice" button on grouped rows
+---
 
-### 5. Used B/L Details — Edit & Add more invoices
-- On `UsedBLDetails.tsx`, show all sibling records for the same source B/L
-- Add an "Add Another Invoice" button that opens a form to create another `used_bl_counting` row with the same `source_unused_bl_id` and B/L metadata
-- Each sibling record remains independently editable via the existing edit page
-
-### 6. Account Statement — Grouped display
-- In `UnusedBLOwnerDetail.tsx`, when listing used records for an owner, group records sharing the same `source_unused_bl_id` (or same `bl_no`)
-- Display them stacked with a visual indicator (thin outline, indented sub-rows)
-- In the PDF exports (both Professional and Government), render multi-invoice B/Ls as a parent row + indented child rows with subtotals per B/L
-
-## Files to modify
-1. **`src/hooks/useUnusedBL.ts`** — Update `useBL` to allow multi-use, update `revertBL` to check sibling count
-2. **`src/components/unused-bl/UseBLModal.tsx`** — Add multi-invoice form with "Add Another Invoice" button
-3. **`src/pages/UnusedBLDashboard.tsx`** — Show "Add Invoice" action on USED records  
-4. **`src/pages/UsedBLDashboard.tsx`** — Group sibling records visually with outline styling
-5. **`src/pages/UsedBLDetails.tsx`** — Show siblings, add "Add Invoice" button
-6. **`src/pages/UnusedBLOwnerDetail.tsx`** — Group multi-invoice B/Ls in statement + PDF
-
-## Implementation order
-1. Hook logic changes (allow multi-use, smart revert)
-2. UseBLModal multi-invoice form
-3. Unused B/L dashboard "Add Invoice" on USED records
-4. Used B/L dashboard visual grouping
-5. Used B/L details — sibling display + add more
-6. Account statement grouping + PDF updates
-
+### 2. Hooks (data layer + realtime)
