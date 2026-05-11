@@ -35,6 +35,19 @@ export const useProducts = () => {
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
+  // Realtime: live sync across devices/tabs
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel('products-realtime')
+      .on('postgres_changes' as any, { event: '*', schema: 'public', table: 'products' }, fetchAll)
+      .on('postgres_changes' as any, { event: '*', schema: 'public', table: 'product_variants' }, fetchAll)
+      .on('postgres_changes' as any, { event: '*', schema: 'public', table: 'product_categories' }, fetchAll)
+      .on('postgres_changes' as any, { event: '*', schema: 'public', table: 'stock_movements' }, fetchAll)
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user, fetchAll]);
+
   const addProduct = async (data: Partial<Product>, variants?: Partial<ProductVariant>[]): Promise<boolean> => {
     if (!user) return false;
     const { data: inserted, error } = await db('products')
@@ -48,7 +61,6 @@ export const useProducts = () => {
         variants.map(v => ({ ...v, product_id: inserted.id, user_id: user.id }))
       );
     } else {
-      // Create a default variant
       await db('product_variants').insert({
         product_id: inserted.id,
         user_id: user.id,
@@ -100,8 +112,6 @@ export const useProducts = () => {
     productId: string, variantId: string, type: string, quantity: number, reference?: string, notes?: string
   ): Promise<boolean> => {
     if (!user) return false;
-
-    // Get current stock
     const { data: variant } = await db('product_variants').select('stock_quantity').eq('id', variantId).single();
     if (!variant) return false;
 
