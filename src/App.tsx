@@ -27,6 +27,10 @@ import UsedBLDetails from "@/pages/UsedBLDetails";
 import UsedBLEdit from "@/pages/UsedBLEdit";
 import POS from "@/pages/POS";
 import InventoryPage from "@/pages/Inventory";
+import Suppliers from "@/pages/Suppliers";
+import PurchaseOrders from "@/pages/PurchaseOrders";
+import Returns from "@/pages/Returns";
+import POSReports from "@/pages/POSReports";
 import { NetworkStatusIndicator } from "@/components/NetworkStatusIndicator";
 import PWAUpdateBanner from "@/components/PWAUpdateBanner";
 import { useAdmin } from "@/hooks/useAdmin";
@@ -101,6 +105,10 @@ const AppRoutes = () => {
         <Route path="/unused-bl/owner/:ownerName" element={<AdminRoute><UnusedBLOwnerDetail /></AdminRoute>} />
         <Route path="/pos" element={<POS />} />
         <Route path="/inventory" element={<InventoryPage />} />
+        <Route path="/suppliers" element={<Suppliers />} />
+        <Route path="/purchase-orders" element={<PurchaseOrders />} />
+        <Route path="/returns" element={<Returns />} />
+        <Route path="/pos-reports" element={<POSReports />} />
         <Route path="/insights" element={<Insights />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/settings" element={<AdminRoute><Settings /></AdminRoute>} />

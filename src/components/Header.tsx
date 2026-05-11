@@ -5,7 +5,7 @@ import { useSettings } from '@/contexts/SettingsContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAdmin } from '@/hooks/useAdmin';
 import { Button } from '@/components/ui/button';
-import { LayoutDashboard, FilePlus, Settings, Menu, Sun, Moon, BarChart3, Mail, LogOut, Shield, ClipboardList, FolderOpen, ShoppingCart, Boxes, ChevronDown } from 'lucide-react';
+import { LayoutDashboard, FilePlus, Settings, Menu, Sun, Moon, BarChart3, Mail, LogOut, Shield, ClipboardList, FolderOpen, ShoppingCart, Boxes, ChevronDown, Truck, RotateCcw, FileBarChart } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { gsap } from 'gsap';
@@ -196,10 +196,14 @@ const Header: React.FC = () => {
     { path: '/unused-bl', label: t('unusedBL'), icon: FolderOpen },
   ] : [];
 
-  // Group 3: POS dropdown (POS, Inventory)
+  // Group 3: POS dropdown (full retail suite)
   const posGroup = [
     { path: '/pos', label: 'POS', icon: ShoppingCart },
     { path: '/inventory', label: 'Inventory', icon: Boxes },
+    { path: '/suppliers', label: 'Suppliers', icon: Truck },
+    { path: '/purchase-orders', label: 'Purchase Orders', icon: ClipboardList },
+    { path: '/returns', label: 'Returns', icon: RotateCcw },
+    { path: '/pos-reports', label: 'Reports', icon: FileBarChart },
   ];
 
   // Standalone items
