@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useReturns, useSalesHistory } from '@/hooks/useRetail';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,10 +11,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
-import { RotateCcw, Search, X } from 'lucide-react';
+import { RotateCcw, Search } from 'lucide-react';
 import { format } from 'date-fns';
 
 const Returns: React.FC = () => {
+  const { t } = useLanguage();
   const { returns, loading, createReturn } = useReturns();
   const { sales, loading: salesLoading } = useSalesHistory(200);
   const { toast } = useToast();
@@ -50,21 +52,18 @@ const Returns: React.FC = () => {
     const items = selectedSale.items
       .filter((it: any) => (returnQtys[it.id] || 0) > 0)
       .map((it: any) => ({
-        sale_item_id: it.id,
-        product_id: it.product_id,
-        variant_id: it.variant_id,
-        product_name: it.product_name,
-        quantity: returnQtys[it.id],
+        sale_item_id: it.id, product_id: it.product_id, variant_id: it.variant_id,
+        product_name: it.product_name, quantity: returnQtys[it.id],
         unit_price: Number(it.unit_price),
         refund_total: returnQtys[it.id] * Number(it.unit_price),
         restock: restock[it.id] !== false,
       }));
-    if (items.length === 0) { toast({ title: 'Pick at least one item', variant: 'destructive' }); return; }
+    if (items.length === 0) { toast({ title: t('pickAtLeastOneItem'), variant: 'destructive' }); return; }
     const ret = await createReturn(selectedSale.id, selectedSale.customer_id, items, refundMethod, reason);
     if (ret) {
-      toast({ title: 'Return processed', description: `Refund $${refundAmount.toFixed(2)}` });
+      toast({ title: t('returnProcessedToast'), description: `${t('refund')} $${refundAmount.toFixed(2)}` });
       setOpenNew(false); setSelectedSale(null);
-    } else { toast({ title: 'Return failed', variant: 'destructive' }); }
+    } else { toast({ title: t('returnFailedToast'), variant: 'destructive' }); }
   };
 
   return (
@@ -73,11 +72,11 @@ const Returns: React.FC = () => {
         <div className="flex items-center gap-3">
           <div className="p-2 rounded-lg bg-primary/10"><RotateCcw className="h-6 w-6 text-primary" /></div>
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Returns & Refunds</h1>
-            <p className="text-sm text-muted-foreground">Process returns; auto-restock and refund</p>
+            <h1 className="text-2xl font-bold text-foreground">{t('returnsRefunds')}</h1>
+            <p className="text-sm text-muted-foreground">{t('processReturnsDesc')}</p>
           </div>
         </div>
-        <Button onClick={() => setPickerOpen(true)} className="gap-2"><RotateCcw className="h-4 w-4" /> New Return</Button>
+        <Button onClick={() => setPickerOpen(true)} className="gap-2"><RotateCcw className="h-4 w-4" /> {t('newReturn')}</Button>
       </div>
 
       <Card>
@@ -85,17 +84,17 @@ const Returns: React.FC = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Return #</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Method</TableHead>
-                <TableHead>Reason</TableHead>
-                <TableHead className="text-right">Items</TableHead>
-                <TableHead className="text-right">Refunded</TableHead>
+                <TableHead>{t('returnNumber')}</TableHead>
+                <TableHead>{t('dateCol')}</TableHead>
+                <TableHead>{t('methodCol')}</TableHead>
+                <TableHead>{t('reasonCol')}</TableHead>
+                <TableHead className="text-right">{t('itemsCol')}</TableHead>
+                <TableHead className="text-right">{t('refundedCol')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {loading ? <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">Loading...</TableCell></TableRow>
-              : returns.length === 0 ? <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">No returns yet</TableCell></TableRow>
+              {loading ? <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">{t('loadingDots')}</TableCell></TableRow>
+              : returns.length === 0 ? <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">{t('noReturnsYet')}</TableCell></TableRow>
               : returns.map(r => (
                 <TableRow key={r.id}>
                   <TableCell className="font-mono text-xs">{r.return_number}</TableCell>
@@ -111,26 +110,25 @@ const Returns: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Sale picker */}
       <Dialog open={pickerOpen} onOpenChange={setPickerOpen}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>Select Sale to Return</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{t('selectSaleToReturn')}</DialogTitle></DialogHeader>
           <div className="space-y-3">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search sale # or customer..." className="pl-10" />
+              <Input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('searchSaleOrCustomer')} className="pl-10" />
             </div>
             <Table>
-              <TableHeader><TableRow><TableHead>Sale #</TableHead><TableHead>Date</TableHead><TableHead>Customer</TableHead><TableHead className="text-right">Total</TableHead><TableHead></TableHead></TableRow></TableHeader>
+              <TableHeader><TableRow><TableHead>{t('saleNumCol')}</TableHead><TableHead>{t('dateCol')}</TableHead><TableHead>{t('customerCol')}</TableHead><TableHead className="text-right">{t('totalCol')}</TableHead><TableHead></TableHead></TableRow></TableHeader>
               <TableBody>
-                {salesLoading ? <TableRow><TableCell colSpan={5} className="text-center py-6 text-muted-foreground">Loading...</TableCell></TableRow>
+                {salesLoading ? <TableRow><TableCell colSpan={5} className="text-center py-6 text-muted-foreground">{t('loadingDots')}</TableCell></TableRow>
                 : filteredSales.map(s => (
                   <TableRow key={s.id}>
                     <TableCell className="font-mono text-xs">{s.sale_number}</TableCell>
                     <TableCell className="text-xs">{format(new Date(s.created_at), 'dd/MM/yyyy')}</TableCell>
-                    <TableCell>{s.customer?.name || 'Walk-in'}</TableCell>
+                    <TableCell>{s.customer?.name || t('walkIn')}</TableCell>
                     <TableCell className="text-right">${Number(s.total).toFixed(2)}</TableCell>
-                    <TableCell><Button size="sm" variant="outline" onClick={() => startReturn(s)}>Return</Button></TableCell>
+                    <TableCell><Button size="sm" variant="outline" onClick={() => startReturn(s)}>{t('returnBtn')}</Button></TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -139,14 +137,13 @@ const Returns: React.FC = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Return composer */}
       <Dialog open={openNew} onOpenChange={setOpenNew}>
         <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>Process Return — {selectedSale?.sale_number}</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{t('processReturnTitle')} — {selectedSale?.sale_number}</DialogTitle></DialogHeader>
           {selectedSale && (
             <div className="space-y-4">
               <Table>
-                <TableHeader><TableRow><TableHead>Item</TableHead><TableHead className="text-right">Sold</TableHead><TableHead className="text-right">Return Qty</TableHead><TableHead>Restock</TableHead></TableRow></TableHeader>
+                <TableHeader><TableRow><TableHead>{t('itemCol')}</TableHead><TableHead className="text-right">{t('soldCol')}</TableHead><TableHead className="text-right">{t('returnQtyCol')}</TableHead><TableHead>{t('restockCol')}</TableHead></TableRow></TableHeader>
                 <TableBody>
                   {selectedSale.items.map((it: any) => (
                     <TableRow key={it.id}>
@@ -171,25 +168,25 @@ const Returns: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label>Refund Method</Label>
+                  <Label>{t('refundMethodLabel')}</Label>
                   <Select value={refundMethod} onValueChange={v => setRefundMethod(v as any)}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent className="bg-popover">
-                      <SelectItem value="cash">Cash</SelectItem>
-                      <SelectItem value="store_credit">Store Credit</SelectItem>
-                      <SelectItem value="original">Original Payment</SelectItem>
+                      <SelectItem value="cash">{t('cash')}</SelectItem>
+                      <SelectItem value="store_credit">{t('storeCreditMethod')}</SelectItem>
+                      <SelectItem value="original">{t('originalPaymentMethod')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-1.5">
-                  <Label>Refund Total</Label>
+                  <Label>{t('refundTotalLabel')}</Label>
                   <div className="h-10 flex items-center px-3 bg-muted/30 rounded-md font-bold text-primary">${refundAmount.toFixed(2)}</div>
                 </div>
               </div>
 
-              <div className="space-y-1.5"><Label>Reason</Label><Textarea value={reason} onChange={e => setReason(e.target.value)} rows={2} placeholder="Reason for return..." /></div>
+              <div className="space-y-1.5"><Label>{t('reasonCol')}</Label><Textarea value={reason} onChange={e => setReason(e.target.value)} rows={2} placeholder={t('reasonForReturnPh')} /></div>
 
-              <Button className="w-full" onClick={onSubmitReturn} disabled={refundAmount <= 0}>Process Return — Refund ${refundAmount.toFixed(2)}</Button>
+              <Button className="w-full" onClick={onSubmitReturn} disabled={refundAmount <= 0}>{t('processReturnRefund')} ${refundAmount.toFixed(2)}</Button>
             </div>
           )}
         </DialogContent>
