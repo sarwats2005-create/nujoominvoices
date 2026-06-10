@@ -27,6 +27,7 @@ export const currencies: Currency[] = [
   { symbol: '₺', name: 'Turkish Lira', code: 'TRY' },
   { symbol: '﷼', name: 'Saudi Riyal', code: 'SAR' },
   { symbol: 'د.إ', name: 'UAE Dirham', code: 'AED' },
+  { symbol: '¥', name: 'Chinese Yuan', code: 'CNY' },
 ];
 
 interface SettingsContextType {
