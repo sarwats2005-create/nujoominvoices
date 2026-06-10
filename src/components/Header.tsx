@@ -232,7 +232,7 @@ const Header: React.FC = () => {
       {blGroup.length > 0 && (
         <MobileNavGroup label="B/L" icon={ClipboardList} items={blGroup} currentPath={location.pathname} onClose={onClose} />
       )}
-      <MobileNavGroup label="POS" icon={ShoppingCart} items={posGroup} currentPath={location.pathname} onClose={onClose} />
+      <MobileNavGroup label={t('pos')} icon={ShoppingCart} items={posGroup} currentPath={location.pathname} onClose={onClose} />
       {standaloneItems.map(item => (
         <MagicNavLink key={item.path} to={item.path} isActive={location.pathname === item.path} icon={item.icon} label={item.label} mobile onClick={onClose} />
       ))}
