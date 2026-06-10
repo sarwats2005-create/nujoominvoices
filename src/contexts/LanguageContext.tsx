@@ -1540,7 +1540,30 @@ export const translations: Translations = {
   transactionsLabel: { en: 'Transactions', ar: 'المعاملات', ku: 'مامەڵەکان' },
   avgTicket: { en: 'Avg Ticket', ar: 'متوسط الفاتورة', ku: 'تێکڕای پسوولە' },
   profitEst: { en: 'Profit (est.)', ar: 'الربح (تقديري)', ku: 'قازانج (خەمڵاندن)' },
-  refundedLabel: { en: 'Refunded', ar: 'مُسترد
+  refundedLabel: { en: 'Refunded', ar: 'مُسترد', ku: 'گەڕێنراوەتەوە' },
+  taxCollected: { en: 'Tax Collected', ar: 'الضريبة المحصلة', ku: 'باجی کۆکراوە' },
+  discountsLabel: { en: 'Discounts', ar: 'الخصومات', ku: 'داشکاندنەکان' },
+  cogsEst: { en: 'COGS (est.)', ar: 'تكلفة البضاعة المباعة (تقديري)', ku: 'تێچوونی کاڵای فرۆشراو (خەمڵاندن)' },
+  topProductsTitle: { en: 'Top Products', ar: 'المنتجات الأعلى', ku: 'باشترین بەرهەمەکان' },
+  stockValuationTitle: { en: 'Stock Valuation', ar: 'تقييم المخزون', ku: 'بەهاکردنی کۆگا' },
+  totalUnits: { en: 'Total Units', ar: 'إجمالي الوحدات', ku: 'کۆی یەکەکان' },
+  atCost: { en: 'At Cost', ar: 'بالتكلفة', ku: 'بە تێچوون' },
+  atRetail: { en: 'At Retail', ar: 'بسعر التجزئة', ku: 'بە نرخی فرۆشتن' },
+  potentialProfit: { en: 'Potential Profit', ar: 'الربح المحتمل', ku: 'قازانجی ئەگەری' },
+  recentSales: { en: 'Recent Sales', ar: 'المبيعات الأخيرة', ku: 'فرۆشتنە دواییەکان' },
+  noData: { en: 'No data', ar: 'لا توجد بيانات', ku: 'هیچ زانیاری نییە' },
+  statusCompleted: { en: 'completed', ar: 'مكتمل', ku: 'تەواوبوو' },
+  generatedLabel: { en: 'Generated', ar: 'تم الإنشاء', ku: 'دروستکرا' },
+  metricCol: { en: 'Metric', ar: 'المقياس', ku: 'پێوەر' },
+  valueCol: { en: 'Value', ar: 'القيمة', ku: 'بەها' },
+  grossSales: { en: 'Gross Sales', ar: 'إجمالي المبيعات', ku: 'کۆی فرۆشتن' },
+
+  // Barcode scanner
+  scanBarcodeTitle: { en: 'Scan Barcode', ar: 'مسح الباركود', ku: 'سکانی بارکۆد' },
+  cameraDenied: { en: 'Camera access denied. Please allow camera permissions.', ar: 'تم رفض الوصول للكاميرا. الرجاء السماح بالأذونات.', ku: 'دەستگەیشتن بە کامێرا ڕەتکرایەوە. تکایە ڕێگەی پێبدە.' },
+  pointCamera: { en: 'Point your camera at a barcode to scan it', ar: 'وجّه الكاميرا نحو الباركود لمسحه', ku: 'کامێراکەت ڕووەو بارکۆد بکە بۆ سکانکردنی' },
+
+
 
 interface LanguageContextType {
   language: Language;
