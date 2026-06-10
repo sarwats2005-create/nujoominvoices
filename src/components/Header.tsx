@@ -198,12 +198,12 @@ const Header: React.FC = () => {
 
   // Group 3: POS dropdown (full retail suite)
   const posGroup = [
-    { path: '/pos', label: 'POS', icon: ShoppingCart },
-    { path: '/inventory', label: 'Inventory', icon: Boxes },
-    { path: '/suppliers', label: 'Suppliers', icon: Truck },
-    { path: '/purchase-orders', label: 'Purchase Orders', icon: ClipboardList },
-    { path: '/returns', label: 'Returns', icon: RotateCcw },
-    { path: '/pos-reports', label: 'Reports', icon: FileBarChart },
+    { path: '/pos', label: t('pos'), icon: ShoppingCart },
+    { path: '/inventory', label: t('inventory'), icon: Boxes },
+    { path: '/suppliers', label: t('suppliers'), icon: Truck },
+    { path: '/purchase-orders', label: t('purchaseOrders'), icon: ClipboardList },
+    { path: '/returns', label: t('returns'), icon: RotateCcw },
+    { path: '/pos-reports', label: t('reports'), icon: FileBarChart },
   ];
 
   // Standalone items
@@ -218,7 +218,8 @@ const Header: React.FC = () => {
       {blGroup.length > 0 && (
         <NavDropdown label="B/L" icon={ClipboardList} items={blGroup} currentPath={location.pathname} />
       )}
-      <NavDropdown label="POS" icon={ShoppingCart} items={posGroup} currentPath={location.pathname} />
+      <NavDropdown label={t('pos')} icon={ShoppingCart} items={posGroup} currentPath={location.pathname} />
+
       {standaloneItems.map(item => (
         <MagicNavLink key={item.path} to={item.path} isActive={location.pathname === item.path} icon={item.icon} label={item.label} />
       ))}
