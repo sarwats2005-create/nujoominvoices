@@ -1562,7 +1562,7 @@ export const translations: Translations = {
   scanBarcodeTitle: { en: 'Scan Barcode', ar: 'مسح الباركود', ku: 'سکانی بارکۆد' },
   cameraDenied: { en: 'Camera access denied. Please allow camera permissions.', ar: 'تم رفض الوصول للكاميرا. الرجاء السماح بالأذونات.', ku: 'دەستگەیشتن بە کامێرا ڕەتکرایەوە. تکایە ڕێگەی پێبدە.' },
   pointCamera: { en: 'Point your camera at a barcode to scan it', ar: 'وجّه الكاميرا نحو الباركود لمسحه', ku: 'کامێراکەت ڕووەو بارکۆد بکە بۆ سکانکردنی' },
-
+};
 
 
 interface LanguageContextType {
