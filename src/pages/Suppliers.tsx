@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useSuppliers } from '@/hooks/useRetail';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,6 +13,7 @@ import { Truck, Plus, Search, Edit, Trash2, Phone, Mail } from 'lucide-react';
 import type { Supplier } from '@/types/retail';
 
 const Suppliers: React.FC = () => {
+  const { t } = useLanguage();
   const { suppliers, loading, addSupplier, updateSupplier, deleteSupplier } = useSuppliers();
   const { toast } = useToast();
   const [search, setSearch] = useState('');
@@ -40,14 +42,14 @@ const Suppliers: React.FC = () => {
       address: form.address.trim() || null,
       notes: form.notes.trim() || null,
     } as any;
-    if (editing) { await updateSupplier(editing.id, payload); toast({ title: 'Supplier updated' }); }
-    else { await addSupplier(payload); toast({ title: 'Supplier added' }); }
+    if (editing) { await updateSupplier(editing.id, payload); toast({ title: t('supplierUpdatedToast') }); }
+    else { await addSupplier(payload); toast({ title: t('supplierAddedToast') }); }
     setOpen(false); reset();
   };
 
   const onDelete = async (id: string) => {
-    if (!confirm('Remove this supplier?')) return;
-    await deleteSupplier(id); toast({ title: 'Supplier removed' });
+    if (!confirm(t('removeSupplierConfirm'))) return;
+    await deleteSupplier(id); toast({ title: t('supplierRemovedToast') });
   };
 
   return (
@@ -56,16 +58,16 @@ const Suppliers: React.FC = () => {
         <div className="flex items-center gap-3">
           <div className="p-2 rounded-lg bg-primary/10"><Truck className="h-6 w-6 text-primary" /></div>
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Suppliers</h1>
-            <p className="text-sm text-muted-foreground">Manage vendors for your purchase orders</p>
+            <h1 className="text-2xl font-bold text-foreground">{t('suppliers')}</h1>
+            <p className="text-sm text-muted-foreground">{t('manageVendors')}</p>
           </div>
         </div>
-        <Button onClick={() => { reset(); setOpen(true); }} className="gap-2"><Plus className="h-4 w-4" /> Add Supplier</Button>
+        <Button onClick={() => { reset(); setOpen(true); }} className="gap-2"><Plus className="h-4 w-4" /> {t('addSupplier')}</Button>
       </div>
 
       <div className="relative max-w-md">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search suppliers..." className="pl-10" />
+        <Input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('searchSuppliersPh')} className="pl-10" />
       </div>
 
       <Card>
@@ -74,16 +76,16 @@ const Suppliers: React.FC = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Contact</TableHead>
-                  <TableHead>Address</TableHead>
-                  <TableHead className="text-right">Balance</TableHead>
-                  <TableHead>Actions</TableHead>
+                  <TableHead>{t('nameLabel')}</TableHead>
+                  <TableHead>{t('contactCol')}</TableHead>
+                  <TableHead>{t('addressCol')}</TableHead>
+                  <TableHead className="text-right">{t('balanceCol')}</TableHead>
+                  <TableHead>{t('actionsCol')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {loading ? <TableRow><TableCell colSpan={5} className="text-center py-8 text-muted-foreground">Loading...</TableCell></TableRow>
-                : filtered.length === 0 ? <TableRow><TableCell colSpan={5} className="text-center py-8 text-muted-foreground">No suppliers yet</TableCell></TableRow>
+                {loading ? <TableRow><TableCell colSpan={5} className="text-center py-8 text-muted-foreground">{t('loadingDots')}</TableCell></TableRow>
+                : filtered.length === 0 ? <TableRow><TableCell colSpan={5} className="text-center py-8 text-muted-foreground">{t('noSuppliersYet')}</TableCell></TableRow>
                 : filtered.map(s => (
                   <TableRow key={s.id}>
                     <TableCell className="font-medium">{s.name}</TableCell>
@@ -111,16 +113,16 @@ const Suppliers: React.FC = () => {
 
       <Dialog open={open} onOpenChange={(v) => { if (!v) reset(); setOpen(v); }}>
         <DialogContent className="max-w-md">
-          <DialogHeader><DialogTitle>{editing ? 'Edit Supplier' : 'Add Supplier'}</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{editing ? t('editSupplierTitle') : t('addSupplierTitle')}</DialogTitle></DialogHeader>
           <div className="space-y-3">
-            <div className="space-y-1.5"><Label>Name *</Label><Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="Supplier name" /></div>
+            <div className="space-y-1.5"><Label>{t('nameLabel')} *</Label><Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder={t('supplierNamePh')} /></div>
             <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5"><Label>Phone</Label><Input value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} /></div>
-              <div className="space-y-1.5"><Label>Email</Label><Input value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} /></div>
+              <div className="space-y-1.5"><Label>{t('phoneLabel')}</Label><Input value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} /></div>
+              <div className="space-y-1.5"><Label>{t('emailLabel')}</Label><Input value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} /></div>
             </div>
-            <div className="space-y-1.5"><Label>Address</Label><Input value={form.address} onChange={e => setForm(f => ({ ...f, address: e.target.value }))} /></div>
-            <div className="space-y-1.5"><Label>Notes</Label><Textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} rows={2} /></div>
-            <Button className="w-full" onClick={onSave} disabled={!form.name.trim()}>{editing ? 'Save Changes' : 'Add Supplier'}</Button>
+            <div className="space-y-1.5"><Label>{t('addressLabel')}</Label><Input value={form.address} onChange={e => setForm(f => ({ ...f, address: e.target.value }))} /></div>
+            <div className="space-y-1.5"><Label>{t('notesLabel')}</Label><Textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} rows={2} /></div>
+            <Button className="w-full" onClick={onSave} disabled={!form.name.trim()}>{editing ? t('saveChangesBtn') : t('addSupplier')}</Button>
           </div>
         </DialogContent>
       </Dialog>
