@@ -31,12 +31,22 @@ serve(async (req) => {
     console.log("[get-map-embed] Google validation status:", validateJson.status, "error_message:", validateJson.error_message);
 
     // Google returns 200 OK with status like REQUEST_DENIED in body when the key is invalid/restricted.
-    if (validateJson.status && validateJson.status !== "OK" && validateJson.status !== "ZERO_RESULTS") {
+    // Google returns 200 OK with status like REQUEST_DENIED in body when the key is invalid/restricted.
+    // A REQUEST_DENIED caused by referrer restrictions is EXPECTED for browser keys — the iframe
+    // request will succeed because the browser sends a valid Referer. So we only hard-fail on
+    // errors that would also break the iframe (invalid key, key not authorized for Maps Embed,
+    // billing disabled, etc.).
+    const status = validateJson.status as string | undefined;
+    const errMsg = (validateJson.error_message as string | undefined) || "";
+    const isRefererOnly =
+      status === "REQUEST_DENIED" && /referer|referrer/i.test(errMsg);
+
+    if (status && status !== "OK" && status !== "ZERO_RESULTS" && !isRefererOnly) {
       return new Response(
         JSON.stringify({
-          error: `Google Maps API error: ${validateJson.status}`,
-          details: validateJson.error_message || "No additional details from Google.",
-          googleStatus: validateJson.status,
+          error: `Google Maps API error: ${status}`,
+          details: errMsg || "No additional details from Google.",
+          googleStatus: status,
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
       );
