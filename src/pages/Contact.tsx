@@ -39,6 +39,7 @@ const Contact: React.FC = () => {
   const [mapLocation, setMapLocation] = useState<MapLocation | null>(null);
   const [mapEmbedUrl, setMapEmbedUrl] = useState<string | null>(null);
   const [mapLoading, setMapLoading] = useState(true);
+  const [mapError, setMapError] = useState<string | null>(null);
   
   // Admin edit state
   const [isEditingLocation, setIsEditingLocation] = useState(false);
