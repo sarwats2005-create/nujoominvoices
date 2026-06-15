@@ -438,10 +438,16 @@ const Contact: React.FC = () => {
               title="Location Map"
             />
           ) : (
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-primary/10 flex items-center justify-center">
-              <div className="text-center">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-primary/10 flex items-center justify-center p-4">
+              <div className="text-center max-w-md">
                 <MapPin className="h-12 w-12 text-primary mx-auto mb-3" />
                 <p className="text-muted-foreground">{mapLocation?.address || contactInfo.address}</p>
+                {mapError && (
+                  <div className="mt-4 rounded-md border border-destructive/40 bg-destructive/10 p-3 text-left">
+                    <p className="text-xs font-semibold text-destructive mb-1">Google Maps error</p>
+                    <p className="text-xs text-destructive/90 break-words whitespace-pre-wrap">{mapError}</p>
+                  </div>
+                )}
               </div>
             </div>
           )}
