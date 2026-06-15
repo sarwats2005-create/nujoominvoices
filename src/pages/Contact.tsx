@@ -88,16 +88,40 @@ const Contact: React.FC = () => {
 
   const fetchMapEmbed = async (lat: number, lng: number, zoom: number) => {
     try {
+      setMapError(null);
       const { data, error } = await supabase.functions.invoke('get-map-embed', {
         body: { latitude: lat, longitude: lng, zoom },
       });
-      
-      if (error) throw error;
+
+      if (error) {
+        // FunctionsHttpError exposes a context.response we can read for the JSON body
+        let detail = error.message;
+        try {
+          const ctx = (error as { context?: Response }).context;
+          if (ctx && typeof ctx.json === 'function') {
+            const body = await ctx.json();
+            detail = body.details
+              ? `${body.error} — ${body.details}`
+              : (body.error || detail);
+          }
+        } catch { /* ignore parse errors */ }
+        console.error('[Map] Edge function error:', detail);
+        setMapError(detail);
+        return;
+      }
+      if (data?.error) {
+        const detail = data.details ? `${data.error} — ${data.details}` : data.error;
+        console.error('[Map] Google error:', detail);
+        setMapError(detail);
+        return;
+      }
       if (data?.embedUrl) {
         setMapEmbedUrl(data.embedUrl);
       }
     } catch (error) {
-      console.error('Error fetching map embed:', error);
+      const msg = error instanceof Error ? error.message : String(error);
+      console.error('Error fetching map embed:', msg);
+      setMapError(msg);
     }
   };
 
