@@ -561,95 +561,30 @@ const UsedBLDashboard: React.FC = () => {
 
           {showArchived && (
             <div className="border-t border-border">
-              {/* Folder Manager */}
-              <div className="px-4 py-3 border-b border-border bg-muted/10">
-                <ArchiveFolderManager
-                  folders={folders}
-                  onAdd={addFolder}
-                  onUpdate={updateFolder}
-                  onDelete={deleteFolder}
-                  archivedCounts={archivedCounts}
-                />
-              </div>
-
-              {/* Folder Filter Tabs */}
-              {folders.length > 0 && (
-                <div className="px-4 py-2 border-b border-border flex flex-wrap gap-1.5">
-                  <Badge variant={archiveFolderFilter === 'all' ? 'default' : 'outline'} className="cursor-pointer text-xs" onClick={() => setArchiveFolderFilter('all')}>
-                    All ({archivedRecords.length})
-                  </Badge>
-                  <Badge variant={archiveFolderFilter === 'unfiled' ? 'default' : 'outline'} className="cursor-pointer text-xs" onClick={() => setArchiveFolderFilter('unfiled')}>
-                    Unfiled ({archivedCounts['unfiled'] || 0})
-                  </Badge>
-                  {folders.map(f => (
-                    <Badge key={f.id} variant={archiveFolderFilter === f.id ? 'default' : 'outline'} className="cursor-pointer text-xs gap-1" onClick={() => setArchiveFolderFilter(f.id)}>
-                      <div className="h-2 w-2 rounded-full" style={{ backgroundColor: f.color }} />
-                      {f.name} ({archivedCounts[f.id] || 0})
-                    </Badge>
-                  ))}
-                </div>
-              )}
-
-              {loadingArchived ? (
-                <div className="py-8 text-center text-muted-foreground text-sm">Loading archived records...</div>
-              ) : filteredArchivedRecords.length === 0 ? (
-                <div className="py-8 text-center text-muted-foreground text-sm">No archived records{archiveFolderFilter !== 'all' ? ' in this folder' : ''}</div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="text-xs">B/L NO</TableHead>
-                        <TableHead className="text-xs">CONTAINER NO</TableHead>
-                        <TableHead className="text-xs">AMOUNT</TableHead>
-                        <TableHead className="text-xs">DATE</TableHead>
-                        <TableHead className="text-xs">BANK</TableHead>
-                        <TableHead className="text-xs">OWNER</TableHead>
-                        <TableHead className="text-xs">CUSTOMER</TableHead>
-                        {folders.length > 0 && <TableHead className="text-xs">FOLDER</TableHead>}
-                        <TableHead className="text-right text-xs">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredArchivedRecords.map((record) => {
-                        const folderName = getFolderName((record as any).archive_folder_id);
-                        const folderColor = getFolderColor((record as any).archive_folder_id);
-                        return (
-                          <TableRow key={record.id} className="opacity-70 hover:opacity-100 transition-opacity">
-                            <TableCell className="font-mono text-xs">{record.bl_no}</TableCell>
-                            <TableCell className="font-mono text-xs">{record.container_no}</TableCell>
-                            <TableCell className="text-xs font-semibold">{formatAmount(record.invoice_amount, (record as any).currency)}</TableCell>
-                            <TableCell className="text-xs">{format(parseDateString(record.invoice_date), 'dd/MM/yyyy')}</TableCell>
-                            <TableCell><Badge variant="outline" className="text-xs">{record.bank}</Badge></TableCell>
-                            <TableCell className="text-xs">{record.owner}</TableCell>
-                            <TableCell className="text-xs">{record.used_for}</TableCell>
-                            {folders.length > 0 && (
-                              <TableCell>
-                                {folderName ? (
-                                  <Badge variant="outline" className="text-[10px] gap-1">
-                                    <div className="h-2 w-2 rounded-full" style={{ backgroundColor: folderColor }} />
-                                    {folderName}
-                                  </Badge>
-                                ) : <span className="text-xs text-muted-foreground">—</span>}
-                              </TableCell>
-                            )}
-                            <TableCell className="text-right">
-                              <div className="flex justify-end gap-1">
-                                <Button variant="outline" size="sm" className="h-7 gap-1 text-xs" onClick={() => handleUnarchive(record.id)}>
-                                  <ArchiveRestore className="h-3.5 w-3.5" /> Restore
-                                </Button>
-                                <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => setDeleteId(record.id)}>
-                                  <Trash2 className="h-3.5 w-3.5" />
-                                </Button>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
+              <FolderBrowser
+                folders={folders}
+                archivedRecords={archivedRecords}
+                loading={loadingArchived}
+                formatAmount={formatAmount}
+                onAddFolder={addFolder}
+                onUpdateFolder={updateFolder}
+                onDeleteFolder={deleteFolder}
+                onMoveRecords={async (ids, folderId) => {
+                  const n = await moveArchivedToFolder(ids, folderId);
+                  if (n > 0) toast({ title: `${n} record${n !== 1 ? 's' : ''} moved` });
+                  return n;
+                }}
+                onRestoreRecords={async (ids) => {
+                  const n = await bulkRestoreArchived(ids);
+                  if (n > 0) toast({ title: `${n} record${n !== 1 ? 's' : ''} restored` });
+                  return n;
+                }}
+                onDeleteRecords={async (ids) => {
+                  const n = await bulkDeleteArchived(ids);
+                  if (n > 0) toast({ title: `${n} record${n !== 1 ? 's' : ''} deleted` });
+                  return n;
+                }}
+              />
             </div>
           )}
         </CardContent>
