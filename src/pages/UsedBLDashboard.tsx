@@ -598,7 +598,7 @@ const UsedBLDashboard: React.FC = () => {
         onOpenChange={(o) => { setArchivePickerOpen(o); if (!o) setPendingArchiveIds([]); }}
         title={pendingArchiveIds.length > 1 ? `Archive ${pendingArchiveIds.length} records to folder` : 'Archive record to folder'}
         confirmLabel="Archive"
-        roots={[]}
+        roots={folderTree.roots}
         allowRoot={false}
         onConfirm={handleConfirmArchive}
         onCreateFolder={addFolder}
