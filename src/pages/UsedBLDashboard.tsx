@@ -15,14 +15,15 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { format } from 'date-fns';
 import { parseDateString } from '@/lib/dateUtils';
-import { Plus, Search, ArrowUpDown, Trash2, Edit, Eye, Copy, Download, Upload, FileText, Archive, ArchiveRestore, Folder } from 'lucide-react';
+import { Plus, Search, ArrowUpDown, Trash2, Edit, Eye, Copy, Download, Upload, FileText, Archive } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 import jsPDF from 'jspdf';
 import { ensureUnicodeFont } from '@/lib/pdfFont';
 import autoTable from 'jspdf-autotable';
 import BLDashboardSelector from '@/components/BLDashboardSelector';
-import ArchiveFolderManager from '@/components/ArchiveFolderManager';
+import FolderBrowser from '@/components/archive/FolderBrowser';
+import FolderPicker from '@/components/archive/FolderPicker';
 import UseBLModal from '@/components/unused-bl/UseBLModal';
 import { supabase } from '@/integrations/supabase/client';
 import type { UsedBL } from '@/types/usedBL';
