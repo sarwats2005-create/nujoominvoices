@@ -151,6 +151,43 @@ export const useUsedBL = (dashboardId?: string | null) => {
     return archived;
   };
 
+  const moveArchivedToFolder = async (ids: string[], folderId: string | null): Promise<number> => {
+    if (!user || ids.length === 0) return 0;
+    const { error } = await supabase
+      .from('used_bl_counting' as any)
+      .update({ archive_folder_id: folderId } as any)
+      .in('id', ids)
+      .eq('user_id', user.id);
+    if (error) return 0;
+    setArchivedRecords(prev => prev.map(r => ids.includes(r.id) ? { ...r, archive_folder_id: folderId } : r));
+    return ids.length;
+  };
+
+  const bulkRestoreArchived = async (ids: string[]): Promise<number> => {
+    if (!user || ids.length === 0) return 0;
+    const { error } = await supabase
+      .from('used_bl_counting' as any)
+      .update({ is_archived: false } as any)
+      .in('id', ids)
+      .eq('user_id', user.id);
+    if (error) return 0;
+    setArchivedRecords(prev => prev.filter(r => !ids.includes(r.id)));
+    fetchRecords();
+    return ids.length;
+  };
+
+  const bulkDeleteArchived = async (ids: string[]): Promise<number> => {
+    if (!user || ids.length === 0) return 0;
+    const { error } = await supabase
+      .from('used_bl_counting' as any)
+      .update({ is_active: false } as any)
+      .in('id', ids)
+      .eq('user_id', user.id);
+    if (error) return 0;
+    setArchivedRecords(prev => prev.filter(r => !ids.includes(r.id)));
+    return ids.length;
+  };
+
   const updateRecord = async (id: string, updates: UsedBLUpdate): Promise<{ success: boolean; error?: string }> => {
     if (!user) return { success: false, error: 'Not authenticated' };
 
