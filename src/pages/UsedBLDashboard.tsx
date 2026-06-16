@@ -157,13 +157,20 @@ const UsedBLDashboard: React.FC = () => {
     setDeleteId(null);
   };
 
-  const handleArchive = async () => {
-    if (!archiveId) return;
-    const fId = archiveFolderId === 'none' ? null : archiveFolderId;
-    const count = await archiveToFolder([archiveId], fId);
-    if (count > 0) toast({ title: 'Record archived successfully' });
-    setArchiveId(null);
-    setArchiveFolderId('none');
+  const openArchivePicker = (ids: string[]) => {
+    if (ids.length === 0) return;
+    setPendingArchiveIds(ids);
+    setArchivePickerOpen(true);
+  };
+
+  const handleConfirmArchive = async (folderId: string | null) => {
+    if (pendingArchiveIds.length === 0 || folderId === null) return;
+    const count = await archiveToFolder(pendingArchiveIds, folderId);
+    if (count > 0) {
+      toast({ title: `${count} record${count !== 1 ? 's' : ''} archived` });
+      setSelectedIds(new Set());
+    }
+    setPendingArchiveIds([]);
   };
 
   const handleAddInvoiceForBL = async (record: UsedBL) => {
@@ -178,11 +185,6 @@ const UsedBLDashboard: React.FC = () => {
       return;
     }
     setAddInvoiceSource(data as UnusedBL);
-  };
-
-  const handleUnarchive = async (id: string) => {
-    const ok = await unarchiveRecord(id);
-    if (ok) toast({ title: 'Record restored from archive' });
   };
 
   const toggleSelect = (id: string) => {
@@ -202,39 +204,7 @@ const UsedBLDashboard: React.FC = () => {
     }
   };
 
-  const handleBulkArchive = async () => {
-    const fId = archiveFolderId === 'none' ? null : archiveFolderId;
-    const archived = await archiveToFolder([...selectedIds], fId);
-    toast({ title: `${archived} record${archived !== 1 ? 's' : ''} archived` });
-    setSelectedIds(new Set());
-    setShowBulkArchiveDialog(false);
-    setArchiveFolderId('none');
-  };
 
-  const archivedCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
-    archivedRecords.forEach(r => {
-      const fId = (r as any).archive_folder_id || 'unfiled';
-      counts[fId] = (counts[fId] || 0) + 1;
-    });
-    return counts;
-  }, [archivedRecords]);
-
-  const filteredArchivedRecords = useMemo(() => {
-    if (archiveFolderFilter === 'all') return archivedRecords;
-    if (archiveFolderFilter === 'unfiled') return archivedRecords.filter(r => !(r as any).archive_folder_id);
-    return archivedRecords.filter(r => (r as any).archive_folder_id === archiveFolderFilter);
-  }, [archivedRecords, archiveFolderFilter]);
-
-  const getFolderName = (folderId: string | null) => {
-    if (!folderId) return null;
-    return folders.find(f => f.id === folderId)?.name || null;
-  };
-
-  const getFolderColor = (folderId: string | null) => {
-    if (!folderId) return undefined;
-    return folders.find(f => f.id === folderId)?.color;
-  };
 
   // CSV parsing helper that handles quoted fields
   const parseCSVLine = (line: string): string[] => {
