@@ -590,40 +590,17 @@ const UsedBLDashboard: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Archive Dialog with folder picker */}
-      <Dialog open={!!archiveId} onOpenChange={() => { setArchiveId(null); setArchiveFolderId('none'); }}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle>Archive Record</DialogTitle>
-          </DialogHeader>
-          <p className="text-sm text-muted-foreground">
-            This record will be moved to the archive. You can restore it anytime.
-          </p>
-          {folders.length > 0 && (
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium">Folder (optional)</label>
-              <Select value={archiveFolderId} onValueChange={setArchiveFolderId}>
-                <SelectTrigger><SelectValue placeholder="No folder" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">No folder</SelectItem>
-                  {folders.map(f => (
-                    <SelectItem key={f.id} value={f.id}>
-                      <div className="flex items-center gap-2">
-                        <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: f.color }} />
-                        {f.name}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => { setArchiveId(null); setArchiveFolderId('none'); }}>Cancel</Button>
-            <Button onClick={handleArchive}>Archive</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Archive folder picker (single + bulk archive entry point) */}
+      <FolderPicker
+        open={archivePickerOpen}
+        onOpenChange={(o) => { setArchivePickerOpen(o); if (!o) setPendingArchiveIds([]); }}
+        title={pendingArchiveIds.length > 1 ? `Archive ${pendingArchiveIds.length} records to folder` : 'Archive record to folder'}
+        confirmLabel="Archive"
+        roots={[]}
+        allowRoot={false}
+        onConfirm={handleConfirmArchive}
+        onCreateFolder={addFolder}
+      />
 
       {/* Delete Dialog */}
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
@@ -643,40 +620,6 @@ const UsedBLDashboard: React.FC = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Bulk Archive Dialog with folder picker */}
-      <Dialog open={showBulkArchiveDialog} onOpenChange={setShowBulkArchiveDialog}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle>Archive {selectedIds.size} Record{selectedIds.size !== 1 ? 's' : ''}</DialogTitle>
-          </DialogHeader>
-          <p className="text-sm text-muted-foreground">
-            These records will be moved to the archive. You can restore them anytime.
-          </p>
-          {folders.length > 0 && (
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium">Folder (optional)</label>
-              <Select value={archiveFolderId} onValueChange={setArchiveFolderId}>
-                <SelectTrigger><SelectValue placeholder="No folder" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">No folder</SelectItem>
-                  {folders.map(f => (
-                    <SelectItem key={f.id} value={f.id}>
-                      <div className="flex items-center gap-2">
-                        <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: f.color }} />
-                        {f.name}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowBulkArchiveDialog(false)}>Cancel</Button>
-            <Button onClick={handleBulkArchive}>Archive All</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       {/* Add Invoice for existing Used B/L */}
       {addInvoiceSource && (
