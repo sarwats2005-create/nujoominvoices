@@ -43,6 +43,7 @@ const UsedBLDashboard: React.FC = () => {
     setCurrentBLDashboardId, addBLDashboard, refetch,
   } = useUsedBL();
   const { folders, addFolder, updateFolder, deleteFolder } = useArchiveFolders(currentBLDashboardId);
+  const folderTree = useArchiveFolderTree(folders, archivedRecords);
   const { isAdmin } = useAdmin();
   const { toast } = useToast();
 
