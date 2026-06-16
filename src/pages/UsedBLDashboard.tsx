@@ -51,12 +51,10 @@ const UsedBLDashboard: React.FC = () => {
   const [bankFilter, setBankFilter] = useState<string | null>(null);
   const [ownerFilter, setOwnerFilter] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [archiveId, setArchiveId] = useState<string | null>(null);
+  const [archivePickerOpen, setArchivePickerOpen] = useState(false);
+  const [pendingArchiveIds, setPendingArchiveIds] = useState<string[]>([]);
   const [showArchived, setShowArchived] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [showBulkArchiveDialog, setShowBulkArchiveDialog] = useState(false);
-  const [archiveFolderId, setArchiveFolderId] = useState<string>('none');
-  const [archiveFolderFilter, setArchiveFolderFilter] = useState<string>('all');
   const [addInvoiceSource, setAddInvoiceSource] = useState<UnusedBL | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
