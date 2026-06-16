@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useUsedBL } from '@/hooks/useUsedBL';
 import { useArchiveFolders } from '@/hooks/useArchiveFolders';
+import { useArchiveFolderTree } from '@/hooks/useArchiveFolderTree';
 import { useAdmin } from '@/hooks/useAdmin';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
