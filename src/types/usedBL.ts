@@ -59,6 +59,7 @@ export interface ArchiveFolder {
   id: string;
   user_id: string;
   dashboard_id: string | null;
+  parent_id: string | null;
   name: string;
   color: string;
   created_at: string;
