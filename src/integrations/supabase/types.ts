@@ -21,6 +21,7 @@ export type Database = {
           dashboard_id: string | null
           id: string
           name: string
+          parent_id: string | null
           updated_at: string
           user_id: string
         }
@@ -30,6 +31,7 @@ export type Database = {
           dashboard_id?: string | null
           id?: string
           name: string
+          parent_id?: string | null
           updated_at?: string
           user_id: string
         }
@@ -39,6 +41,7 @@ export type Database = {
           dashboard_id?: string | null
           id?: string
           name?: string
+          parent_id?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -48,6 +51,13 @@ export type Database = {
             columns: ["dashboard_id"]
             isOneToOne: false
             referencedRelation: "bl_dashboards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "archive_folders_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "archive_folders"
             referencedColumns: ["id"]
           },
         ]
