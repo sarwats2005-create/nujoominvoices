@@ -1,46 +1,76 @@
 ## Goal
-Add full Kurdish Sorani (ku) translation coverage to every page and component in the POS & Inventory module. Currently none of those files use the app's `useLanguage()` / `t()` system — all strings are hardcoded English. We'll wire them all into the existing trilingual (en/ar/ku) system used elsewhere in the app.
+Turn the Used B/L archive into a proper folder-based filing system with nesting, drill-in navigation, mandatory folder selection, and richer bulk actions.
 
-## Scope (files to localize)
+## 1. Database (migration)
+Add to `archive_folders`:
+- `parent_id uuid NULL` — references `archive_folders(id) ON DELETE SET NULL`, enables sub-folders.
+- Index on `(user_id, dashboard_id, parent_id)`.
 
-Pages:
-- `src/pages/POS.tsx` (cart, checkout, hold/recall, payment, receipt actions)
-- `src/pages/Inventory.tsx` (products, categories, variants, stock movements, CSV)
-- `src/pages/Suppliers.tsx`
-- `src/pages/PurchaseOrders.tsx`
-- `src/pages/Returns.tsx`
-- `src/pages/POSReports.tsx` (Z-report, profit, top products, stock valuation)
+No changes to `used_bl_counting` — `archive_folder_id` already exists and will continue to hold the leaf folder ID.
 
-Components:
-- `src/components/pos/BarcodeScanner.tsx`
-- Any POS-related dialogs/sub-components referenced above
+## 2. Archive flow changes (mandatory folder)
+- Remove the "No folder" option from archive dialogs (single + bulk).
+- The archive button is disabled until a folder is selected.
+- Existing unfiled archived records remain accessible via an auto-shown "Unfiled" virtual folder (read-only system bucket) so nothing is lost. Once moved out it disappears when empty.
+- Inside the archive dialog, add an inline "+ New folder" row that opens a small form (name, color, optional parent) and assigns the new folder immediately on create.
 
-Navigation:
-- `src/components/Header.tsx` — POS/Inventory/Suppliers/Purchase Orders/Returns/Reports menu labels (translate any still-hardcoded ones)
+## 3. Folder browser (drill-in cards)
+Replace the current flat folder filter tabs with a card-based browser inside the "Archived Records" section:
 
-## Approach
+```text
+[Archived Records] (collapsible)
+  Breadcrumb: All Archives  >  Clients  >  2024
+  ┌────────────┐ ┌────────────┐ ┌────────────┐
+  │ 📁 Clients │ │ 📁 Suppliers│ │ 📁 Banks   │
+  │ 12 records │ │ 4 records  │ │ 7 records  │
+  │ $45,300    │ │ €2,100     │ │ $8,900     │
+  └────────────┘ └────────────┘ └────────────┘
+  Records directly in this folder:
+  [archived table here]
+```
 
-1. **Audit strings** — Grep each POS file for visible UI text (button labels, headings, placeholders, toast messages, empty states, table headers, dialog titles, validation messages).
-2. **Add translation keys** to `src/contexts/LanguageContext.tsx` under a clearly delimited `// POS Module` section, with `en` / `ar` / `ku` values for every key. Group by sub-area (pos, inventory, suppliers, purchaseOrders, returns, reports, common).
-3. **Wire pages** — In each page/component:
-   - Import `useLanguage` from `@/contexts/LanguageContext`
-   - Replace hardcoded strings with `t('key')`
-   - Keep dynamic values (numbers, names, currency symbols) untouched — only swap the surrounding labels.
-4. **Preserve RTL** — Kurdish and Arabic already trigger RTL via the existing language context; no extra work needed beyond using semantic Tailwind classes that already adapt.
-5. **Toasts & validation** — Translate `toast({ title, description })` strings and any `zod`/inline validation messages.
+- Folder cards show: color dot, name, child-folder count, record count (recursive), per-currency totals (recursive).
+- Click a card → enter folder (breadcrumb updates, view shows that folder's sub-folders + its records).
+- Breadcrumb segments are clickable to navigate back up.
+- "All Archives" root shows top-level folders + records with no folder set ("Unfiled" pseudo-folder).
+- Each card has a hover overlay with: rename, change color, change parent, delete.
 
-## Out of scope
+## 4. Inline rename/recolor from cards & breadcrumb
+- Pencil icon on each folder card opens a small popover (name input + color swatches + parent dropdown), saves on Enter / Save button.
+- Same popover reachable from breadcrumb's current-folder name.
 
-- No changes to business logic, database, hooks, or component structure.
-- PDF/receipt body text stays in its current language(s) unless trivially keyed (we'll translate only the user-facing UI; printed receipts can be a follow-up).
-- No font swaps — Kurdish renders with current fonts.
+## 5. Bulk actions on archived records
+Mirror the active-table pattern:
+- Checkbox column on archived rows + select-all.
+- Sticky bulk bar appears with: Move to folder…, Restore, Delete.
+- "Move to folder" opens the folder picker (tree-style, with inline "+ New folder").
 
-## Verification
+## 6. Per-folder currency totals
+- Aggregated client-side from `archivedRecords` (one query already loads them all per dashboard).
+- A helper walks the folder tree to compute recursive totals per currency, shown on cards and in the breadcrumb header.
 
-- Switch language in the header to Kurdish (ku) and walk through: POS sale flow, hold/recall, Inventory CRUD, Suppliers, Purchase Orders, Returns, POS Reports.
-- Switch to Arabic and confirm RTL still looks correct.
-- Build passes; no missing `t()` keys (fallback returns the key name, which would be obvious).
+## 7. Files to add / change
 
-## Notes
-- Estimated ~150–200 new translation keys.
-- Single PR-style change set; one pass per file to minimize re-reads.
+New:
+- `src/components/archive/FolderBrowser.tsx` — cards, breadcrumb, drill-in state.
+- `src/components/archive/FolderCard.tsx` — card with totals + inline edit popover.
+- `src/components/archive/FolderPicker.tsx` — reusable tree picker with inline "+ New folder" (used by archive dialog, bulk move, card edit).
+- `src/components/archive/ArchivedRecordsTable.tsx` — extracted table with multi-select + bulk bar.
+- `src/hooks/useArchiveFolderTree.ts` — builds tree, computes per-folder recursive counts & currency totals.
+
+Updated:
+- `src/types/usedBL.ts` — add `parent_id: string | null` to `ArchiveFolder`.
+- `src/hooks/useArchiveFolders.ts` — accept/return `parent_id`; add `moveFolder(id, parentId)`.
+- `src/hooks/useUsedBL.ts` — add `moveArchivedToFolder(ids, folderId)` and `bulkDeleteArchived(ids)` (soft delete).
+- `src/components/ArchiveFolderManager.tsx` — deprecated; replaced by FolderBrowser. Removed from page.
+- `src/pages/UsedBLDashboard.tsx` — wire FolderBrowser into the Archived Records card; require folder on archive; pass through new bulk handlers.
+
+## 8. Translation keys
+Add EN / AR / KU keys for: "All Archives", "Choose a folder", "New folder", "Parent folder", "Move to folder", "Restore selected", "Delete selected", "Unfiled", "Sub-folders", "Records in this folder", "Folder required".
+
+## 9. Technical notes
+- Drill-in state lives in `UsedBLDashboard` as `currentFolderId: string | null` (null = root). Reset when the BL dashboard switches.
+- Recursive deletion: deleting a folder with sub-folders prompts a choice — "Move children to parent" (default) or "Unfile children".
+- Cycle prevention when changing a folder's parent: walk ancestors and reject if target is a descendant.
+- All folder writes stay user-scoped via existing RLS on `archive_folders`.
+- No changes to the active records table, dashboard selector, or non-archive logic.

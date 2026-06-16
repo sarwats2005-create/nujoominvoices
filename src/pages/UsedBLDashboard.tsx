@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useUsedBL } from '@/hooks/useUsedBL';
 import { useArchiveFolders } from '@/hooks/useArchiveFolders';
+import { useArchiveFolderTree } from '@/hooks/useArchiveFolderTree';
 import { useAdmin } from '@/hooks/useAdmin';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
@@ -11,18 +12,17 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { format } from 'date-fns';
 import { parseDateString } from '@/lib/dateUtils';
-import { Plus, Search, ArrowUpDown, Trash2, Edit, Eye, Copy, Download, Upload, FileText, Archive, ArchiveRestore, Folder } from 'lucide-react';
+import { Plus, Search, ArrowUpDown, Trash2, Edit, Eye, Copy, Download, Upload, FileText, Archive } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 import jsPDF from 'jspdf';
 import { ensureUnicodeFont } from '@/lib/pdfFont';
 import autoTable from 'jspdf-autotable';
 import BLDashboardSelector from '@/components/BLDashboardSelector';
-import ArchiveFolderManager from '@/components/ArchiveFolderManager';
+import FolderBrowser from '@/components/archive/FolderBrowser';
+import FolderPicker from '@/components/archive/FolderPicker';
 import UseBLModal from '@/components/unused-bl/UseBLModal';
 import { supabase } from '@/integrations/supabase/client';
 import type { UsedBL } from '@/types/usedBL';
@@ -35,11 +35,13 @@ const UsedBLDashboard: React.FC = () => {
   const navigate = useNavigate();
   const {
     records, loading, softDeleteRecord, addMultipleRecords,
-    archivedRecords, loadingArchived, archiveRecord, unarchiveRecord, archiveToFolder,
+    archivedRecords, loadingArchived, archiveToFolder,
+    moveArchivedToFolder, bulkRestoreArchived, bulkDeleteArchived,
     blDashboards, currentBLDashboardId, currentDashboardName,
     setCurrentBLDashboardId, addBLDashboard, refetch,
   } = useUsedBL();
   const { folders, addFolder, updateFolder, deleteFolder } = useArchiveFolders(currentBLDashboardId);
+  const folderTree = useArchiveFolderTree(folders, archivedRecords);
   const { isAdmin } = useAdmin();
   const { toast } = useToast();
 
@@ -49,12 +51,10 @@ const UsedBLDashboard: React.FC = () => {
   const [bankFilter, setBankFilter] = useState<string | null>(null);
   const [ownerFilter, setOwnerFilter] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [archiveId, setArchiveId] = useState<string | null>(null);
+  const [archivePickerOpen, setArchivePickerOpen] = useState(false);
+  const [pendingArchiveIds, setPendingArchiveIds] = useState<string[]>([]);
   const [showArchived, setShowArchived] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [showBulkArchiveDialog, setShowBulkArchiveDialog] = useState(false);
-  const [archiveFolderId, setArchiveFolderId] = useState<string>('none');
-  const [archiveFolderFilter, setArchiveFolderFilter] = useState<string>('all');
   const [addInvoiceSource, setAddInvoiceSource] = useState<UnusedBL | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -157,13 +157,20 @@ const UsedBLDashboard: React.FC = () => {
     setDeleteId(null);
   };
 
-  const handleArchive = async () => {
-    if (!archiveId) return;
-    const fId = archiveFolderId === 'none' ? null : archiveFolderId;
-    const count = await archiveToFolder([archiveId], fId);
-    if (count > 0) toast({ title: 'Record archived successfully' });
-    setArchiveId(null);
-    setArchiveFolderId('none');
+  const openArchivePicker = (ids: string[]) => {
+    if (ids.length === 0) return;
+    setPendingArchiveIds(ids);
+    setArchivePickerOpen(true);
+  };
+
+  const handleConfirmArchive = async (folderId: string | null) => {
+    if (pendingArchiveIds.length === 0 || folderId === null) return;
+    const count = await archiveToFolder(pendingArchiveIds, folderId);
+    if (count > 0) {
+      toast({ title: `${count} record${count !== 1 ? 's' : ''} archived` });
+      setSelectedIds(new Set());
+    }
+    setPendingArchiveIds([]);
   };
 
   const handleAddInvoiceForBL = async (record: UsedBL) => {
@@ -178,11 +185,6 @@ const UsedBLDashboard: React.FC = () => {
       return;
     }
     setAddInvoiceSource(data as UnusedBL);
-  };
-
-  const handleUnarchive = async (id: string) => {
-    const ok = await unarchiveRecord(id);
-    if (ok) toast({ title: 'Record restored from archive' });
   };
 
   const toggleSelect = (id: string) => {
@@ -202,39 +204,7 @@ const UsedBLDashboard: React.FC = () => {
     }
   };
 
-  const handleBulkArchive = async () => {
-    const fId = archiveFolderId === 'none' ? null : archiveFolderId;
-    const archived = await archiveToFolder([...selectedIds], fId);
-    toast({ title: `${archived} record${archived !== 1 ? 's' : ''} archived` });
-    setSelectedIds(new Set());
-    setShowBulkArchiveDialog(false);
-    setArchiveFolderId('none');
-  };
 
-  const archivedCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
-    archivedRecords.forEach(r => {
-      const fId = (r as any).archive_folder_id || 'unfiled';
-      counts[fId] = (counts[fId] || 0) + 1;
-    });
-    return counts;
-  }, [archivedRecords]);
-
-  const filteredArchivedRecords = useMemo(() => {
-    if (archiveFolderFilter === 'all') return archivedRecords;
-    if (archiveFolderFilter === 'unfiled') return archivedRecords.filter(r => !(r as any).archive_folder_id);
-    return archivedRecords.filter(r => (r as any).archive_folder_id === archiveFolderFilter);
-  }, [archivedRecords, archiveFolderFilter]);
-
-  const getFolderName = (folderId: string | null) => {
-    if (!folderId) return null;
-    return folders.find(f => f.id === folderId)?.name || null;
-  };
-
-  const getFolderColor = (folderId: string | null) => {
-    if (!folderId) return undefined;
-    return folders.find(f => f.id === folderId)?.color;
-  };
 
   // CSV parsing helper that handles quoted fields
   const parseCSVLine = (line: string): string[] => {
@@ -457,7 +427,7 @@ const UsedBLDashboard: React.FC = () => {
             <span className="text-sm font-medium">{selectedIds.size} record{selectedIds.size !== 1 ? 's' : ''} selected</span>
             <div className="flex gap-2">
               <Button variant="outline" size="sm" onClick={() => setSelectedIds(new Set())}>Clear</Button>
-              <Button size="sm" className="gap-1.5" onClick={() => setShowBulkArchiveDialog(true)}>
+              <Button size="sm" className="gap-1.5" onClick={() => openArchivePicker([...selectedIds])}>
                 <Archive className="h-4 w-4" /> Archive Selected
               </Button>
             </div>
@@ -540,7 +510,7 @@ const UsedBLDashboard: React.FC = () => {
                               <Plus className="h-3.5 w-3.5" />
                             </Button>
                           )}
-                          <Button variant="outline" size="sm" className="h-7 gap-1 text-xs" onClick={() => setArchiveId(record.id)} title="Archive">
+                          <Button variant="outline" size="sm" className="h-7 gap-1 text-xs" onClick={() => openArchivePicker([record.id])} title="Archive">
                             <Archive className="h-3.5 w-3.5" /> Archive
                           </Button>
                           <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => setDeleteId(record.id)}>
@@ -591,134 +561,46 @@ const UsedBLDashboard: React.FC = () => {
 
           {showArchived && (
             <div className="border-t border-border">
-              {/* Folder Manager */}
-              <div className="px-4 py-3 border-b border-border bg-muted/10">
-                <ArchiveFolderManager
-                  folders={folders}
-                  onAdd={addFolder}
-                  onUpdate={updateFolder}
-                  onDelete={deleteFolder}
-                  archivedCounts={archivedCounts}
-                />
-              </div>
-
-              {/* Folder Filter Tabs */}
-              {folders.length > 0 && (
-                <div className="px-4 py-2 border-b border-border flex flex-wrap gap-1.5">
-                  <Badge variant={archiveFolderFilter === 'all' ? 'default' : 'outline'} className="cursor-pointer text-xs" onClick={() => setArchiveFolderFilter('all')}>
-                    All ({archivedRecords.length})
-                  </Badge>
-                  <Badge variant={archiveFolderFilter === 'unfiled' ? 'default' : 'outline'} className="cursor-pointer text-xs" onClick={() => setArchiveFolderFilter('unfiled')}>
-                    Unfiled ({archivedCounts['unfiled'] || 0})
-                  </Badge>
-                  {folders.map(f => (
-                    <Badge key={f.id} variant={archiveFolderFilter === f.id ? 'default' : 'outline'} className="cursor-pointer text-xs gap-1" onClick={() => setArchiveFolderFilter(f.id)}>
-                      <div className="h-2 w-2 rounded-full" style={{ backgroundColor: f.color }} />
-                      {f.name} ({archivedCounts[f.id] || 0})
-                    </Badge>
-                  ))}
-                </div>
-              )}
-
-              {loadingArchived ? (
-                <div className="py-8 text-center text-muted-foreground text-sm">Loading archived records...</div>
-              ) : filteredArchivedRecords.length === 0 ? (
-                <div className="py-8 text-center text-muted-foreground text-sm">No archived records{archiveFolderFilter !== 'all' ? ' in this folder' : ''}</div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="text-xs">B/L NO</TableHead>
-                        <TableHead className="text-xs">CONTAINER NO</TableHead>
-                        <TableHead className="text-xs">AMOUNT</TableHead>
-                        <TableHead className="text-xs">DATE</TableHead>
-                        <TableHead className="text-xs">BANK</TableHead>
-                        <TableHead className="text-xs">OWNER</TableHead>
-                        <TableHead className="text-xs">CUSTOMER</TableHead>
-                        {folders.length > 0 && <TableHead className="text-xs">FOLDER</TableHead>}
-                        <TableHead className="text-right text-xs">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredArchivedRecords.map((record) => {
-                        const folderName = getFolderName((record as any).archive_folder_id);
-                        const folderColor = getFolderColor((record as any).archive_folder_id);
-                        return (
-                          <TableRow key={record.id} className="opacity-70 hover:opacity-100 transition-opacity">
-                            <TableCell className="font-mono text-xs">{record.bl_no}</TableCell>
-                            <TableCell className="font-mono text-xs">{record.container_no}</TableCell>
-                            <TableCell className="text-xs font-semibold">{formatAmount(record.invoice_amount, (record as any).currency)}</TableCell>
-                            <TableCell className="text-xs">{format(parseDateString(record.invoice_date), 'dd/MM/yyyy')}</TableCell>
-                            <TableCell><Badge variant="outline" className="text-xs">{record.bank}</Badge></TableCell>
-                            <TableCell className="text-xs">{record.owner}</TableCell>
-                            <TableCell className="text-xs">{record.used_for}</TableCell>
-                            {folders.length > 0 && (
-                              <TableCell>
-                                {folderName ? (
-                                  <Badge variant="outline" className="text-[10px] gap-1">
-                                    <div className="h-2 w-2 rounded-full" style={{ backgroundColor: folderColor }} />
-                                    {folderName}
-                                  </Badge>
-                                ) : <span className="text-xs text-muted-foreground">—</span>}
-                              </TableCell>
-                            )}
-                            <TableCell className="text-right">
-                              <div className="flex justify-end gap-1">
-                                <Button variant="outline" size="sm" className="h-7 gap-1 text-xs" onClick={() => handleUnarchive(record.id)}>
-                                  <ArchiveRestore className="h-3.5 w-3.5" /> Restore
-                                </Button>
-                                <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => setDeleteId(record.id)}>
-                                  <Trash2 className="h-3.5 w-3.5" />
-                                </Button>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
+              <FolderBrowser
+                folders={folders}
+                archivedRecords={archivedRecords}
+                loading={loadingArchived}
+                formatAmount={formatAmount}
+                onAddFolder={addFolder}
+                onUpdateFolder={updateFolder}
+                onDeleteFolder={deleteFolder}
+                onMoveRecords={async (ids, folderId) => {
+                  const n = await moveArchivedToFolder(ids, folderId);
+                  if (n > 0) toast({ title: `${n} record${n !== 1 ? 's' : ''} moved` });
+                  return n;
+                }}
+                onRestoreRecords={async (ids) => {
+                  const n = await bulkRestoreArchived(ids);
+                  if (n > 0) toast({ title: `${n} record${n !== 1 ? 's' : ''} restored` });
+                  return n;
+                }}
+                onDeleteRecords={async (ids) => {
+                  const n = await bulkDeleteArchived(ids);
+                  if (n > 0) toast({ title: `${n} record${n !== 1 ? 's' : ''} deleted` });
+                  return n;
+                }}
+              />
             </div>
           )}
         </CardContent>
       </Card>
 
-      {/* Archive Dialog with folder picker */}
-      <Dialog open={!!archiveId} onOpenChange={() => { setArchiveId(null); setArchiveFolderId('none'); }}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle>Archive Record</DialogTitle>
-          </DialogHeader>
-          <p className="text-sm text-muted-foreground">
-            This record will be moved to the archive. You can restore it anytime.
-          </p>
-          {folders.length > 0 && (
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium">Folder (optional)</label>
-              <Select value={archiveFolderId} onValueChange={setArchiveFolderId}>
-                <SelectTrigger><SelectValue placeholder="No folder" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">No folder</SelectItem>
-                  {folders.map(f => (
-                    <SelectItem key={f.id} value={f.id}>
-                      <div className="flex items-center gap-2">
-                        <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: f.color }} />
-                        {f.name}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => { setArchiveId(null); setArchiveFolderId('none'); }}>Cancel</Button>
-            <Button onClick={handleArchive}>Archive</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Archive folder picker (single + bulk archive entry point) */}
+      <FolderPicker
+        open={archivePickerOpen}
+        onOpenChange={(o) => { setArchivePickerOpen(o); if (!o) setPendingArchiveIds([]); }}
+        title={pendingArchiveIds.length > 1 ? `Archive ${pendingArchiveIds.length} records to folder` : 'Archive record to folder'}
+        confirmLabel="Archive"
+        roots={folderTree.roots}
+        allowRoot={false}
+        onConfirm={handleConfirmArchive}
+        onCreateFolder={addFolder}
+      />
 
       {/* Delete Dialog */}
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
@@ -738,40 +620,6 @@ const UsedBLDashboard: React.FC = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Bulk Archive Dialog with folder picker */}
-      <Dialog open={showBulkArchiveDialog} onOpenChange={setShowBulkArchiveDialog}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle>Archive {selectedIds.size} Record{selectedIds.size !== 1 ? 's' : ''}</DialogTitle>
-          </DialogHeader>
-          <p className="text-sm text-muted-foreground">
-            These records will be moved to the archive. You can restore them anytime.
-          </p>
-          {folders.length > 0 && (
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium">Folder (optional)</label>
-              <Select value={archiveFolderId} onValueChange={setArchiveFolderId}>
-                <SelectTrigger><SelectValue placeholder="No folder" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">No folder</SelectItem>
-                  {folders.map(f => (
-                    <SelectItem key={f.id} value={f.id}>
-                      <div className="flex items-center gap-2">
-                        <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: f.color }} />
-                        {f.name}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowBulkArchiveDialog(false)}>Cancel</Button>
-            <Button onClick={handleBulkArchive}>Archive All</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       {/* Add Invoice for existing Used B/L */}
       {addInvoiceSource && (

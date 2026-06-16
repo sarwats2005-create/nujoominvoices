@@ -1,0 +1,2 @@
+ALTER TABLE public.archive_folders ADD COLUMN IF NOT EXISTS parent_id uuid NULL REFERENCES public.archive_folders(id) ON DELETE SET NULL;
+CREATE INDEX IF NOT EXISTS archive_folders_user_dash_parent_idx ON public.archive_folders(user_id, dashboard_id, parent_id);
