@@ -510,7 +510,7 @@ const UsedBLDashboard: React.FC = () => {
                               <Plus className="h-3.5 w-3.5" />
                             </Button>
                           )}
-                          <Button variant="outline" size="sm" className="h-7 gap-1 text-xs" onClick={() => setArchiveId(record.id)} title="Archive">
+                          <Button variant="outline" size="sm" className="h-7 gap-1 text-xs" onClick={() => openArchivePicker([record.id])} title="Archive">
                             <Archive className="h-3.5 w-3.5" /> Archive
                           </Button>
                           <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => setDeleteId(record.id)}>
