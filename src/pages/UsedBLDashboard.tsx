@@ -427,7 +427,7 @@ const UsedBLDashboard: React.FC = () => {
             <span className="text-sm font-medium">{selectedIds.size} record{selectedIds.size !== 1 ? 's' : ''} selected</span>
             <div className="flex gap-2">
               <Button variant="outline" size="sm" onClick={() => setSelectedIds(new Set())}>Clear</Button>
-              <Button size="sm" className="gap-1.5" onClick={() => setShowBulkArchiveDialog(true)}>
+              <Button size="sm" className="gap-1.5" onClick={() => openArchivePicker([...selectedIds])}>
                 <Archive className="h-4 w-4" /> Archive Selected
               </Button>
             </div>
