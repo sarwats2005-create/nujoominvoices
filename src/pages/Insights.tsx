@@ -1,11 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useInvoice } from '@/contexts/InvoiceContext';
 import { useSettings } from '@/contexts/SettingsContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { BarChart, Bar, XAxis, YAxis, PieChart, Pie, Cell, LineChart, Line, Sector } from 'recharts';
-import { TrendingUp, FileText, Building, Calendar, CheckCircle, Clock } from 'lucide-react';
+import { TrendingUp, FileText, Building, Calendar, CheckCircle, Clock, ArrowLeft } from 'lucide-react';
 import { format, parseISO, startOfMonth, endOfMonth, eachMonthOfInterval, subMonths } from 'date-fns';
 import { gsap } from 'gsap';
 import CountUp from '@/components/CountUp';
@@ -84,6 +86,7 @@ const BANK_COLORS = [
 
 const Insights: React.FC = () => {
   const { t } = useLanguage();
+  const navigate = useNavigate();
   const { invoices, banks } = useInvoice();
   const { currency } = useSettings();
   const [activeIndex, setActiveIndex] = useState(0);
@@ -202,6 +205,10 @@ const Insights: React.FC = () => {
 
   return (
     <div className="space-y-4 sm:space-y-6 animate-fade-in px-1 sm:px-0">
+      <Button type="button" variant="ghost" size="sm" onClick={() => navigate('/dashboard')}>
+        <ArrowLeft className="h-4 w-4 mr-2" />
+        {t('backToDashboard')}
+      </Button>
       {/* Stats Cards */}
       <div ref={statsRef} className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
         {/* Currency-based Amount Cards */}

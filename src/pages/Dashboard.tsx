@@ -1,4 +1,5 @@
 import React, { useState, useRef, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useInvoice, Invoice } from '@/contexts/InvoiceContext';
 import { useSettings } from '@/contexts/SettingsContext';
@@ -11,7 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
 import { format, differenceInDays } from 'date-fns';
-import { Copy, FileText, ArrowUpDown, Trash2, Printer, Edit, AlertTriangle, LayoutDashboard, Search, Hash, DollarSign, CalendarIcon, User, Landmark, Package, CheckCircle, Upload, Download, BarChart3, Clock } from 'lucide-react';
+import { Copy, FileText, ArrowUpDown, Trash2, Printer, Edit, AlertTriangle, LayoutDashboard, Search, Hash, DollarSign, CalendarIcon, User, Landmark, Package, CheckCircle, Upload, Download, BarChart3, Clock, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { parseDateString } from '@/lib/dateUtils';
 import EditInvoiceDialog from '@/components/EditInvoiceDialog';
@@ -47,6 +48,7 @@ const Dashboard: React.FC = () => {
   } = useToast();
   const { playWhooshSound } = useSoundEffects();
   const { isAdmin } = useAdmin();
+  const navigate = useNavigate();
   const [sortKey, setSortKey] = useState<SortKey>('date');
   const [sortAsc, setSortAsc] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -433,6 +435,19 @@ const Dashboard: React.FC = () => {
   }, [sortedInvoices]);
   const chartColors = ['hsl(var(--primary))', 'hsl(var(--success))', 'hsl(var(--warning))', 'hsl(210, 70%, 50%)', 'hsl(280, 60%, 55%)', 'hsl(340, 65%, 50%)', 'hsl(160, 55%, 45%)', 'hsl(30, 70%, 50%)'];
   return <div className="animate-fade-in space-y-4 sm:space-y-6 px-1 sm:px-0">
+      {/* Quick nav */}
+      <div className="flex flex-wrap gap-2">
+        {isAdmin && (
+          <Button type="button" variant="outline" size="sm" onClick={() => navigate('/new-invoice')}>
+            <Plus className="h-4 w-4 mr-2" />
+            {t('newInvoice')}
+          </Button>
+        )}
+        <Button type="button" variant="outline" size="sm" onClick={() => navigate('/insights')}>
+          <BarChart3 className="h-4 w-4 mr-2" />
+          {t('insights')}
+        </Button>
+      </div>
       {/* Stats Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
         <MagicCard className="rounded-xl" glowColor="99, 102, 241">

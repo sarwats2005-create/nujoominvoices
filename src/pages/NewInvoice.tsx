@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { useSoundEffects } from '@/hooks/useSoundEffects';
 import { format } from 'date-fns';
-import { CalendarIcon, DollarSign, Hash, User, Plus, Landmark, LayoutDashboard, Package, Clock } from 'lucide-react';
+import { CalendarIcon, DollarSign, Hash, User, Plus, Landmark, LayoutDashboard, Package, Clock, ArrowLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatDateToString } from '@/lib/dateUtils';
 import BankSelector from '@/components/BankSelector';
@@ -97,6 +97,12 @@ const NewInvoice: React.FC = () => {
 
   return (
     <div className="max-w-2xl mx-auto animate-fade-in">
+      <div className="mb-4">
+        <Button type="button" variant="ghost" size="sm" onClick={() => navigate('/dashboard')}>
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          {t('backToDashboard')}
+        </Button>
+      </div>
       <MagicCard className="rounded-xl" glowColor="99, 102, 241">
         <Card>
           <CardHeader>
