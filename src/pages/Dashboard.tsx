@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
 import { format, differenceInDays } from 'date-fns';
-import { Copy, FileText, ArrowUpDown, Trash2, Printer, Edit, AlertTriangle, LayoutDashboard, Search, Hash, DollarSign, CalendarIcon, User, Landmark, Package, CheckCircle, Upload, Download, BarChart3, Clock } from 'lucide-react';
+import { Copy, FileText, ArrowUpDown, Trash2, Printer, Edit, AlertTriangle, LayoutDashboard, Search, Hash, DollarSign, CalendarIcon, User, Landmark, Package, CheckCircle, Upload, Download, BarChart3, Clock, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { parseDateString } from '@/lib/dateUtils';
 import EditInvoiceDialog from '@/components/EditInvoiceDialog';
