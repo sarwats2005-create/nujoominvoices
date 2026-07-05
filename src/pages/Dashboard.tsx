@@ -48,6 +48,7 @@ const Dashboard: React.FC = () => {
   } = useToast();
   const { playWhooshSound } = useSoundEffects();
   const { isAdmin } = useAdmin();
+  const navigate = useNavigate();
   const [sortKey, setSortKey] = useState<SortKey>('date');
   const [sortAsc, setSortAsc] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
