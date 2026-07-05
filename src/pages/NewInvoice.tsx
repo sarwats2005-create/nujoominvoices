@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { useSoundEffects } from '@/hooks/useSoundEffects';
 import { format } from 'date-fns';
-import { CalendarIcon, DollarSign, Hash, User, Plus, Landmark, LayoutDashboard, Package, Clock } from 'lucide-react';
+import { CalendarIcon, DollarSign, Hash, User, Plus, Landmark, LayoutDashboard, Package, Clock, ArrowLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatDateToString } from '@/lib/dateUtils';
 import BankSelector from '@/components/BankSelector';
