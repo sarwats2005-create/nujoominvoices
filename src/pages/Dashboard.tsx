@@ -435,6 +435,19 @@ const Dashboard: React.FC = () => {
   }, [sortedInvoices]);
   const chartColors = ['hsl(var(--primary))', 'hsl(var(--success))', 'hsl(var(--warning))', 'hsl(210, 70%, 50%)', 'hsl(280, 60%, 55%)', 'hsl(340, 65%, 50%)', 'hsl(160, 55%, 45%)', 'hsl(30, 70%, 50%)'];
   return <div className="animate-fade-in space-y-4 sm:space-y-6 px-1 sm:px-0">
+      {/* Quick nav */}
+      <div className="flex flex-wrap gap-2">
+        {isAdmin && (
+          <Button type="button" variant="outline" size="sm" onClick={() => navigate('/new-invoice')}>
+            <Plus className="h-4 w-4 mr-2" />
+            {t('newInvoice')}
+          </Button>
+        )}
+        <Button type="button" variant="outline" size="sm" onClick={() => navigate('/insights')}>
+          <BarChart3 className="h-4 w-4 mr-2" />
+          {t('insights')}
+        </Button>
+      </div>
       {/* Stats Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
         <MagicCard className="rounded-xl" glowColor="99, 102, 241">
