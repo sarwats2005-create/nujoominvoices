@@ -205,6 +205,10 @@ const Insights: React.FC = () => {
 
   return (
     <div className="space-y-4 sm:space-y-6 animate-fade-in px-1 sm:px-0">
+      <Button type="button" variant="ghost" size="sm" onClick={() => navigate('/dashboard')}>
+        <ArrowLeft className="h-4 w-4 mr-2" />
+        {t('backToDashboard')}
+      </Button>
       {/* Stats Cards */}
       <div ref={statsRef} className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
         {/* Currency-based Amount Cards */}
