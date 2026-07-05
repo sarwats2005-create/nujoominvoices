@@ -97,6 +97,12 @@ const NewInvoice: React.FC = () => {
 
   return (
     <div className="max-w-2xl mx-auto animate-fade-in">
+      <div className="mb-4">
+        <Button type="button" variant="ghost" size="sm" onClick={() => navigate('/dashboard')}>
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          {t('backToDashboard')}
+        </Button>
+      </div>
       <MagicCard className="rounded-xl" glowColor="99, 102, 241">
         <Card>
           <CardHeader>
