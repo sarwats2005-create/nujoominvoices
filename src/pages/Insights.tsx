@@ -86,6 +86,7 @@ const BANK_COLORS = [
 
 const Insights: React.FC = () => {
   const { t } = useLanguage();
+  const navigate = useNavigate();
   const { invoices, banks } = useInvoice();
   const { currency } = useSettings();
   const [activeIndex, setActiveIndex] = useState(0);
