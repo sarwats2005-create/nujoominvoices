@@ -129,8 +129,8 @@ const App = () => {
       <LanguageProvider>
         <SettingsProvider>
           <AuthProvider>
-            <InvoiceProvider>
-              <TooltipProvider>
+            <WarehouseProvider>
+              <InvoiceProvider>
                 <Toaster />
                 <Sonner />
                 <BrowserRouter>
