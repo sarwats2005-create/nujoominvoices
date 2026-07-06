@@ -31,6 +31,8 @@ import Suppliers from "@/pages/Suppliers";
 import PurchaseOrders from "@/pages/PurchaseOrders";
 import Returns from "@/pages/Returns";
 import POSReports from "@/pages/POSReports";
+import Warehouses from "@/pages/Warehouses";
+import { WarehouseProvider } from "@/contexts/WarehouseContext";
 import { NetworkStatusIndicator } from "@/components/NetworkStatusIndicator";
 import PWAUpdateBanner from "@/components/PWAUpdateBanner";
 import { useAdmin } from "@/hooks/useAdmin";
