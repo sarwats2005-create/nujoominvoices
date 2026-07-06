@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useWarehouse } from '@/contexts/WarehouseContext';
 import type { Product, ProductCategory, ProductVariant } from '@/types/pos';
 
 const db = (table: string) => (supabase as any).from(table);
