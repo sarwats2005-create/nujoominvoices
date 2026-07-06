@@ -1,22 +1,26 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useWarehouse } from '@/contexts/WarehouseContext';
 import type { Customer } from '@/types/pos';
 
 const db = (table: string) => (supabase as any).from(table);
 
 export const useCustomers = () => {
   const { user } = useAuth();
+  const { activeWarehouseId } = useWarehouse();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchCustomers = useCallback(async () => {
     if (!user) return;
     setLoading(true);
-    const { data } = await db('customers').select('*').eq('user_id', user.id).eq('is_active', true).order('name');
+    let q = db('customers').select('*').eq('user_id', user.id).eq('is_active', true);
+    if (activeWarehouseId) q = q.eq('warehouse_id', activeWarehouseId);
+    const { data } = await q.order('name');
     if (data) setCustomers(data as Customer[]);
     setLoading(false);
-  }, [user]);
+  }, [user, activeWarehouseId]);
 
   useEffect(() => { fetchCustomers(); }, [fetchCustomers]);
 
@@ -33,7 +37,7 @@ export const useCustomers = () => {
   const addCustomer = async (data: Partial<Customer>): Promise<Customer | null> => {
     if (!user) return null;
     const { data: inserted, error } = await db('customers')
-      .insert({ ...data, user_id: user.id })
+      .insert({ ...data, user_id: user.id, warehouse_id: activeWarehouseId })
       .select()
       .single();
     if (error) return null;
