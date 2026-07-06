@@ -90,7 +90,7 @@ const VaultManagerDialog: React.FC<Props> = ({ open, onOpenChange, warehouseId }
                   </Button>
                   {v.pin_hash && (
                     <Button size="sm" variant="outline" className="gap-1 h-7 text-xs" onClick={() => setPinDialog({ vault: v, mode: 'remove' })}>
-                      <KeyOff className="h-3 w-3" /> Remove PIN
+                      <KeySquare className="h-3 w-3" /> Remove PIN
                     </Button>
                   )}
                   {!v.is_main && (
