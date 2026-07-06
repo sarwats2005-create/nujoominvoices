@@ -183,6 +183,10 @@ const POS: React.FC = () => {
   const lastSaleCartRef = useRef<any>(null);
 
   const handleCheckout = async () => {
+    if (!selectedVaultId) {
+      toast({ title: 'No open vault', description: 'Open a vault before completing a sale.', variant: 'destructive' });
+      return;
+    }
     const snapshot = { items: [...cart], subtotal, taxTotal, discountApplied, redeemValue, storeCreditApplied, grandTotal };
     const sale = await completeSale(cart, {
       paymentMethod,
@@ -194,6 +198,8 @@ const POS: React.FC = () => {
       loyaltyRedeemed: redeemValue,
       storeCreditUsed: storeCreditApplied,
       loyaltyEarnedPoints: earnedPoints,
+      warehouseId: activeWarehouseId,
+      vaultId: selectedVaultId,
     });
     if (sale) {
       lastSaleCartRef.current = snapshot;
