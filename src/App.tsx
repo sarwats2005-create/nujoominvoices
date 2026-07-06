@@ -131,15 +131,17 @@ const App = () => {
           <AuthProvider>
             <WarehouseProvider>
               <InvoiceProvider>
-                <Toaster />
-                <Sonner />
-                <BrowserRouter>
-                  <AppRoutes />
-                  <NetworkStatusIndicator />
-                  <PWAUpdateBanner />
-                </BrowserRouter>
-              </TooltipProvider>
-            </InvoiceProvider>
+                <TooltipProvider>
+                  <Toaster />
+                  <Sonner />
+                  <BrowserRouter>
+                    <AppRoutes />
+                    <NetworkStatusIndicator />
+                    <PWAUpdateBanner />
+                  </BrowserRouter>
+                </TooltipProvider>
+              </InvoiceProvider>
+            </WarehouseProvider>
           </AuthProvider>
         </SettingsProvider>
       </LanguageProvider>
