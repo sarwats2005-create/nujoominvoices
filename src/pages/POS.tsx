@@ -43,6 +43,8 @@ const saveHandleToDB = async (handle: FileSystemDirectoryHandle) => {
 
 const POS: React.FC = () => {
   const navigate = useNavigate();
+  const { activeWarehouseId, warehouses, loading: whLoading } = useWarehouse();
+  const { vaults } = useVaults(activeWarehouseId);
   const { products, categories, loading } = useProducts();
   const { customers, addCustomer } = useCustomers();
   const { completeSale, processing } = usePOS();
@@ -50,6 +52,20 @@ const POS: React.FC = () => {
   const { settings: loyalty } = useLoyalty();
   const { settings: posSettings } = usePOSSettings();
   const { toast } = useToast();
+
+  const [selectedVaultId, setSelectedVaultId] = useState<string | null>(null);
+  useEffect(() => {
+    if (!selectedVaultId || !vaults.find(v => v.id === selectedVaultId && v.is_open)) {
+      const firstOpen = vaults.find(v => v.is_open);
+      setSelectedVaultId(firstOpen?.id || null);
+    }
+  }, [vaults, selectedVaultId]);
+
+  // Redirect to warehouse picker if none is active
+  useEffect(() => {
+    if (!whLoading && !activeWarehouseId && warehouses.length > 1) navigate('/warehouses');
+  }, [whLoading, activeWarehouseId, warehouses.length, navigate]);
+
 
   const currency = posSettings?.currency || 'USD';
   const currencySym = currency === 'USD' ? '$' : currency === 'EUR' ? '€' : currency === 'IQD' ? 'د.ع' : currency + ' ';
