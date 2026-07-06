@@ -58,20 +58,22 @@ export const useProducts = () => {
 
   const addProduct = async (data: Partial<Product>, variants?: Partial<ProductVariant>[]): Promise<boolean> => {
     if (!user) return false;
+    const wh = activeWarehouseId;
     const { data: inserted, error } = await db('products')
-      .insert({ ...data, user_id: user.id })
+      .insert({ ...data, user_id: user.id, warehouse_id: wh })
       .select('id')
       .single();
     if (error) return false;
 
     if (variants?.length) {
       await db('product_variants').insert(
-        variants.map(v => ({ ...v, product_id: inserted.id, user_id: user.id }))
+        variants.map(v => ({ ...v, product_id: inserted.id, user_id: user.id, warehouse_id: wh }))
       );
     } else {
       await db('product_variants').insert({
         product_id: inserted.id,
         user_id: user.id,
+        warehouse_id: wh,
         name: 'Default',
         stock_quantity: 0,
         min_stock_level: 5,
