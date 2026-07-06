@@ -319,7 +319,20 @@ const POS: React.FC = () => {
   };
 
   return (
-    <div className="h-[calc(100vh-8rem)] flex flex-col lg:flex-row gap-4 animate-fade-in">
+    <div className="flex flex-col gap-3 animate-fade-in">
+      {activeWarehouseId && (
+        <div className="flex items-center justify-between gap-3 flex-wrap border rounded-lg p-2 bg-card">
+          <div className="flex items-center gap-2 text-sm">
+            <span className="text-muted-foreground">Warehouse:</span>
+            <span className="font-semibold">{warehouses.find(w => w.id === activeWarehouseId)?.name}</span>
+            <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => navigate('/warehouses')}>Switch</Button>
+          </div>
+          <div className="flex-1 min-w-[240px] max-w-md">
+            <VaultSidebar warehouseId={activeWarehouseId} selectedVaultId={selectedVaultId} onSelectVault={setSelectedVaultId} />
+          </div>
+        </div>
+      )}
+    <div className="h-[calc(100vh-12rem)] flex flex-col lg:flex-row gap-4">
       {/* Left: Product Grid */}
       <div className="flex-1 flex flex-col gap-4 min-w-0">
         <div className="flex flex-col sm:flex-row gap-3">
