@@ -12,9 +12,11 @@ export interface CompleteSaleOptions {
   customer?: Customer | null;
   notes?: string;
   currency?: string;
-  loyaltyRedeemed?: number; // in currency value
+  loyaltyRedeemed?: number;
   storeCreditUsed?: number;
   loyaltyEarnedPoints?: number;
+  warehouseId?: string | null;
+  vaultId?: string | null;
 }
 
 export const usePOS = () => {
