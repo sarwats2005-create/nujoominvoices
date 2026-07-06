@@ -131,6 +131,21 @@ export const usePOS = () => {
       }
     }
 
+    // Route cash into selected vault
+    if (opts.vaultId && opts.warehouseId && total > 0) {
+      await db('vault_transactions').insert({
+        user_id: user.id,
+        vault_id: opts.vaultId,
+        warehouse_id: opts.warehouseId,
+        type: 'sale',
+        amount: total,
+        currency: opts.currency || 'USD',
+        reference_type: 'pos_sale',
+        reference_id: (sale as any).id,
+        notes: `Sale ${saleNumber}`,
+      });
+    }
+
     setProcessing(false);
     return sale as any as POSSale;
   };
