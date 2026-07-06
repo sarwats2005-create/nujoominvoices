@@ -31,6 +31,8 @@ import Suppliers from "@/pages/Suppliers";
 import PurchaseOrders from "@/pages/PurchaseOrders";
 import Returns from "@/pages/Returns";
 import POSReports from "@/pages/POSReports";
+import Warehouses from "@/pages/Warehouses";
+import { WarehouseProvider } from "@/contexts/WarehouseContext";
 import { NetworkStatusIndicator } from "@/components/NetworkStatusIndicator";
 import PWAUpdateBanner from "@/components/PWAUpdateBanner";
 import { useAdmin } from "@/hooks/useAdmin";
@@ -103,6 +105,7 @@ const AppRoutes = () => {
         <Route path="/used-bl/:id/edit" element={<AdminRoute><UsedBLEdit /></AdminRoute>} />
         <Route path="/unused-bl" element={<AdminRoute><UnusedBLDashboard /></AdminRoute>} />
         <Route path="/unused-bl/owner/:ownerName" element={<AdminRoute><UnusedBLOwnerDetail /></AdminRoute>} />
+        <Route path="/warehouses" element={<Warehouses />} />
         <Route path="/pos" element={<POS />} />
         <Route path="/inventory" element={<InventoryPage />} />
         <Route path="/suppliers" element={<Suppliers />} />
@@ -126,17 +129,19 @@ const App = () => {
       <LanguageProvider>
         <SettingsProvider>
           <AuthProvider>
-            <InvoiceProvider>
-              <TooltipProvider>
-                <Toaster />
-                <Sonner />
-                <BrowserRouter>
-                  <AppRoutes />
-                  <NetworkStatusIndicator />
-                  <PWAUpdateBanner />
-                </BrowserRouter>
-              </TooltipProvider>
-            </InvoiceProvider>
+            <WarehouseProvider>
+              <InvoiceProvider>
+                <TooltipProvider>
+                  <Toaster />
+                  <Sonner />
+                  <BrowserRouter>
+                    <AppRoutes />
+                    <NetworkStatusIndicator />
+                    <PWAUpdateBanner />
+                  </BrowserRouter>
+                </TooltipProvider>
+              </InvoiceProvider>
+            </WarehouseProvider>
           </AuthProvider>
         </SettingsProvider>
       </LanguageProvider>

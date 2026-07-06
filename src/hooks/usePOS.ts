@@ -12,9 +12,11 @@ export interface CompleteSaleOptions {
   customer?: Customer | null;
   notes?: string;
   currency?: string;
-  loyaltyRedeemed?: number; // in currency value
+  loyaltyRedeemed?: number;
   storeCreditUsed?: number;
   loyaltyEarnedPoints?: number;
+  warehouseId?: string | null;
+  vaultId?: string | null;
 }
 
 export const usePOS = () => {
@@ -58,6 +60,8 @@ export const usePOS = () => {
         loyalty_redeemed: loyaltyRedeemed,
         store_credit_used: storeCreditUsed,
         status: 'completed',
+        warehouse_id: opts.warehouseId || null,
+        vault_id: opts.vaultId || null,
       })
       .select()
       .single();
@@ -94,6 +98,7 @@ export const usePOS = () => {
           cost_price: item.product.cost_price || 0,
           reference: saleNumber,
           notes: 'POS Sale',
+          warehouse_id: opts.warehouseId || null,
         });
       }
     }
@@ -124,6 +129,21 @@ export const usePOS = () => {
           notes: `Sale ${saleNumber}`,
         });
       }
+    }
+
+    // Route cash into selected vault
+    if (opts.vaultId && opts.warehouseId && total > 0) {
+      await db('vault_transactions').insert({
+        user_id: user.id,
+        vault_id: opts.vaultId,
+        warehouse_id: opts.warehouseId,
+        type: 'sale',
+        amount: total,
+        currency: opts.currency || 'USD',
+        reference_type: 'pos_sale',
+        reference_id: (sale as any).id,
+        notes: `Sale ${saleNumber}`,
+      });
     }
 
     setProcessing(false);

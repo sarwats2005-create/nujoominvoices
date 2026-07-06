@@ -215,6 +215,7 @@ export type Database = {
           store_credit: number
           updated_at: string
           user_id: string
+          warehouse_id: string | null
         }
         Insert: {
           address?: string | null
@@ -230,6 +231,7 @@ export type Database = {
           store_credit?: number
           updated_at?: string
           user_id: string
+          warehouse_id?: string | null
         }
         Update: {
           address?: string | null
@@ -245,8 +247,17 @@ export type Database = {
           store_credit?: number
           updated_at?: string
           user_id?: string
+          warehouse_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "customers_warehouse_id_fkey"
+            columns: ["warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       dashboards: {
         Row: {
@@ -444,6 +455,7 @@ export type Database = {
           sale_id: string | null
           type: string
           user_id: string
+          warehouse_id: string | null
         }
         Insert: {
           balance_after?: number
@@ -455,6 +467,7 @@ export type Database = {
           sale_id?: string | null
           type: string
           user_id: string
+          warehouse_id?: string | null
         }
         Update: {
           balance_after?: number
@@ -466,8 +479,17 @@ export type Database = {
           sale_id?: string | null
           type?: string
           user_id?: string
+          warehouse_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "loyalty_transactions_warehouse_id_fkey"
+            columns: ["warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       map_location: {
         Row: {
@@ -561,6 +583,8 @@ export type Database = {
           refund_method: string
           return_number: string
           user_id: string
+          vault_id: string | null
+          warehouse_id: string | null
         }
         Insert: {
           created_at?: string
@@ -573,6 +597,8 @@ export type Database = {
           refund_method?: string
           return_number: string
           user_id: string
+          vault_id?: string | null
+          warehouse_id?: string | null
         }
         Update: {
           created_at?: string
@@ -585,6 +611,8 @@ export type Database = {
           refund_method?: string
           return_number?: string
           user_id?: string
+          vault_id?: string | null
+          warehouse_id?: string | null
         }
         Relationships: [
           {
@@ -592,6 +620,20 @@ export type Database = {
             columns: ["original_sale_id"]
             isOneToOne: false
             referencedRelation: "pos_sales"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pos_returns_vault_id_fkey"
+            columns: ["vault_id"]
+            isOneToOne: false
+            referencedRelation: "vaults"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pos_returns_warehouse_id_fkey"
+            columns: ["warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
             referencedColumns: ["id"]
           },
         ]
@@ -684,6 +726,8 @@ export type Database = {
           tax_amount: number
           total: number
           user_id: string
+          vault_id: string | null
+          warehouse_id: string | null
         }
         Insert: {
           created_at?: string
@@ -705,6 +749,8 @@ export type Database = {
           tax_amount?: number
           total?: number
           user_id: string
+          vault_id?: string | null
+          warehouse_id?: string | null
         }
         Update: {
           created_at?: string
@@ -726,6 +772,8 @@ export type Database = {
           tax_amount?: number
           total?: number
           user_id?: string
+          vault_id?: string | null
+          warehouse_id?: string | null
         }
         Relationships: [
           {
@@ -733,6 +781,20 @@ export type Database = {
             columns: ["customer_id"]
             isOneToOne: false
             referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pos_sales_vault_id_fkey"
+            columns: ["vault_id"]
+            isOneToOne: false
+            referencedRelation: "vaults"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pos_sales_warehouse_id_fkey"
+            columns: ["warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
             referencedColumns: ["id"]
           },
         ]
@@ -820,6 +882,7 @@ export type Database = {
           sku: string | null
           stock_quantity: number
           user_id: string
+          warehouse_id: string | null
         }
         Insert: {
           barcode?: string | null
@@ -834,6 +897,7 @@ export type Database = {
           sku?: string | null
           stock_quantity?: number
           user_id: string
+          warehouse_id?: string | null
         }
         Update: {
           barcode?: string | null
@@ -848,6 +912,7 @@ export type Database = {
           sku?: string | null
           stock_quantity?: number
           user_id?: string
+          warehouse_id?: string | null
         }
         Relationships: [
           {
@@ -855,6 +920,13 @@ export type Database = {
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_variants_warehouse_id_fkey"
+            columns: ["warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
             referencedColumns: ["id"]
           },
         ]
@@ -877,6 +949,7 @@ export type Database = {
           track_stock: boolean
           updated_at: string
           user_id: string
+          warehouse_id: string | null
         }
         Insert: {
           allow_negative_stock?: boolean
@@ -895,6 +968,7 @@ export type Database = {
           track_stock?: boolean
           updated_at?: string
           user_id: string
+          warehouse_id?: string | null
         }
         Update: {
           allow_negative_stock?: boolean
@@ -913,6 +987,7 @@ export type Database = {
           track_stock?: boolean
           updated_at?: string
           user_id?: string
+          warehouse_id?: string | null
         }
         Relationships: [
           {
@@ -920,6 +995,13 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "product_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "products_warehouse_id_fkey"
+            columns: ["warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
             referencedColumns: ["id"]
           },
         ]
@@ -1009,6 +1091,8 @@ export type Database = {
           total: number
           updated_at: string
           user_id: string
+          vault_id: string | null
+          warehouse_id: string | null
         }
         Insert: {
           created_at?: string
@@ -1026,6 +1110,8 @@ export type Database = {
           total?: number
           updated_at?: string
           user_id: string
+          vault_id?: string | null
+          warehouse_id?: string | null
         }
         Update: {
           created_at?: string
@@ -1043,6 +1129,8 @@ export type Database = {
           total?: number
           updated_at?: string
           user_id?: string
+          vault_id?: string | null
+          warehouse_id?: string | null
         }
         Relationships: [
           {
@@ -1050,6 +1138,20 @@ export type Database = {
             columns: ["supplier_id"]
             isOneToOne: false
             referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_orders_vault_id_fkey"
+            columns: ["vault_id"]
+            isOneToOne: false
+            referencedRelation: "vaults"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_orders_warehouse_id_fkey"
+            columns: ["warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
             referencedColumns: ["id"]
           },
         ]
@@ -1066,6 +1168,7 @@ export type Database = {
           reference: string | null
           user_id: string
           variant_id: string | null
+          warehouse_id: string | null
         }
         Insert: {
           cost_price?: number | null
@@ -1078,6 +1181,7 @@ export type Database = {
           reference?: string | null
           user_id: string
           variant_id?: string | null
+          warehouse_id?: string | null
         }
         Update: {
           cost_price?: number | null
@@ -1090,6 +1194,7 @@ export type Database = {
           reference?: string | null
           user_id?: string
           variant_id?: string | null
+          warehouse_id?: string | null
         }
         Relationships: [
           {
@@ -1104,6 +1209,13 @@ export type Database = {
             columns: ["variant_id"]
             isOneToOne: false
             referencedRelation: "product_variants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_movements_warehouse_id_fkey"
+            columns: ["warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
             referencedColumns: ["id"]
           },
         ]
@@ -1121,6 +1233,7 @@ export type Database = {
           phone: string | null
           updated_at: string
           user_id: string
+          warehouse_id: string | null
         }
         Insert: {
           address?: string | null
@@ -1134,6 +1247,7 @@ export type Database = {
           phone?: string | null
           updated_at?: string
           user_id: string
+          warehouse_id?: string | null
         }
         Update: {
           address?: string | null
@@ -1147,8 +1261,17 @@ export type Database = {
           phone?: string | null
           updated_at?: string
           user_id?: string
+          warehouse_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "suppliers_warehouse_id_fkey"
+            columns: ["warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       unused_bl: {
         Row: {
@@ -1391,6 +1514,140 @@ export type Database = {
           created_at?: string
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      vault_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          id: string
+          notes: string | null
+          reference_id: string | null
+          reference_type: string | null
+          type: string
+          user_id: string
+          vault_id: string
+          warehouse_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string
+          id?: string
+          notes?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+          type: string
+          user_id: string
+          vault_id: string
+          warehouse_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          notes?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+          type?: string
+          user_id?: string
+          vault_id?: string
+          warehouse_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vault_transactions_vault_id_fkey"
+            columns: ["vault_id"]
+            isOneToOne: false
+            referencedRelation: "vaults"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vault_transactions_warehouse_id_fkey"
+            columns: ["warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vaults: {
+        Row: {
+          color: string
+          created_at: string
+          id: string
+          is_main: boolean
+          is_open: boolean
+          name: string
+          pin_hash: string | null
+          updated_at: string
+          user_id: string
+          warehouse_id: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          id?: string
+          is_main?: boolean
+          is_open?: boolean
+          name: string
+          pin_hash?: string | null
+          updated_at?: string
+          user_id: string
+          warehouse_id: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          id?: string
+          is_main?: boolean
+          is_open?: boolean
+          name?: string
+          pin_hash?: string | null
+          updated_at?: string
+          user_id?: string
+          warehouse_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vaults_warehouse_id_fkey"
+            columns: ["warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      warehouses: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          is_main: boolean
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          is_main?: boolean
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          is_main?: boolean
+          name?: string
+          updated_at?: string
           user_id?: string
         }
         Relationships: []

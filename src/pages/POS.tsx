@@ -20,6 +20,9 @@ import {
   Printer, FolderOpen, Download, PauseCircle, PlayCircle, RotateCcw, Star, Coins,
 } from 'lucide-react';
 import BarcodeScanner from '@/components/pos/BarcodeScanner';
+import VaultSidebar from '@/components/pos/VaultSidebar';
+import { useWarehouse } from '@/contexts/WarehouseContext';
+import { useVaults } from '@/hooks/useVaults';
 import type { CartItem, Customer, Product, ProductVariant } from '@/types/pos';
 import jsPDF from 'jspdf';
 import { ensureUnicodeFontSync } from '@/lib/pdfFont';
@@ -40,6 +43,8 @@ const saveHandleToDB = async (handle: FileSystemDirectoryHandle) => {
 
 const POS: React.FC = () => {
   const navigate = useNavigate();
+  const { activeWarehouseId, warehouses, loading: whLoading } = useWarehouse();
+  const { vaults } = useVaults(activeWarehouseId);
   const { products, categories, loading } = useProducts();
   const { customers, addCustomer } = useCustomers();
   const { completeSale, processing } = usePOS();
@@ -47,6 +52,20 @@ const POS: React.FC = () => {
   const { settings: loyalty } = useLoyalty();
   const { settings: posSettings } = usePOSSettings();
   const { toast } = useToast();
+
+  const [selectedVaultId, setSelectedVaultId] = useState<string | null>(null);
+  useEffect(() => {
+    if (!selectedVaultId || !vaults.find(v => v.id === selectedVaultId && v.is_open)) {
+      const firstOpen = vaults.find(v => v.is_open);
+      setSelectedVaultId(firstOpen?.id || null);
+    }
+  }, [vaults, selectedVaultId]);
+
+  // Redirect to warehouse picker if none is active
+  useEffect(() => {
+    if (!whLoading && !activeWarehouseId && warehouses.length > 1) navigate('/warehouses');
+  }, [whLoading, activeWarehouseId, warehouses.length, navigate]);
+
 
   const currency = posSettings?.currency || 'USD';
   const currencySym = currency === 'USD' ? '$' : currency === 'EUR' ? '€' : currency === 'IQD' ? 'د.ع' : currency + ' ';
@@ -164,6 +183,10 @@ const POS: React.FC = () => {
   const lastSaleCartRef = useRef<any>(null);
 
   const handleCheckout = async () => {
+    if (!selectedVaultId) {
+      toast({ title: 'No open vault', description: 'Open a vault before completing a sale.', variant: 'destructive' });
+      return;
+    }
     const snapshot = { items: [...cart], subtotal, taxTotal, discountApplied, redeemValue, storeCreditApplied, grandTotal };
     const sale = await completeSale(cart, {
       paymentMethod,
@@ -175,6 +198,8 @@ const POS: React.FC = () => {
       loyaltyRedeemed: redeemValue,
       storeCreditUsed: storeCreditApplied,
       loyaltyEarnedPoints: earnedPoints,
+      warehouseId: activeWarehouseId,
+      vaultId: selectedVaultId,
     });
     if (sale) {
       lastSaleCartRef.current = snapshot;
@@ -294,7 +319,20 @@ const POS: React.FC = () => {
   };
 
   return (
-    <div className="h-[calc(100vh-8rem)] flex flex-col lg:flex-row gap-4 animate-fade-in">
+    <div className="flex flex-col gap-3 animate-fade-in">
+      {activeWarehouseId && (
+        <div className="flex items-center justify-between gap-3 flex-wrap border rounded-lg p-2 bg-card">
+          <div className="flex items-center gap-2 text-sm">
+            <span className="text-muted-foreground">Warehouse:</span>
+            <span className="font-semibold">{warehouses.find(w => w.id === activeWarehouseId)?.name}</span>
+            <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => navigate('/warehouses')}>Switch</Button>
+          </div>
+          <div className="flex-1 min-w-[240px] max-w-md">
+            <VaultSidebar warehouseId={activeWarehouseId} selectedVaultId={selectedVaultId} onSelectVault={setSelectedVaultId} />
+          </div>
+        </div>
+      )}
+    <div className="h-[calc(100vh-12rem)] flex flex-col lg:flex-row gap-4">
       {/* Left: Product Grid */}
       <div className="flex-1 flex flex-col gap-4 min-w-0">
         <div className="flex flex-col sm:flex-row gap-3">
@@ -585,6 +623,7 @@ const POS: React.FC = () => {
       </Dialog>
 
       <BarcodeScanner open={scannerOpen} onOpenChange={setScannerOpen} onScan={handleBarcodeScan} />
+    </div>
     </div>
   );
 };

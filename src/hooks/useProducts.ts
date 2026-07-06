@@ -1,12 +1,14 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useWarehouse } from '@/contexts/WarehouseContext';
 import type { Product, ProductCategory, ProductVariant } from '@/types/pos';
 
 const db = (table: string) => (supabase as any).from(table);
 
 export const useProducts = () => {
   const { user } = useAuth();
+  const { activeWarehouseId } = useWarehouse();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<ProductCategory[]>([]);
   const [loading, setLoading] = useState(true);
@@ -14,10 +16,16 @@ export const useProducts = () => {
   const fetchAll = useCallback(async () => {
     if (!user) return;
     setLoading(true);
+    let prodQ = db('products').select('*').eq('user_id', user.id).eq('is_active', true);
+    let varQ = db('product_variants').select('*').eq('user_id', user.id).eq('is_active', true);
+    if (activeWarehouseId) {
+      prodQ = prodQ.eq('warehouse_id', activeWarehouseId);
+      varQ = varQ.eq('warehouse_id', activeWarehouseId);
+    }
     const [prodRes, catRes, varRes] = await Promise.all([
-      db('products').select('*').eq('user_id', user.id).eq('is_active', true).order('name'),
+      prodQ.order('name'),
       db('product_categories').select('*').eq('user_id', user.id).eq('is_active', true).order('name'),
-      db('product_variants').select('*').eq('user_id', user.id).eq('is_active', true).order('name'),
+      varQ.order('name'),
     ]);
 
     const cats = (catRes.data || []) as ProductCategory[];
@@ -31,7 +39,7 @@ export const useProducts = () => {
     setCategories(cats);
     setProducts(prods);
     setLoading(false);
-  }, [user]);
+  }, [user, activeWarehouseId]);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
@@ -50,20 +58,22 @@ export const useProducts = () => {
 
   const addProduct = async (data: Partial<Product>, variants?: Partial<ProductVariant>[]): Promise<boolean> => {
     if (!user) return false;
+    const wh = activeWarehouseId;
     const { data: inserted, error } = await db('products')
-      .insert({ ...data, user_id: user.id })
+      .insert({ ...data, user_id: user.id, warehouse_id: wh })
       .select('id')
       .single();
     if (error) return false;
 
     if (variants?.length) {
       await db('product_variants').insert(
-        variants.map(v => ({ ...v, product_id: inserted.id, user_id: user.id }))
+        variants.map(v => ({ ...v, product_id: inserted.id, user_id: user.id, warehouse_id: wh }))
       );
     } else {
       await db('product_variants').insert({
         product_id: inserted.id,
         user_id: user.id,
+        warehouse_id: wh,
         name: 'Default',
         stock_quantity: 0,
         min_stock_level: 5,
