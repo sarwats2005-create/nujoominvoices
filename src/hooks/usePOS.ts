@@ -60,6 +60,8 @@ export const usePOS = () => {
         loyalty_redeemed: loyaltyRedeemed,
         store_credit_used: storeCreditUsed,
         status: 'completed',
+        warehouse_id: opts.warehouseId || null,
+        vault_id: opts.vaultId || null,
       })
       .select()
       .single();
