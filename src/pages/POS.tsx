@@ -20,6 +20,9 @@ import {
   Printer, FolderOpen, Download, PauseCircle, PlayCircle, RotateCcw, Star, Coins,
 } from 'lucide-react';
 import BarcodeScanner from '@/components/pos/BarcodeScanner';
+import VaultSidebar from '@/components/pos/VaultSidebar';
+import { useWarehouse } from '@/contexts/WarehouseContext';
+import { useVaults } from '@/hooks/useVaults';
 import type { CartItem, Customer, Product, ProductVariant } from '@/types/pos';
 import jsPDF from 'jspdf';
 import { ensureUnicodeFontSync } from '@/lib/pdfFont';
