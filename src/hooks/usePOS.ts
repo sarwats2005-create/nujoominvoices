@@ -98,6 +98,7 @@ export const usePOS = () => {
           cost_price: item.product.cost_price || 0,
           reference: saleNumber,
           notes: 'POS Sale',
+          warehouse_id: opts.warehouseId || null,
         });
       }
     }
