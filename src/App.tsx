@@ -105,6 +105,7 @@ const AppRoutes = () => {
         <Route path="/used-bl/:id/edit" element={<AdminRoute><UsedBLEdit /></AdminRoute>} />
         <Route path="/unused-bl" element={<AdminRoute><UnusedBLDashboard /></AdminRoute>} />
         <Route path="/unused-bl/owner/:ownerName" element={<AdminRoute><UnusedBLOwnerDetail /></AdminRoute>} />
+        <Route path="/warehouses" element={<Warehouses />} />
         <Route path="/pos" element={<POS />} />
         <Route path="/inventory" element={<InventoryPage />} />
         <Route path="/suppliers" element={<Suppliers />} />
