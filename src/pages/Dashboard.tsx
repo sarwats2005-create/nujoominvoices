@@ -781,6 +781,14 @@ const Dashboard: React.FC = () => {
                             </div>
                           ) : '-'}
                         </TableCell>
+                      {isGlobalMode && (
+                        <TableCell>
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
+                            <LayoutDashboard className="h-3 w-3" />
+                            {dashboards.find(d => d.id === inv.dashboardId)?.name || '—'}
+                          </span>
+                        </TableCell>
+                      )}
                       {isAdmin && <TableCell>
                         <div className="flex items-center gap-1">
                           <Button variant="ghost" size="icon" className="h-9 w-9 hover:bg-primary/10 hover:text-primary transition-colors" onClick={() => setEditingInvoice(inv)}>
