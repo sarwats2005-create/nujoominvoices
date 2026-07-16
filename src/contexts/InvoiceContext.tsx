@@ -42,6 +42,8 @@ interface InvoiceContextType {
   updateInvoiceStatus: (id: string, status: 'pending' | 'received') => Promise<void>;
   deleteInvoice: (id: string) => Promise<void>;
   deleteMultipleInvoices: (ids: string[]) => Promise<void>;
+  moveInvoicesToDashboard: (ids: string[], targetDashboardId: string) => Promise<void>;
+  searchAllInvoices: (query: string) => Promise<Invoice[]>;
   addBank: (name: string) => Promise<void>;
   updateBank: (id: string, name: string) => Promise<void>;
   deleteBank: (id: string) => Promise<void>;
