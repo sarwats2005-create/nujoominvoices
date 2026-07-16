@@ -624,6 +624,25 @@ const Dashboard: React.FC = () => {
             {isAdmin && selectedIds.length > 0 && <Button onClick={() => setShowDeleteDialog(true)} variant="destructive" size="sm" className="btn-glow h-8 text-xs sm:text-sm">
                 <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 sm:mr-2" />{t('deleteSelected')} ({selectedIds.length})
               </Button>}
+            {isAdmin && selectedIds.length > 0 && dashboards.length > 1 && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="h-8 text-xs sm:text-sm border-primary/40 hover:bg-primary/10">
+                    <MoveRight className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                    {t('moveToDashboard') || 'Move to'} ({selectedIds.length})
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="bg-popover z-50">
+                  <DropdownMenuLabel>{t('selectDashboard')}</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {dashboards.filter(d => d.id !== currentDashboardId).map(d => (
+                    <DropdownMenuItem key={d.id} onClick={() => handleMoveSelected(d.id)}>
+                      <LayoutDashboard className="h-4 w-4 mr-2" />{d.name}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
             <input type="file" ref={fileInputRef} accept=".csv" onChange={handleCSVImport} className="hidden" />
             {isAdmin && <Button onClick={() => fileInputRef.current?.click()} variant="outline" size="sm" className="border-primary/20 hover:bg-primary/5 hover:border-primary/40 transition-all h-8 text-xs sm:text-sm">
               <Upload className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 sm:mr-2" /><span className="hidden xs:inline">{t('importCSV')}</span><span className="xs:hidden">Import</span>
