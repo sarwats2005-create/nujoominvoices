@@ -676,7 +676,7 @@ const Dashboard: React.FC = () => {
           </div>
 
 
-          {invoices.length === 0 ? <div className="text-center py-16">
+          {sortedInvoices.length === 0 ? <div className="text-center py-16">
               <div className="p-4 rounded-full bg-muted/50 w-fit mx-auto mb-4">
                 <FileText className="h-10 w-10 text-muted-foreground" />
               </div>
