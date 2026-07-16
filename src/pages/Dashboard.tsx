@@ -1,4 +1,4 @@
-import React, { useState, useRef, useMemo } from 'react';
+import React, { useState, useRef, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useInvoice, Invoice } from '@/contexts/InvoiceContext';
@@ -12,7 +12,10 @@ import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
 import { format, differenceInDays } from 'date-fns';
-import { Copy, FileText, ArrowUpDown, Trash2, Printer, Edit, AlertTriangle, LayoutDashboard, Search, Hash, DollarSign, CalendarIcon, User, Landmark, Package, CheckCircle, Upload, Download, BarChart3, Clock, Plus } from 'lucide-react';
+import { Copy, FileText, ArrowUpDown, Trash2, Printer, Edit, AlertTriangle, LayoutDashboard, Search, Hash, DollarSign, CalendarIcon, User, Landmark, Package, CheckCircle, Upload, Download, BarChart3, Clock, Plus, MoveRight, Globe } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuLabel, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { parseDateString } from '@/lib/dateUtils';
 import EditInvoiceDialog from '@/components/EditInvoiceDialog';
@@ -38,7 +41,9 @@ const Dashboard: React.FC = () => {
     dashboards,
     currentDashboardId,
     setCurrentDashboardId,
-    addMultipleInvoices
+    addMultipleInvoices,
+    moveInvoicesToDashboard,
+    searchAllInvoices
   } = useInvoice();
   const {
     currency
@@ -56,6 +61,9 @@ const Dashboard: React.FC = () => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showPrintDialog, setShowPrintDialog] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchAllDashboards, setSearchAllDashboards] = useState(false);
+  const [globalResults, setGlobalResults] = useState<Invoice[]>([]);
+  const [isSearchingGlobal, setIsSearchingGlobal] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const currentDashboard = dashboards.find(d => d.id === currentDashboardId);
@@ -78,11 +86,34 @@ const Dashboard: React.FC = () => {
     const symbol = currencyCode ? getCurrencySymbol(currencyCode) : currency.symbol;
     return `${symbol}${Math.round(amount).toLocaleString()}`;
   };
+  const isGlobalMode = searchAllDashboards && !!searchQuery.trim();
+
+  useEffect(() => {
+    if (!isGlobalMode) {
+      setGlobalResults([]);
+      return;
+    }
+    let cancelled = false;
+    setIsSearchingGlobal(true);
+    const handle = setTimeout(async () => {
+      const results = await searchAllInvoices(searchQuery);
+      if (!cancelled) {
+        setGlobalResults(results);
+        setIsSearchingGlobal(false);
+      }
+    }, 250);
+    return () => {
+      cancelled = true;
+      clearTimeout(handle);
+    };
+  }, [isGlobalMode, searchQuery, searchAllInvoices]);
+
   const filteredInvoices = useMemo(() => {
+    if (isGlobalMode) return globalResults;
     if (!searchQuery.trim()) return invoices;
     const query = searchQuery.toLowerCase();
     return invoices.filter(inv => inv.invoiceNumber.toLowerCase().includes(query) || inv.beneficiary.toLowerCase().includes(query) || inv.bank.toLowerCase().includes(query) || inv.amount.toString().includes(query) || inv.containerNumber && inv.containerNumber.toLowerCase().includes(query) || format(parseDateString(inv.date), 'dd/MM/yyyy').includes(query) || (inv.status === 'received' ? t('received') : t('pending')).toLowerCase().includes(query));
-  }, [invoices, searchQuery, t]);
+  }, [invoices, searchQuery, t, isGlobalMode, globalResults]);
   const sortedInvoices = useMemo(() => {
     return [...filteredInvoices].sort((a, b) => {
       let comparison = 0;
@@ -108,6 +139,19 @@ const Dashboard: React.FC = () => {
   };
   const handleSelectOne = (id: string, checked: boolean) => {
     setSelectedIds(prev => checked ? [...prev, id] : prev.filter(i => i !== id));
+  };
+  const handleMoveSelected = async (targetId: string) => {
+    if (!selectedIds.length) return;
+    await moveInvoicesToDashboard(selectedIds, targetId);
+    const targetName = dashboards.find(d => d.id === targetId)?.name || '';
+    setSelectedIds([]);
+    playWhooshSound();
+    toast({ title: t('invoicesMoved') || 'Invoices moved', description: targetName });
+    // Refresh global results if in global search mode
+    if (isGlobalMode) {
+      const results = await searchAllInvoices(searchQuery);
+      setGlobalResults(results);
+    }
   };
   const handleDeleteSelected = () => {
     deleteMultipleInvoices(selectedIds);
@@ -580,6 +624,25 @@ const Dashboard: React.FC = () => {
             {isAdmin && selectedIds.length > 0 && <Button onClick={() => setShowDeleteDialog(true)} variant="destructive" size="sm" className="btn-glow h-8 text-xs sm:text-sm">
                 <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 sm:mr-2" />{t('deleteSelected')} ({selectedIds.length})
               </Button>}
+            {isAdmin && selectedIds.length > 0 && dashboards.length > 1 && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="h-8 text-xs sm:text-sm border-primary/40 hover:bg-primary/10">
+                    <MoveRight className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                    {t('moveToDashboard') || 'Move to'} ({selectedIds.length})
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="bg-popover z-50">
+                  <DropdownMenuLabel>{t('selectDashboard')}</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {dashboards.filter(d => d.id !== currentDashboardId).map(d => (
+                    <DropdownMenuItem key={d.id} onClick={() => handleMoveSelected(d.id)}>
+                      <LayoutDashboard className="h-4 w-4 mr-2" />{d.name}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
             <input type="file" ref={fileInputRef} accept=".csv" onChange={handleCSVImport} className="hidden" />
             {isAdmin && <Button onClick={() => fileInputRef.current?.click()} variant="outline" size="sm" className="border-primary/20 hover:bg-primary/5 hover:border-primary/40 transition-all h-8 text-xs sm:text-sm">
               <Upload className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 sm:mr-2" /><span className="hidden xs:inline">{t('importCSV')}</span><span className="xs:hidden">Import</span>
@@ -597,14 +660,23 @@ const Dashboard: React.FC = () => {
         </CardHeader>
         <CardContent className="p-3 sm:p-6">
           {/* Search Bar */}
-          <div className="mb-4 sm:mb-6">
-            <div className="relative max-w-md">
+          <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row gap-3 sm:items-center">
+            <div className="relative flex-1 max-w-md">
               <Search className="absolute left-3 sm:left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input placeholder={t('searchInvoices')} value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-9 sm:pl-11 h-9 sm:h-11 border-muted bg-muted/30 focus:bg-card input-focus rounded-xl text-sm" />
             </div>
+            <div className="flex items-center gap-2">
+              <Globe className={cn("h-4 w-4", searchAllDashboards ? "text-primary" : "text-muted-foreground")} />
+              <Switch id="search-all" checked={searchAllDashboards} onCheckedChange={setSearchAllDashboards} />
+              <Label htmlFor="search-all" className="text-xs sm:text-sm cursor-pointer">
+                {t('searchAllDashboards') || 'Search all dashboards'}
+              </Label>
+              {isGlobalMode && isSearchingGlobal && <span className="text-xs text-muted-foreground">…</span>}
+            </div>
           </div>
 
-          {invoices.length === 0 ? <div className="text-center py-16">
+
+          {sortedInvoices.length === 0 ? <div className="text-center py-16">
               <div className="p-4 rounded-full bg-muted/50 w-fit mx-auto mb-4">
                 <FileText className="h-10 w-10 text-muted-foreground" />
               </div>
@@ -629,6 +701,7 @@ const Dashboard: React.FC = () => {
                     <SortHeader label={t('bank')} sortKeyName="bank" icon={Landmark} />
                     <SortHeader label={t('containerNumber')} sortKeyName="containerNumber" icon={Package} />
                     <SortHeader label={t('swiftDate')} sortKeyName="swiftDate" icon={Clock} />
+                    {isGlobalMode && <TableHead className="font-semibold"><div className="flex items-center gap-2"><LayoutDashboard className="h-4 w-4 text-primary" />{t('dashboard') || 'Dashboard'}</div></TableHead>}
                     {isAdmin && <TableHead className="font-semibold">{t('actions')}</TableHead>}
                   </TableRow>
                 </TableHeader>
@@ -708,6 +781,14 @@ const Dashboard: React.FC = () => {
                             </div>
                           ) : '-'}
                         </TableCell>
+                      {isGlobalMode && (
+                        <TableCell>
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
+                            <LayoutDashboard className="h-3 w-3" />
+                            {dashboards.find(d => d.id === inv.dashboardId)?.name || '—'}
+                          </span>
+                        </TableCell>
+                      )}
                       {isAdmin && <TableCell>
                         <div className="flex items-center gap-1">
                           <Button variant="ghost" size="icon" className="h-9 w-9 hover:bg-primary/10 hover:text-primary transition-colors" onClick={() => setEditingInvoice(inv)}>
