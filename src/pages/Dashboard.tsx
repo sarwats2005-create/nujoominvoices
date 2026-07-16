@@ -140,6 +140,19 @@ const Dashboard: React.FC = () => {
   const handleSelectOne = (id: string, checked: boolean) => {
     setSelectedIds(prev => checked ? [...prev, id] : prev.filter(i => i !== id));
   };
+  const handleMoveSelected = async (targetId: string) => {
+    if (!selectedIds.length) return;
+    await moveInvoicesToDashboard(selectedIds, targetId);
+    const targetName = dashboards.find(d => d.id === targetId)?.name || '';
+    setSelectedIds([]);
+    playWhooshSound();
+    toast({ title: t('invoicesMoved') || 'Invoices moved', description: targetName });
+    // Refresh global results if in global search mode
+    if (isGlobalMode) {
+      const results = await searchAllInvoices(searchQuery);
+      setGlobalResults(results);
+    }
+  };
   const handleDeleteSelected = () => {
     deleteMultipleInvoices(selectedIds);
     setSelectedIds([]);
