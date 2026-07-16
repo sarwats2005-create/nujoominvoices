@@ -377,6 +377,58 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
   };
 
+  const moveInvoicesToDashboard = async (ids: string[], targetDashboardId: string) => {
+    if (!user || ids.length === 0) return;
+
+    const { error } = await supabase
+      .from('invoices')
+      .update({ dashboard_id: targetDashboardId })
+      .in('id', ids)
+      .eq('user_id', user.id);
+
+    if (!error) {
+      // Remove from local list if they're moving out of the current dashboard
+      setInvoices(prev =>
+        prev
+          .map(inv => (ids.includes(inv.id) ? { ...inv, dashboardId: targetDashboardId } : inv))
+          .filter(inv => inv.dashboardId === currentDashboardId)
+      );
+    }
+  };
+
+  const searchAllInvoices = async (query: string): Promise<Invoice[]> => {
+    if (!user || !query.trim()) return [];
+    const q = query.trim();
+
+    const { data, error } = await supabase
+      .from('invoices')
+      .select('*')
+      .eq('user_id', user.id)
+      .or(
+        `invoice_number.ilike.%${q}%,beneficiary.ilike.%${q}%,bank.ilike.%${q}%,container_number.ilike.%${q}%`
+      )
+      .order('created_at', { ascending: false })
+      .limit(500);
+
+    if (error || !data) return [];
+
+    return data.map(inv => ({
+      id: inv.id,
+      userId: inv.user_id,
+      dashboardId: inv.dashboard_id,
+      amount: Number(inv.amount),
+      currency: inv.currency,
+      date: inv.date,
+      invoiceNumber: inv.invoice_number,
+      beneficiary: inv.beneficiary,
+      bank: inv.bank,
+      containerNumber: inv.container_number || undefined,
+      swiftDate: inv.swift_date || undefined,
+      status: inv.status as 'pending' | 'received',
+      createdAt: inv.created_at,
+    }));
+  };
+
   const addBank = async (name: string) => {
     if (!user) return;
 
