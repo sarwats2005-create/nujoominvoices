@@ -86,11 +86,34 @@ const Dashboard: React.FC = () => {
     const symbol = currencyCode ? getCurrencySymbol(currencyCode) : currency.symbol;
     return `${symbol}${Math.round(amount).toLocaleString()}`;
   };
+  const isGlobalMode = searchAllDashboards && !!searchQuery.trim();
+
+  useEffect(() => {
+    if (!isGlobalMode) {
+      setGlobalResults([]);
+      return;
+    }
+    let cancelled = false;
+    setIsSearchingGlobal(true);
+    const handle = setTimeout(async () => {
+      const results = await searchAllInvoices(searchQuery);
+      if (!cancelled) {
+        setGlobalResults(results);
+        setIsSearchingGlobal(false);
+      }
+    }, 250);
+    return () => {
+      cancelled = true;
+      clearTimeout(handle);
+    };
+  }, [isGlobalMode, searchQuery, searchAllInvoices]);
+
   const filteredInvoices = useMemo(() => {
+    if (isGlobalMode) return globalResults;
     if (!searchQuery.trim()) return invoices;
     const query = searchQuery.toLowerCase();
     return invoices.filter(inv => inv.invoiceNumber.toLowerCase().includes(query) || inv.beneficiary.toLowerCase().includes(query) || inv.bank.toLowerCase().includes(query) || inv.amount.toString().includes(query) || inv.containerNumber && inv.containerNumber.toLowerCase().includes(query) || format(parseDateString(inv.date), 'dd/MM/yyyy').includes(query) || (inv.status === 'received' ? t('received') : t('pending')).toLowerCase().includes(query));
-  }, [invoices, searchQuery, t]);
+  }, [invoices, searchQuery, t, isGlobalMode, globalResults]);
   const sortedInvoices = useMemo(() => {
     return [...filteredInvoices].sort((a, b) => {
       let comparison = 0;
