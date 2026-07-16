@@ -701,6 +701,7 @@ const Dashboard: React.FC = () => {
                     <SortHeader label={t('bank')} sortKeyName="bank" icon={Landmark} />
                     <SortHeader label={t('containerNumber')} sortKeyName="containerNumber" icon={Package} />
                     <SortHeader label={t('swiftDate')} sortKeyName="swiftDate" icon={Clock} />
+                    {isGlobalMode && <TableHead className="font-semibold"><div className="flex items-center gap-2"><LayoutDashboard className="h-4 w-4 text-primary" />{t('dashboard') || 'Dashboard'}</div></TableHead>}
                     {isAdmin && <TableHead className="font-semibold">{t('actions')}</TableHead>}
                   </TableRow>
                 </TableHeader>
