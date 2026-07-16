@@ -41,7 +41,9 @@ const Dashboard: React.FC = () => {
     dashboards,
     currentDashboardId,
     setCurrentDashboardId,
-    addMultipleInvoices
+    addMultipleInvoices,
+    moveInvoicesToDashboard,
+    searchAllInvoices
   } = useInvoice();
   const {
     currency
