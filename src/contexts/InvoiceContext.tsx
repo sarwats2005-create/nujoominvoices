@@ -538,6 +538,8 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
         updateInvoiceStatus,
         deleteInvoice,
         deleteMultipleInvoices,
+        moveInvoicesToDashboard,
+        searchAllInvoices,
         addBank,
         updateBank,
         deleteBank,
