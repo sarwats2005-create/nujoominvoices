@@ -61,6 +61,9 @@ const Dashboard: React.FC = () => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showPrintDialog, setShowPrintDialog] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchAllDashboards, setSearchAllDashboards] = useState(false);
+  const [globalResults, setGlobalResults] = useState<Invoice[]>([]);
+  const [isSearchingGlobal, setIsSearchingGlobal] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const currentDashboard = dashboards.find(d => d.id === currentDashboardId);
