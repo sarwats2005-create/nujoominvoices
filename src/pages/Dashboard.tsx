@@ -660,12 +660,21 @@ const Dashboard: React.FC = () => {
         </CardHeader>
         <CardContent className="p-3 sm:p-6">
           {/* Search Bar */}
-          <div className="mb-4 sm:mb-6">
-            <div className="relative max-w-md">
+          <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row gap-3 sm:items-center">
+            <div className="relative flex-1 max-w-md">
               <Search className="absolute left-3 sm:left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input placeholder={t('searchInvoices')} value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-9 sm:pl-11 h-9 sm:h-11 border-muted bg-muted/30 focus:bg-card input-focus rounded-xl text-sm" />
             </div>
+            <div className="flex items-center gap-2">
+              <Globe className={cn("h-4 w-4", searchAllDashboards ? "text-primary" : "text-muted-foreground")} />
+              <Switch id="search-all" checked={searchAllDashboards} onCheckedChange={setSearchAllDashboards} />
+              <Label htmlFor="search-all" className="text-xs sm:text-sm cursor-pointer">
+                {t('searchAllDashboards') || 'Search all dashboards'}
+              </Label>
+              {isGlobalMode && isSearchingGlobal && <span className="text-xs text-muted-foreground">…</span>}
+            </div>
           </div>
+
 
           {invoices.length === 0 ? <div className="text-center py-16">
               <div className="p-4 rounded-full bg-muted/50 w-fit mx-auto mb-4">
