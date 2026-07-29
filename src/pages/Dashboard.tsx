@@ -142,13 +142,26 @@ const Dashboard: React.FC = () => {
   const handleSelectOne = (id: string, checked: boolean) => {
     setSelectedIds(prev => checked ? [...prev, id] : prev.filter(i => i !== id));
   };
-  const handleMoveSelected = async (targetId: string) => {
+  const handleMoveSelected = (targetId: string) => {
     if (!selectedIds.length) return;
-    await moveInvoicesToDashboard(selectedIds, targetId);
-    const targetName = dashboards.find(d => d.id === targetId)?.name || '';
+    setMoveTargetId(targetId);
+    setShowMoveDialog(true);
+  };
+  const confirmMove = async () => {
+    if (!moveTargetId || !selectedIds.length) return;
+    const count = selectedIds.length;
+    const targetName = dashboards.find(d => d.id === moveTargetId)?.name || '';
+    await moveInvoicesToDashboard(selectedIds, moveTargetId);
     setSelectedIds([]);
+    setShowMoveDialog(false);
+    setMoveTargetId(null);
     playWhooshSound();
-    toast({ title: t('invoicesMoved') || 'Invoices moved', description: targetName });
+    toast({
+      title: t('invoicesMoved') || 'Invoices moved',
+      description: (t('moveInvoicesSummary') || '{count} invoice(s) moved to "{dashboard}"')
+        .replace('{count}', String(count))
+        .replace('{dashboard}', targetName),
+    });
     // Refresh global results if in global search mode
     if (isGlobalMode) {
       const results = await searchAllInvoices(searchQuery);
