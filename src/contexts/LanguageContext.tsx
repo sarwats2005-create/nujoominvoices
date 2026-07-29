@@ -553,6 +553,36 @@ export const translations: Translations = {
     ar: 'هل أنت متأكد من حذف {count} فواتير محددة؟ لا يمكن التراجع عن هذا الإجراء.',
     ku: 'دڵنیایت لە سڕینەوەی {count} پسوولەی هەڵبژێردراو؟ ناتوانرێت ئەم کردارە هەڵوەشێندرێتەوە.',
   },
+  moveToDashboard: {
+    en: 'Move to Dashboard',
+    ar: 'نقل إلى لوحة التحكم',
+    ku: 'بگوازەوە بۆ داشبۆرد',
+  },
+  moveInvoices: {
+    en: 'Move Invoices',
+    ar: 'نقل الفواتير',
+    ku: 'گواستنەوەی پسوولەکان',
+  },
+  confirmMoveInvoices: {
+    en: 'Move {count} selected invoice(s) to "{dashboard}"?',
+    ar: 'نقل {count} فاتورة/فواتير محددة إلى "{dashboard}"؟',
+    ku: '{count} پسوولەی هەڵبژێردراو بگوازەوە بۆ "{dashboard}"؟',
+  },
+  invoicesMoved: {
+    en: 'Invoices moved',
+    ar: 'تم نقل الفواتير',
+    ku: 'پسوولەکان گوازرانەوە',
+  },
+  moveInvoicesSummary: {
+    en: '{count} invoice(s) moved to "{dashboard}"',
+    ar: 'تم نقل {count} فاتورة/فواتير إلى "{dashboard}"',
+    ku: '{count} پسوولە گوازرانەوە بۆ "{dashboard}"',
+  },
+  confirmMove: {
+    en: 'Confirm Move',
+    ar: 'تأكيد النقل',
+    ku: 'دڵنیاکردنەوەی گواستنەوە',
+  },
   containerNumber: {
     en: 'Container Number',
     ar: 'رقم الحاوية',
