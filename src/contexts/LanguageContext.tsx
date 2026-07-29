@@ -583,6 +583,16 @@ export const translations: Translations = {
     ar: 'تأكيد النقل',
     ku: 'دڵنیاکردنەوەی گواستنەوە',
   },
+  undo: {
+    en: 'Undo',
+    ar: 'تراجع',
+    ku: 'گەڕاندنەوە',
+  },
+  moveUndone: {
+    en: 'Move undone',
+    ar: 'تم التراجع عن النقل',
+    ku: 'گواستنەوە پووچەڵ کرایەوە',
+  },
   containerNumber: {
     en: 'Container Number',
     ar: 'رقم الحاوية',

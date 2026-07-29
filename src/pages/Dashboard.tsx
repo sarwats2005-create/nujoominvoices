@@ -23,6 +23,7 @@ import DashboardSelector from '@/components/DashboardSelector';
 import { MagicCard } from '@/components/MagicCard';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { ToastAction } from '@/components/ui/toast';
 import CountUp from '@/components/CountUp';
 import PrintSettingsDialog, { PrintSettings } from '@/components/PrintSettingsDialog';
 import jsPDF from 'jspdf';
@@ -43,7 +44,8 @@ const Dashboard: React.FC = () => {
     setCurrentDashboardId,
     addMultipleInvoices,
     moveInvoicesToDashboard,
-    searchAllInvoices
+    searchAllInvoices,
+    refreshData
   } = useInvoice();
   const {
     currency
@@ -147,10 +149,31 @@ const Dashboard: React.FC = () => {
     setMoveTargetId(targetId);
     setShowMoveDialog(true);
   };
+  const undoMove = async (snapshot: { id: string; dashboardId: string }[]) => {
+    const groups = snapshot.reduce<Record<string, string[]>>((acc, item) => {
+      (acc[item.dashboardId] ||= []).push(item.id);
+      return acc;
+    }, {});
+    for (const [dashboardId, ids] of Object.entries(groups)) {
+      await moveInvoicesToDashboard(ids, dashboardId);
+    }
+    await refreshData();
+    playWhooshSound();
+    toast({ title: t('moveUndone') || 'Move undone' });
+    if (isGlobalMode) {
+      const results = await searchAllInvoices(searchQuery);
+      setGlobalResults(results);
+    }
+  };
   const confirmMove = async () => {
     if (!moveTargetId || !selectedIds.length) return;
     const count = selectedIds.length;
     const targetName = dashboards.find(d => d.id === moveTargetId)?.name || '';
+    const pool = isGlobalMode ? globalResults : invoices;
+    const snapshot = selectedIds.map(id => ({
+      id,
+      dashboardId: pool.find(inv => inv.id === id)?.dashboardId || currentDashboardId || '',
+    })).filter(s => s.dashboardId && s.dashboardId !== moveTargetId);
     await moveInvoicesToDashboard(selectedIds, moveTargetId);
     setSelectedIds([]);
     setShowMoveDialog(false);
@@ -161,6 +184,12 @@ const Dashboard: React.FC = () => {
       description: (t('moveInvoicesSummary') || '{count} invoice(s) moved to "{dashboard}"')
         .replace('{count}', String(count))
         .replace('{dashboard}', targetName),
+      duration: 8000,
+      action: snapshot.length ? (
+        <ToastAction altText={t('undo') || 'Undo'} onClick={() => { void undoMove(snapshot); }}>
+          {t('undo') || 'Undo'}
+        </ToastAction>
+      ) : undefined,
     });
     // Refresh global results if in global search mode
     if (isGlobalMode) {
