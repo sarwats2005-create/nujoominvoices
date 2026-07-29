@@ -847,6 +847,30 @@ const Dashboard: React.FC = () => {
         </AlertDialogContent>
       </AlertDialog>
 
+      <AlertDialog open={showMoveDialog} onOpenChange={open => { setShowMoveDialog(open); if (!open) setMoveTargetId(null); }}>
+        <AlertDialogContent className="border-0 shadow-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-3">
+              <div className="p-2 rounded-full bg-primary/10">
+                <MoveRight className="h-5 w-5 text-primary" />
+              </div>
+              {t('moveInvoices') || 'Move Invoices'}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-base">
+              {(t('confirmMoveInvoices') || 'Move {count} selected invoice(s) to "{dashboard}"?')
+                .replace('{count}', selectedIds.length.toString())
+                .replace('{dashboard}', dashboards.find(d => d.id === moveTargetId)?.name || '')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="border-muted">{t('cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmMove} className="bg-primary hover:bg-primary/90 btn-glow">
+              {t('confirmMove') || 'Confirm Move'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <PrintSettingsDialog
         open={showPrintDialog}
         onOpenChange={setShowPrintDialog}
