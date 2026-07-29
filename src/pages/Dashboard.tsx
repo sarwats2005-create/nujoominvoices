@@ -23,6 +23,7 @@ import DashboardSelector from '@/components/DashboardSelector';
 import { MagicCard } from '@/components/MagicCard';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { ToastAction } from '@/components/ui/toast';
 import CountUp from '@/components/CountUp';
 import PrintSettingsDialog, { PrintSettings } from '@/components/PrintSettingsDialog';
 import jsPDF from 'jspdf';
@@ -43,7 +44,8 @@ const Dashboard: React.FC = () => {
     setCurrentDashboardId,
     addMultipleInvoices,
     moveInvoicesToDashboard,
-    searchAllInvoices
+    searchAllInvoices,
+    refreshData
   } = useInvoice();
   const {
     currency
