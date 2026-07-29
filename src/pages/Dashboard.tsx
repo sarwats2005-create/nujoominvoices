@@ -59,6 +59,8 @@ const Dashboard: React.FC = () => {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showMoveDialog, setShowMoveDialog] = useState(false);
+  const [moveTargetId, setMoveTargetId] = useState<string | null>(null);
   const [showPrintDialog, setShowPrintDialog] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchAllDashboards, setSearchAllDashboards] = useState(false);
@@ -140,13 +142,26 @@ const Dashboard: React.FC = () => {
   const handleSelectOne = (id: string, checked: boolean) => {
     setSelectedIds(prev => checked ? [...prev, id] : prev.filter(i => i !== id));
   };
-  const handleMoveSelected = async (targetId: string) => {
+  const handleMoveSelected = (targetId: string) => {
     if (!selectedIds.length) return;
-    await moveInvoicesToDashboard(selectedIds, targetId);
-    const targetName = dashboards.find(d => d.id === targetId)?.name || '';
+    setMoveTargetId(targetId);
+    setShowMoveDialog(true);
+  };
+  const confirmMove = async () => {
+    if (!moveTargetId || !selectedIds.length) return;
+    const count = selectedIds.length;
+    const targetName = dashboards.find(d => d.id === moveTargetId)?.name || '';
+    await moveInvoicesToDashboard(selectedIds, moveTargetId);
     setSelectedIds([]);
+    setShowMoveDialog(false);
+    setMoveTargetId(null);
     playWhooshSound();
-    toast({ title: t('invoicesMoved') || 'Invoices moved', description: targetName });
+    toast({
+      title: t('invoicesMoved') || 'Invoices moved',
+      description: (t('moveInvoicesSummary') || '{count} invoice(s) moved to "{dashboard}"')
+        .replace('{count}', String(count))
+        .replace('{dashboard}', targetName),
+    });
     // Refresh global results if in global search mode
     if (isGlobalMode) {
       const results = await searchAllInvoices(searchQuery);
@@ -827,6 +842,30 @@ const Dashboard: React.FC = () => {
             <AlertDialogCancel className="border-muted">{t('cancel')}</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteSelected} className="bg-destructive hover:bg-destructive/90 btn-glow">
               {t('delete')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={showMoveDialog} onOpenChange={open => { setShowMoveDialog(open); if (!open) setMoveTargetId(null); }}>
+        <AlertDialogContent className="border-0 shadow-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-3">
+              <div className="p-2 rounded-full bg-primary/10">
+                <MoveRight className="h-5 w-5 text-primary" />
+              </div>
+              {t('moveInvoices') || 'Move Invoices'}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-base">
+              {(t('confirmMoveInvoices') || 'Move {count} selected invoice(s) to "{dashboard}"?')
+                .replace('{count}', selectedIds.length.toString())
+                .replace('{dashboard}', dashboards.find(d => d.id === moveTargetId)?.name || '')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="border-muted">{t('cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmMove} className="bg-primary hover:bg-primary/90 btn-glow">
+              {t('confirmMove') || 'Confirm Move'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
