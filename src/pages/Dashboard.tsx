@@ -59,6 +59,8 @@ const Dashboard: React.FC = () => {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showMoveDialog, setShowMoveDialog] = useState(false);
+  const [moveTargetId, setMoveTargetId] = useState<string | null>(null);
   const [showPrintDialog, setShowPrintDialog] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchAllDashboards, setSearchAllDashboards] = useState(false);
