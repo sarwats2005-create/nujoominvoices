@@ -1,55 +1,36 @@
+# Transaction Types, Live Insights, and Bank Statements
 
-## POS Warehouses & Vaults
+## 1. Transaction type column on invoice dashboards
 
-Add multi-warehouse support to POS with per-warehouse vaults that route all cash movements. Vaults have color, optional PIN, and open/closed state.
+A new managed list of transaction types (code + label + color), shared across every dashboard.
 
-### 1. Database (migration)
+- Manage the list from Settings: add, rename, recolor, delete. Entries look like `01 - Import Transfer`.
+- New "Type" column in the dashboard table, showing the code (and label on hover) as a colored badge using each type's own color.
+- Set the type on a single invoice inline from the row, and on many invoices at once via a bulk "Set Type" action next to the existing Move/Delete bulk actions (including "Clear type").
+- New "Type" filter in the dashboard filter bar (multi-select, plus "No type").
+- Export (PDF/Excel) always exports exactly what is currently visible: the active search, status, date, bank and type filters, in the current sort order, with the Type column included.
+- Deleting a type does not delete invoices; affected invoices simply become untyped.
 
-New tables (all `user_id`-scoped, RLS on, GRANTs for authenticated + service_role):
+## 2. Insights page — live and scoped
 
-- **warehouses** — `id, user_id, name, is_main bool, is_active, created_at, updated_at`. Trigger ensures exactly one `is_main=true` per user; main cannot be deleted.
-- **vaults** — `id, user_id, warehouse_id (fk), name, color (hex), is_main bool, is_open bool default true, pin_hash text nullable, created_at, updated_at`. One main vault per warehouse, not deletable.
-- **vault_transactions** — `id, user_id, vault_id, warehouse_id, type (sale|refund|po_payment|deposit|withdrawal|transfer_in|transfer_out), amount, currency, reference_type, reference_id, notes, created_at`. Immutable ledger.
+- New dashboard scope selector at the top: multi-select list of dashboards with "Select all" / "Clear", defaulting to all.
+- All figures recalculate from the selected dashboards combined, sourced live from the database (not just the currently open dashboard), and refresh when invoices change.
+- Every invoice column feeds a breakdown: amount and count by bank, by currency, by status, by beneficiary, by transaction type (using type colors), by month, plus swift-date tracking (swift issued vs pending) and container coverage.
+- When more than one dashboard is selected, add a per-dashboard comparison table (invoice count, total per currency, received vs pending).
 
-Add `warehouse_id` + `vault_id` columns (nullable at first, backfilled to main) to: `products`/`product_variants` (stock per warehouse via new **variant_stock** table: `variant_id, warehouse_id, stock_quantity, min_stock_level`), `pos_sales`, `pos_returns`, `stock_movements`, `customers`, `suppliers`, `purchase_orders`, `loyalty_transactions`.
+## 3. Professional per-bank account statements
 
-Data migration: create one "Main Warehouse" + "Main Vault" per existing user, backfill all POS rows with those ids, move existing `product_variants.stock_quantity` into `variant_stock`.
+- New "Bank Statement" export on the dashboard: pick a bank (or all banks, one section each) and a date range.
+- Layout: company name heading, statement title, bank name, generation date and time, dashboard name(s), and the applied filters line.
+- Table rows: date, invoice number, beneficiary, container, transaction type, swift date, status, amount + currency.
+- Footer per bank: number of rows and total amount grouped by currency; grand total when multiple banks are included.
+- Available as PDF and Excel, honoring the same visible-data rule as the normal export, and Arabic/Kurdish safe via the existing Amiri font pipeline.
 
-### 2. Edge functions
+## Technical notes
 
-- **vault-pin** — actions: `set_pin`, `verify_pin`, `remove_pin`, `open_vault`, `close_vault`. Hashes PIN with bcrypt (via `npm:bcryptjs`), validates JWT, enforces 4–6 digit numeric PIN, rate-limits verify attempts via existing `auth_rate_limits` (`attempt_type='vault_pin:<vault_id>'`). Never returns the hash. Closing a vault requires PIN if one is set.
-
-### 3. Frontend routing
-
-- New route `/pos` → warehouse picker grid (cards per warehouse, "Add warehouse" tile).
-- `/pos/:warehouseId` → existing POS page, scoped to that warehouse.
-- Same pattern for `/inventory/:warehouseId`, `/suppliers/:warehouseId`, `/purchase-orders/:warehouseId`, `/returns/:warehouseId`, `/pos-reports/:warehouseId`. Header shows active warehouse + quick switcher.
-
-### 4. Vault UI
-
-- **Vault sidebar** on POS page: list of vaults for the active warehouse, each showing color chip, name, open/closed badge, balance in each currency.
-- Active vault is selected before checkout; selector disabled if no open vault.
-- **Manage vaults** dialog: create/rename/recolor, set/remove PIN, mark closed. Main vault: delete disabled.
-- **Open vault flow**: numeric keypad modal → calls `vault-pin/open_vault` → optimistic UI on success.
-- **Close vault flow**: keypad if PIN set, otherwise instant.
-- Guard: `completeSale`, refund, PO payment, and manual transfer all refuse if selected vault `is_open=false`.
-
-### 5. Cash routing
-
-Extend `usePOS.completeSale`, returns hook, and PO payment flow to insert a `vault_transactions` row for every cash movement, tagged with the active `vault_id` + `warehouse_id`. Transfers between vaults insert paired `transfer_out`/`transfer_in` rows in a single call.
-
-### 6. Hooks / types
-
-- `useWarehouses`, `useVaults`, `useVaultTransactions` (with realtime).
-- Extend `useProducts`, `useRetail`, `usePOS`, `useCustomers` to accept `warehouseId`.
-- Add `WarehouseContext` providing the current `warehouseId` from the URL param.
-
-### 7. Translation keys
-
-Add EN/AR/KU keys: `warehouses`, `mainWarehouse`, `addWarehouse`, `vaults`, `mainVault`, `openVault`, `closeVault`, `setPin`, `enterPin`, `wrongPin`, `vaultClosed`, `transferBetweenVaults`, etc.
-
-### Technical notes
-- PIN: 4–6 digits, bcrypt-hashed server-side, verified through edge function with `auth_rate_limits` (5 attempts / 15 min, 30 min block).
-- Cycle prevention n/a; no nesting.
-- Stock model changes are breaking — the migration backfills so existing sales stay valid.
-- No changes to invoice / unused-BL / used-BL modules.
+- New table `public.transaction_types` (`id`, `user_id`, `code`, `label`, `color`, `sort_order`, timestamps) with GRANTs and per-user RLS; unique on (`user_id`, `code`).
+- New nullable `transaction_type_id` column on `invoices` referencing `transaction_types` with `ON DELETE SET NULL`.
+- New `useTransactionTypes` hook; `InvoiceContext` gains `transactionTypeId` on the `Invoice` model plus `setInvoiceType` and `setInvoicesType` (bulk) mutations.
+- Insights switches to a scope-aware fetch (all dashboards for the user, filtered client-side by selected dashboard ids) instead of the single-dashboard context list.
+- Statement generation lives in a shared `src/lib/statementExport.ts` used by both PDF (jsPDF + autoTable, Amiri registered) and Excel (xlsx) paths, so both outputs stay identical in content.
+- New translation keys added for English, Arabic and Kurdish Sorani.
