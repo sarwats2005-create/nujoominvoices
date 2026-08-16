@@ -14,6 +14,7 @@ export interface Invoice {
   bank: string;
   containerNumber?: string;
   swiftDate?: string;
+  transactionTypeId?: string | null;
   status: 'pending' | 'received';
   createdAt: string;
 }
@@ -43,6 +44,8 @@ interface InvoiceContextType {
   deleteInvoice: (id: string) => Promise<void>;
   deleteMultipleInvoices: (ids: string[]) => Promise<void>;
   moveInvoicesToDashboard: (ids: string[], targetDashboardId: string) => Promise<void>;
+  setInvoicesTransactionType: (ids: string[], transactionTypeId: string | null) => Promise<void>;
+  fetchAllInvoices: () => Promise<Invoice[]>;
   searchAllInvoices: (query: string) => Promise<Invoice[]>;
   addBank: (name: string) => Promise<void>;
   updateBank: (id: string, name: string) => Promise<void>;
@@ -139,6 +142,7 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
       bank: inv.bank,
       containerNumber: inv.container_number || undefined,
       swiftDate: inv.swift_date || undefined,
+      transactionTypeId: (inv as any).transaction_type_id || null,
       status: inv.status as 'pending' | 'received',
       createdAt: inv.created_at,
     }));
@@ -250,6 +254,7 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
         bank: invoiceData.bank,
         container_number: invoiceData.containerNumber || null,
         swift_date: invoiceData.swiftDate || null,
+        transaction_type_id: invoiceData.transactionTypeId || null,
         status: 'pending',
       })
       .select()
@@ -268,6 +273,7 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
         bank: data.bank,
         containerNumber: data.container_number || undefined,
         swiftDate: data.swift_date || undefined,
+        transactionTypeId: (data as any).transaction_type_id || null,
         status: data.status as 'pending' | 'received',
         createdAt: data.created_at,
       };
@@ -289,6 +295,7 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
       bank: inv.bank,
       container_number: inv.containerNumber || null,
       swift_date: inv.swiftDate || null,
+      transaction_type_id: inv.transactionTypeId || null,
       status: 'pending',
     }));
 
@@ -310,6 +317,7 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
         bank: d.bank,
         containerNumber: d.container_number || undefined,
         swiftDate: d.swift_date || undefined,
+        transactionTypeId: (d as any).transaction_type_id || null,
         status: d.status as 'pending' | 'received',
         createdAt: d.created_at,
       }));
@@ -329,6 +337,7 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
     if (data.bank !== undefined) updateData.bank = data.bank;
     if (data.containerNumber !== undefined) updateData.container_number = data.containerNumber || null;
     if (data.swiftDate !== undefined) updateData.swift_date = data.swiftDate || null;
+    if (data.transactionTypeId !== undefined) updateData.transaction_type_id = data.transactionTypeId || null;
     if (data.status !== undefined) updateData.status = data.status;
     if (data.dashboardId !== undefined) updateData.dashboard_id = data.dashboardId;
 
@@ -396,6 +405,52 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
   };
 
+  const setInvoicesTransactionType = async (ids: string[], transactionTypeId: string | null) => {
+    if (!user || ids.length === 0) return;
+
+    const { error } = await supabase
+      .from('invoices')
+      .update({ transaction_type_id: transactionTypeId } as never)
+      .in('id', ids)
+      .eq('user_id', user.id);
+
+    if (error) {
+      console.error('Error setting transaction type:', error);
+      return;
+    }
+
+    setInvoices(prev => prev.map(inv => (ids.includes(inv.id) ? { ...inv, transactionTypeId } : inv)));
+  };
+
+  const fetchAllInvoices = async (): Promise<Invoice[]> => {
+    if (!user) return [];
+
+    const { data, error } = await supabase
+      .from('invoices')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('date', { ascending: false });
+
+    if (error || !data) return [];
+
+    return data.map(inv => ({
+      id: inv.id,
+      userId: inv.user_id,
+      dashboardId: inv.dashboard_id,
+      amount: Number(inv.amount),
+      currency: inv.currency,
+      date: inv.date,
+      invoiceNumber: inv.invoice_number,
+      beneficiary: inv.beneficiary,
+      bank: inv.bank,
+      containerNumber: inv.container_number || undefined,
+      swiftDate: inv.swift_date || undefined,
+      transactionTypeId: (inv as any).transaction_type_id || null,
+      status: inv.status as 'pending' | 'received',
+      createdAt: inv.created_at,
+    }));
+  };
+
   const searchAllInvoices = async (query: string): Promise<Invoice[]> => {
     if (!user || !query.trim()) return [];
     const q = query.trim();
@@ -424,6 +479,7 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
       bank: inv.bank,
       containerNumber: inv.container_number || undefined,
       swiftDate: inv.swift_date || undefined,
+      transactionTypeId: (inv as any).transaction_type_id || null,
       status: inv.status as 'pending' | 'received',
       createdAt: inv.created_at,
     }));
@@ -539,6 +595,8 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
         deleteInvoice,
         deleteMultipleInvoices,
         moveInvoicesToDashboard,
+        setInvoicesTransactionType,
+        fetchAllInvoices,
         searchAllInvoices,
         addBank,
         updateBank,
