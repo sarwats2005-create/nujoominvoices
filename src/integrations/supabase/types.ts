@@ -366,6 +366,7 @@ export type Database = {
           invoice_number: string
           status: string
           swift_date: string | null
+          transaction_type_id: string | null
           updated_at: string
           user_id: string
         }
@@ -382,6 +383,7 @@ export type Database = {
           invoice_number: string
           status?: string
           swift_date?: string | null
+          transaction_type_id?: string | null
           updated_at?: string
           user_id: string
         }
@@ -398,6 +400,7 @@ export type Database = {
           invoice_number?: string
           status?: string
           swift_date?: string | null
+          transaction_type_id?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -407,6 +410,13 @@ export type Database = {
             columns: ["dashboard_id"]
             isOneToOne: false
             referencedRelation: "dashboards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_transaction_type_id_fkey"
+            columns: ["transaction_type_id"]
+            isOneToOne: false
+            referencedRelation: "transaction_types"
             referencedColumns: ["id"]
           },
         ]
@@ -1272,6 +1282,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      transaction_types: {
+        Row: {
+          code: string
+          color: string
+          created_at: string
+          id: string
+          label: string
+          sort_order: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          code: string
+          color?: string
+          created_at?: string
+          id?: string
+          label?: string
+          sort_order?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          code?: string
+          color?: string
+          created_at?: string
+          id?: string
+          label?: string
+          sort_order?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       unused_bl: {
         Row: {
