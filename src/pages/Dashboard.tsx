@@ -825,6 +825,40 @@ const Dashboard: React.FC = () => {
                             </div>
                           ) : '-'}
                         </TableCell>
+                        <TableCell>
+                          {isAdmin ? (
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <button className="focus:outline-none focus:ring-2 focus:ring-primary/40 rounded-full">
+                                  <TransactionTypeBadge type={getType(inv.transactionTypeId)} showLabel={false} />
+                                </button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="start" className="bg-popover z-50">
+                                <DropdownMenuLabel>{t('transactionType') || 'Transaction type'}</DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                {types.length === 0 && (
+                                  <DropdownMenuItem disabled>{t('noTransactionTypes') || 'No types yet — add in Settings'}</DropdownMenuItem>
+                                )}
+                                {types.map(ty => (
+                                  <DropdownMenuItem key={ty.id} onClick={() => setInvoicesTransactionType([inv.id], ty.id)}>
+                                    <span className="h-2.5 w-2.5 rounded-full mr-2" style={{ backgroundColor: ty.color }} />
+                                    {ty.label ? `${ty.code} - ${ty.label}` : ty.code}
+                                  </DropdownMenuItem>
+                                ))}
+                                {inv.transactionTypeId && (
+                                  <>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem onClick={() => setInvoicesTransactionType([inv.id], null)}>
+                                      {t('clearType') || 'Clear type'}
+                                    </DropdownMenuItem>
+                                  </>
+                                )}
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          ) : (
+                            <TransactionTypeBadge type={getType(inv.transactionTypeId)} showLabel={false} />
+                          )}
+                        </TableCell>
                       {isGlobalMode && (
                         <TableCell>
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
