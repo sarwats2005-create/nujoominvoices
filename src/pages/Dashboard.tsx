@@ -687,6 +687,31 @@ const Dashboard: React.FC = () => {
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
+            {isAdmin && selectedIds.length > 0 && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="h-8 text-xs sm:text-sm border-primary/40 hover:bg-primary/10">
+                    <Tag className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                    {t('markType') || 'Mark type'} ({selectedIds.length})
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="bg-popover z-50">
+                  <DropdownMenuLabel>{t('transactionType') || 'Transaction type'}</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {types.length === 0 && (
+                    <DropdownMenuItem disabled>{t('noTransactionTypes') || 'No types yet — add in Settings'}</DropdownMenuItem>
+                  )}
+                  {types.map(ty => (
+                    <DropdownMenuItem key={ty.id} onClick={() => handleMarkType(ty.id)}>
+                      <span className="h-2.5 w-2.5 rounded-full mr-2" style={{ backgroundColor: ty.color }} />
+                      {ty.label ? `${ty.code} - ${ty.label}` : ty.code}
+                    </DropdownMenuItem>
+                  ))}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => handleMarkType(null)}>{t('clearType') || 'Clear type'}</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
             <input type="file" ref={fileInputRef} accept=".csv" onChange={handleCSVImport} className="hidden" />
             {isAdmin && <Button onClick={() => fileInputRef.current?.click()} variant="outline" size="sm" className="border-primary/20 hover:bg-primary/5 hover:border-primary/40 transition-all h-8 text-xs sm:text-sm">
               <Upload className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 sm:mr-2" /><span className="hidden xs:inline">{t('importCSV')}</span><span className="xs:hidden">Import</span>
