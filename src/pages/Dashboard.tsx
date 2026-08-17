@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
 import { format, differenceInDays } from 'date-fns';
-import { Copy, FileText, ArrowUpDown, Trash2, Printer, Edit, AlertTriangle, LayoutDashboard, Search, Hash, DollarSign, CalendarIcon, User, Landmark, Package, CheckCircle, Upload, Download, BarChart3, Clock, Plus, MoveRight, Globe } from 'lucide-react';
+import { Copy, FileText, ArrowUpDown, Trash2, Printer, Edit, AlertTriangle, LayoutDashboard, Search, Hash, DollarSign, CalendarIcon, User, Landmark, Package, CheckCircle, Upload, Download, BarChart3, Clock, Plus, MoveRight, Globe, Tag } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuLabel, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -20,6 +20,8 @@ import { cn } from '@/lib/utils';
 import { parseDateString } from '@/lib/dateUtils';
 import EditInvoiceDialog from '@/components/EditInvoiceDialog';
 import DashboardSelector from '@/components/DashboardSelector';
+import TransactionTypeBadge from '@/components/TransactionTypeBadge';
+import { useTransactionTypes } from '@/hooks/useTransactionTypes';
 import { MagicCard } from '@/components/MagicCard';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
@@ -45,8 +47,10 @@ const Dashboard: React.FC = () => {
     addMultipleInvoices,
     moveInvoicesToDashboard,
     searchAllInvoices,
+    setInvoicesTransactionType,
     refreshData
   } = useInvoice();
+  const { types, getType } = useTransactionTypes();
   const {
     currency
   } = useSettings();
@@ -192,6 +196,22 @@ const Dashboard: React.FC = () => {
       ) : undefined,
     });
     // Refresh global results if in global search mode
+    if (isGlobalMode) {
+      const results = await searchAllInvoices(searchQuery);
+      setGlobalResults(results);
+    }
+  };
+  const handleMarkType = async (typeId: string | null) => {
+    if (!selectedIds.length) return;
+    const count = selectedIds.length;
+    const ty = typeId ? types.find(x => x.id === typeId) : null;
+    await setInvoicesTransactionType(selectedIds, typeId);
+    setSelectedIds([]);
+    playWhooshSound();
+    toast({
+      title: t('transactionType') || 'Transaction type',
+      description: `${count} ${t('invoices') || 'invoice(s)'} → ${ty ? (ty.label ? `${ty.code} - ${ty.label}` : ty.code) : (t('clearType') || 'Cleared')}`,
+    });
     if (isGlobalMode) {
       const results = await searchAllInvoices(searchQuery);
       setGlobalResults(results);
@@ -687,6 +707,31 @@ const Dashboard: React.FC = () => {
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
+            {isAdmin && selectedIds.length > 0 && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="h-8 text-xs sm:text-sm border-primary/40 hover:bg-primary/10">
+                    <Tag className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                    {t('markType') || 'Mark type'} ({selectedIds.length})
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="bg-popover z-50">
+                  <DropdownMenuLabel>{t('transactionType') || 'Transaction type'}</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {types.length === 0 && (
+                    <DropdownMenuItem disabled>{t('noTransactionTypes') || 'No types yet — add in Settings'}</DropdownMenuItem>
+                  )}
+                  {types.map(ty => (
+                    <DropdownMenuItem key={ty.id} onClick={() => handleMarkType(ty.id)}>
+                      <span className="h-2.5 w-2.5 rounded-full mr-2" style={{ backgroundColor: ty.color }} />
+                      {ty.label ? `${ty.code} - ${ty.label}` : ty.code}
+                    </DropdownMenuItem>
+                  ))}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => handleMarkType(null)}>{t('clearType') || 'Clear type'}</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
             <input type="file" ref={fileInputRef} accept=".csv" onChange={handleCSVImport} className="hidden" />
             {isAdmin && <Button onClick={() => fileInputRef.current?.click()} variant="outline" size="sm" className="border-primary/20 hover:bg-primary/5 hover:border-primary/40 transition-all h-8 text-xs sm:text-sm">
               <Upload className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 sm:mr-2" /><span className="hidden xs:inline">{t('importCSV')}</span><span className="xs:hidden">Import</span>
@@ -745,6 +790,7 @@ const Dashboard: React.FC = () => {
                     <SortHeader label={t('bank')} sortKeyName="bank" icon={Landmark} />
                     <SortHeader label={t('containerNumber')} sortKeyName="containerNumber" icon={Package} />
                     <SortHeader label={t('swiftDate')} sortKeyName="swiftDate" icon={Clock} />
+                    <TableHead className="font-semibold"><div className="flex items-center gap-2"><Tag className="h-4 w-4 text-primary" />{t('transactionType') || 'Type'}</div></TableHead>
                     {isGlobalMode && <TableHead className="font-semibold"><div className="flex items-center gap-2"><LayoutDashboard className="h-4 w-4 text-primary" />{t('dashboard') || 'Dashboard'}</div></TableHead>}
                     {isAdmin && <TableHead className="font-semibold">{t('actions')}</TableHead>}
                   </TableRow>
@@ -824,6 +870,40 @@ const Dashboard: React.FC = () => {
                               )}
                             </div>
                           ) : '-'}
+                        </TableCell>
+                        <TableCell>
+                          {isAdmin ? (
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <button className="focus:outline-none focus:ring-2 focus:ring-primary/40 rounded-full">
+                                  <TransactionTypeBadge type={getType(inv.transactionTypeId)} showLabel={false} />
+                                </button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="start" className="bg-popover z-50">
+                                <DropdownMenuLabel>{t('transactionType') || 'Transaction type'}</DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                {types.length === 0 && (
+                                  <DropdownMenuItem disabled>{t('noTransactionTypes') || 'No types yet — add in Settings'}</DropdownMenuItem>
+                                )}
+                                {types.map(ty => (
+                                  <DropdownMenuItem key={ty.id} onClick={() => setInvoicesTransactionType([inv.id], ty.id)}>
+                                    <span className="h-2.5 w-2.5 rounded-full mr-2" style={{ backgroundColor: ty.color }} />
+                                    {ty.label ? `${ty.code} - ${ty.label}` : ty.code}
+                                  </DropdownMenuItem>
+                                ))}
+                                {inv.transactionTypeId && (
+                                  <>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem onClick={() => setInvoicesTransactionType([inv.id], null)}>
+                                      {t('clearType') || 'Clear type'}
+                                    </DropdownMenuItem>
+                                  </>
+                                )}
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          ) : (
+                            <TransactionTypeBadge type={getType(inv.transactionTypeId)} showLabel={false} />
+                          )}
                         </TableCell>
                       {isGlobalMode && (
                         <TableCell>
