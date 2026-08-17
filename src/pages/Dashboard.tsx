@@ -47,8 +47,10 @@ const Dashboard: React.FC = () => {
     addMultipleInvoices,
     moveInvoicesToDashboard,
     searchAllInvoices,
+    setInvoicesTransactionType,
     refreshData
   } = useInvoice();
+  const { types, getType } = useTransactionTypes();
   const {
     currency
   } = useSettings();
