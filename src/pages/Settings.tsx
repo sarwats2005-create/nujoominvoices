@@ -18,6 +18,7 @@ import DashboardSelector from '@/components/DashboardSelector';
 import BLPresetsManager from '@/components/BLPresetsManager';
 import BLDashboardManager from '@/components/BLDashboardManager';
 import UnusedBLSettingsPanel from '@/components/unused-bl/UnusedBLSettingsPanel';
+import TransactionTypeManager from '@/components/TransactionTypeManager';
 
 const Settings: React.FC = () => {
   const navigate = useNavigate();
@@ -236,6 +237,9 @@ const Settings: React.FC = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Transaction Types */}
+      <TransactionTypeManager />
 
       {/* B/L Dashboard Manager */}
       <BLDashboardManager />
