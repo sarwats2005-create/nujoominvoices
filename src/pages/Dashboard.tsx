@@ -20,6 +20,8 @@ import { cn } from '@/lib/utils';
 import { parseDateString } from '@/lib/dateUtils';
 import EditInvoiceDialog from '@/components/EditInvoiceDialog';
 import DashboardSelector from '@/components/DashboardSelector';
+import TransactionTypeBadge from '@/components/TransactionTypeBadge';
+import { useTransactionTypes } from '@/hooks/useTransactionTypes';
 import { MagicCard } from '@/components/MagicCard';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
