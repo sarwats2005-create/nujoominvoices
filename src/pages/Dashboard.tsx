@@ -201,6 +201,22 @@ const Dashboard: React.FC = () => {
       setGlobalResults(results);
     }
   };
+  const handleMarkType = async (typeId: string | null) => {
+    if (!selectedIds.length) return;
+    const count = selectedIds.length;
+    const ty = typeId ? types.find(x => x.id === typeId) : null;
+    await setInvoicesTransactionType(selectedIds, typeId);
+    setSelectedIds([]);
+    playWhooshSound();
+    toast({
+      title: t('transactionType') || 'Transaction type',
+      description: `${count} ${t('invoices') || 'invoice(s)'} → ${ty ? (ty.label ? `${ty.code} - ${ty.label}` : ty.code) : (t('clearType') || 'Cleared')}`,
+    });
+    if (isGlobalMode) {
+      const results = await searchAllInvoices(searchQuery);
+      setGlobalResults(results);
+    }
+  };
   const handleDeleteSelected = () => {
     deleteMultipleInvoices(selectedIds);
     setSelectedIds([]);
