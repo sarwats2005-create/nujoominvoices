@@ -1177,7 +1177,6 @@ thead th {
 /* --- Contrast balancing: keep text legible over translucent surfaces --- */
 .text-muted-foreground {
   color: hsl(var(--muted-foreground));
-  filter: contrast(1.06);
 }
 .dark [class*="bg-card"] {
   color: hsl(var(--card-foreground));
