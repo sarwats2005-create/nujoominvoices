@@ -946,11 +946,22 @@
     inset 0 8px 16px -6px hsl(var(--foreground) / 0.24),
     inset 0 -2px 1px 0 hsl(0 0% 100% / 0.4),
     0 2px 6px -4px hsl(var(--foreground) / 0.2);
-  --glass-bg: hsl(var(--card) / 0.72);
-  --glass-bg-strong: hsl(var(--card) / 0.86);
-  --glass-rim: hsl(0 0% 100% / 0.28);
-  --glass-blur: saturate(180%) blur(18px);
-  --clay-inset-soft: inset 0 2px 4px -2px hsl(var(--foreground) / 0.25);
+  /* Per-tier glass: chrome > card > control > data (data = crispest) */
+  --glass-bg: hsl(var(--card) / 0.8);
+  --glass-bg-strong: hsl(var(--card) / 0.92);
+  --glass-rim: hsl(216 30% 30% / 0.14);
+  --glass-blur: saturate(150%) blur(20px);
+  --glass-blur-card: saturate(120%) blur(10px);
+  --glass-blur-control: saturate(110%) blur(6px);
+  /* data surfaces: nearly opaque so table text stays crisp */
+  --data-bg: hsl(var(--card) / 0.97);
+  --data-head-bg: hsl(210 40% 94% / 0.96);
+  --data-row-alt: hsl(210 40% 97% / 0.7);
+  --data-grid: hsl(214 32% 85% / 0.9);
+  --control-bg: hsl(0 0% 100% / 0.9);
+  --clay-inset-soft: inset 0 2px 4px -2px hsl(var(--foreground) / 0.18);
+  --clay-shadow-flat: 0 6px 16px -12px hsl(var(--foreground) / 0.3), 0 1px 2px -1px hsl(var(--foreground) / 0.12);
+
 }
 
 .dark {
@@ -967,10 +978,16 @@
   --clay-shadow-pressed:
     inset 0 10px 20px -8px hsl(216 80% 4% / 0.7),
     inset 0 -1px 0 0 hsl(0 0% 100% / 0.08);
-  --glass-bg: hsl(var(--card) / 0.6);
-  --glass-bg-strong: hsl(var(--card) / 0.8);
-  --glass-rim: hsl(0 0% 100% / 0.1);
-  --clay-inset-soft: inset 0 2px 4px -2px hsl(216 80% 4% / 0.6);
+  --glass-bg: hsl(var(--card) / 0.78);
+  --glass-bg-strong: hsl(var(--card) / 0.9);
+  --glass-rim: hsl(0 0% 100% / 0.08);
+  --data-bg: hsl(var(--card) / 0.96);
+  --data-head-bg: hsl(216 60% 26% / 0.95);
+  --data-row-alt: hsl(216 55% 24% / 0.55);
+  --data-grid: hsl(216 50% 34% / 0.85);
+  --control-bg: hsl(216 65% 14% / 0.85);
+  --clay-inset-soft: inset 0 2px 4px -2px hsl(216 80% 4% / 0.5);
+  --clay-shadow-flat: 0 8px 18px -14px hsl(216 80% 4% / 0.7), 0 1px 2px -1px hsl(216 80% 4% / 0.5);
 }
 
 /* --- Ambient liquid backdrop (contrast base for glass surfaces) --- */
@@ -1014,16 +1031,26 @@ body {
   }
 }
 
-/* --- Cards: clay body + glass fill --- */
+/* --- Cards: clay body + medium glass fill --- */
 [class*="bg-card"][class*="rounded-lg"],
 [class*="bg-card"][class*="rounded-xl"] {
   border-radius: var(--clay-radius);
   background-color: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur-card);
+  -webkit-backdrop-filter: var(--glass-blur-card);
   border-color: var(--glass-rim);
   box-shadow: var(--clay-shadow);
   transition: box-shadow var(--transition-base), transform var(--transition-base);
+}
+
+/* Cards that hold a data table or a form: crisp, minimal blur */
+[class*="bg-card"]:has(table),
+[class*="bg-card"]:has(form),
+[class*="bg-card"]:has([role="table"]) {
+  background-color: var(--data-bg);
+  backdrop-filter: saturate(105%) blur(3px);
+  -webkit-backdrop-filter: saturate(105%) blur(3px);
+  box-shadow: var(--clay-shadow-flat);
 }
 
 /* --- Sticky header / nav glass --- */
@@ -1059,21 +1086,27 @@ button[class*="hover:bg-accent"]:not([class*="border"]):not([class*="bg-primary"
   box-shadow: none;
 }
 
-/* --- Inputs / textareas / selects: pressed clay wells --- */
+/* --- Inputs / textareas / selects: crisp pressed wells (low blur, high opacity) --- */
 input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
 textarea,
 [role="combobox"],
 button[role="combobox"] {
-  background-color: hsl(var(--background) / 0.6) !important;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background-color: var(--control-bg) !important;
+  backdrop-filter: var(--glass-blur-control);
+  -webkit-backdrop-filter: var(--glass-blur-control);
   border-radius: calc(var(--clay-radius) - 0.5rem);
+  border-color: hsl(var(--input)) !important;
   box-shadow: var(--clay-inset-soft);
+}
+input::placeholder,
+textarea::placeholder {
+  color: hsl(var(--muted-foreground) / 0.85);
 }
 input:focus-visible,
 textarea:focus-visible,
 [role="combobox"]:focus-visible {
-  box-shadow: var(--clay-inset-soft), 0 0 0 3px hsl(var(--ring) / 0.28);
+  background-color: hsl(var(--background)) !important;
+  box-shadow: var(--clay-inset-soft), 0 0 0 3px hsl(var(--ring) / 0.3);
 }
 
 /* --- Overlays: dialogs, popovers, dropdowns, sheets, tooltips --- */
@@ -1090,19 +1123,39 @@ textarea:focus-visible,
   box-shadow: var(--clay-shadow) !important;
 }
 
-/* --- Tables: glass header, balanced row contrast --- */
+/* --- Tables: crisp data surface, opaque sticky header, zebra rows --- */
+table {
+  background-color: var(--data-bg);
+}
 thead tr,
 th {
-  background-color: hsl(var(--muted) / 0.55);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  background-color: var(--data-head-bg);
+  backdrop-filter: saturate(120%) blur(4px);
+  -webkit-backdrop-filter: saturate(120%) blur(4px);
+  border-bottom: 1px solid var(--data-grid);
+  box-shadow: 0 1px 0 0 var(--data-grid);
+  font-weight: 600;
+  letter-spacing: 0.01em;
 }
 tbody tr {
+  background-color: transparent;
+  border-bottom: 1px solid hsl(var(--border) / 0.6);
   transition: background-color var(--transition-fast), box-shadow var(--transition-fast);
 }
+tbody tr:nth-child(even) {
+  background-color: var(--data-row-alt);
+}
 tbody tr:hover {
-  background-color: hsl(var(--primary) / 0.07);
-  box-shadow: inset 0 0 0 1px hsl(var(--primary) / 0.14);
+  background-color: hsl(var(--primary) / 0.1);
+  box-shadow: inset 0 0 0 1px hsl(var(--primary) / 0.2);
+}
+/* table text stays fully opaque, never blurred */
+td, th {
+  backdrop-filter: none;
+  text-shadow: none;
+}
+thead th {
+  backdrop-filter: saturate(120%) blur(4px);
 }
 
 /* --- Tabs / badges / switch: soft clay pills --- */
@@ -1124,7 +1177,6 @@ tbody tr:hover {
 /* --- Contrast balancing: keep text legible over translucent surfaces --- */
 .text-muted-foreground {
   color: hsl(var(--muted-foreground));
-  filter: contrast(1.06);
 }
 .dark [class*="bg-card"] {
   color: hsl(var(--card-foreground));
