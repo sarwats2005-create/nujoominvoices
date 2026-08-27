@@ -1031,16 +1031,26 @@ body {
   }
 }
 
-/* --- Cards: clay body + glass fill --- */
+/* --- Cards: clay body + medium glass fill --- */
 [class*="bg-card"][class*="rounded-lg"],
 [class*="bg-card"][class*="rounded-xl"] {
   border-radius: var(--clay-radius);
   background-color: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur-card);
+  -webkit-backdrop-filter: var(--glass-blur-card);
   border-color: var(--glass-rim);
   box-shadow: var(--clay-shadow);
   transition: box-shadow var(--transition-base), transform var(--transition-base);
+}
+
+/* Cards that hold a data table or a form: crisp, minimal blur */
+[class*="bg-card"]:has(table),
+[class*="bg-card"]:has(form),
+[class*="bg-card"]:has([role="table"]) {
+  background-color: var(--data-bg);
+  backdrop-filter: saturate(105%) blur(3px);
+  -webkit-backdrop-filter: saturate(105%) blur(3px);
+  box-shadow: var(--clay-shadow-flat);
 }
 
 /* --- Sticky header / nav glass --- */
