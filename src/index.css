@@ -1086,21 +1086,27 @@ button[class*="hover:bg-accent"]:not([class*="border"]):not([class*="bg-primary"
   box-shadow: none;
 }
 
-/* --- Inputs / textareas / selects: pressed clay wells --- */
+/* --- Inputs / textareas / selects: crisp pressed wells (low blur, high opacity) --- */
 input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
 textarea,
 [role="combobox"],
 button[role="combobox"] {
-  background-color: hsl(var(--background) / 0.6) !important;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background-color: var(--control-bg) !important;
+  backdrop-filter: var(--glass-blur-control);
+  -webkit-backdrop-filter: var(--glass-blur-control);
   border-radius: calc(var(--clay-radius) - 0.5rem);
+  border-color: hsl(var(--input)) !important;
   box-shadow: var(--clay-inset-soft);
+}
+input::placeholder,
+textarea::placeholder {
+  color: hsl(var(--muted-foreground) / 0.85);
 }
 input:focus-visible,
 textarea:focus-visible,
 [role="combobox"]:focus-visible {
-  box-shadow: var(--clay-inset-soft), 0 0 0 3px hsl(var(--ring) / 0.28);
+  background-color: hsl(var(--background)) !important;
+  box-shadow: var(--clay-inset-soft), 0 0 0 3px hsl(var(--ring) / 0.3);
 }
 
 /* --- Overlays: dialogs, popovers, dropdowns, sheets, tooltips --- */
