@@ -923,3 +923,220 @@
   font-weight: normal;
   line-height: 1;
 }
+
+/* =====================================================
+   23. CLAYMORPHISM + LIQUID GLASS SYSTEM
+   Global mixed-shadow + contrast-balanced surface layer
+   ===================================================== */
+
+:root {
+  /* clay = soft puffy dual light/dark shadow, glass = blur + rim light */
+  --clay-radius: 1.25rem;
+  --clay-shadow:
+    0 18px 40px -12px hsl(var(--foreground) / 0.28),
+    0 8px 16px -8px hsl(var(--foreground) / 0.18),
+    inset 0 2px 1px 0 hsl(0 0% 100% / 0.55),
+    inset 0 -6px 12px -6px hsl(var(--foreground) / 0.16);
+  --clay-shadow-hover:
+    0 28px 60px -16px hsl(var(--foreground) / 0.34),
+    0 10px 20px -10px hsl(var(--foreground) / 0.2),
+    inset 0 2px 1px 0 hsl(0 0% 100% / 0.65),
+    inset 0 -8px 16px -8px hsl(var(--foreground) / 0.18);
+  --clay-shadow-pressed:
+    inset 0 8px 16px -6px hsl(var(--foreground) / 0.24),
+    inset 0 -2px 1px 0 hsl(0 0% 100% / 0.4),
+    0 2px 6px -4px hsl(var(--foreground) / 0.2);
+  --glass-bg: hsl(var(--card) / 0.72);
+  --glass-bg-strong: hsl(var(--card) / 0.86);
+  --glass-rim: hsl(0 0% 100% / 0.28);
+  --glass-blur: saturate(180%) blur(18px);
+  --clay-inset-soft: inset 0 2px 4px -2px hsl(var(--foreground) / 0.25);
+}
+
+.dark {
+  --clay-shadow:
+    0 20px 44px -14px hsl(216 80% 4% / 0.75),
+    0 8px 18px -8px hsl(216 80% 4% / 0.6),
+    inset 0 1px 0 0 hsl(0 0% 100% / 0.09),
+    inset 0 -8px 16px -8px hsl(216 80% 4% / 0.5);
+  --clay-shadow-hover:
+    0 30px 66px -18px hsl(216 80% 4% / 0.85),
+    0 12px 24px -10px hsl(216 80% 4% / 0.65),
+    inset 0 1px 0 0 hsl(0 0% 100% / 0.14),
+    inset 0 -10px 20px -10px hsl(216 80% 4% / 0.55);
+  --clay-shadow-pressed:
+    inset 0 10px 20px -8px hsl(216 80% 4% / 0.7),
+    inset 0 -1px 0 0 hsl(0 0% 100% / 0.08);
+  --glass-bg: hsl(var(--card) / 0.6);
+  --glass-bg-strong: hsl(var(--card) / 0.8);
+  --glass-rim: hsl(0 0% 100% / 0.1);
+  --clay-inset-soft: inset 0 2px 4px -2px hsl(216 80% 4% / 0.6);
+}
+
+/* --- Ambient liquid backdrop (contrast base for glass surfaces) --- */
+body {
+  background-image:
+    radial-gradient(at 12% 8%, hsl(var(--primary) / 0.16) 0px, transparent 55%),
+    radial-gradient(at 88% 4%, hsl(var(--accent) / 0.14) 0px, transparent 50%),
+    radial-gradient(at 76% 92%, hsl(var(--success) / 0.1) 0px, transparent 55%),
+    radial-gradient(at 20% 96%, hsl(var(--primary) / 0.1) 0px, transparent 50%);
+  background-attachment: fixed;
+}
+
+@layer utilities {
+  .clay {
+    border-radius: var(--clay-radius);
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-rim);
+    box-shadow: var(--clay-shadow);
+  }
+  .clay-interactive {
+    transition: box-shadow var(--transition-base), transform var(--transition-base), background var(--transition-base);
+  }
+  .clay-interactive:hover {
+    box-shadow: var(--clay-shadow-hover);
+    transform: translateY(-2px);
+  }
+  .clay-interactive:active {
+    box-shadow: var(--clay-shadow-pressed);
+    transform: translateY(0);
+  }
+  .clay-inset {
+    box-shadow: var(--clay-inset-soft);
+  }
+  .liquid-glass {
+    background: var(--glass-bg-strong);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-rim);
+  }
+}
+
+/* --- Cards: clay body + glass fill --- */
+[class*="bg-card"][class*="rounded-lg"],
+[class*="bg-card"][class*="rounded-xl"] {
+  border-radius: var(--clay-radius);
+  background-color: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-color: var(--glass-rim);
+  box-shadow: var(--clay-shadow);
+  transition: box-shadow var(--transition-base), transform var(--transition-base);
+}
+
+/* --- Sticky header / nav glass --- */
+header {
+  background-color: var(--glass-bg-strong) !important;
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-bottom: 1px solid var(--glass-rim);
+  box-shadow: 0 10px 30px -18px hsl(var(--foreground) / 0.35);
+}
+
+/* --- Buttons: puffy clay with rim highlight --- */
+button:not([role="checkbox"]):not([role="switch"]):not([data-state="checked"][role="radio"]) {
+  transition: box-shadow var(--transition-base), transform var(--transition-base), background var(--transition-base), color var(--transition-base);
+}
+button:not([role="checkbox"]):not([role="switch"]):not(.clay-none) {
+  box-shadow:
+    0 8px 18px -10px hsl(var(--foreground) / 0.35),
+    inset 0 1px 0 0 hsl(0 0% 100% / 0.28);
+}
+button:not([role="checkbox"]):not([role="switch"]):not(.clay-none):hover {
+  transform: translateY(-1px);
+  box-shadow:
+    0 14px 26px -12px hsl(var(--foreground) / 0.4),
+    inset 0 1px 0 0 hsl(0 0% 100% / 0.35);
+}
+button:not([role="checkbox"]):not([role="switch"]):not(.clay-none):active {
+  transform: translateY(0);
+  box-shadow: var(--clay-shadow-pressed);
+}
+/* keep ghost/link buttons flat until hovered */
+button[class*="hover:bg-accent"]:not([class*="border"]):not([class*="bg-primary"]):not([class*="bg-secondary"]):not([class*="bg-destructive"]) {
+  box-shadow: none;
+}
+
+/* --- Inputs / textareas / selects: pressed clay wells --- */
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+textarea,
+[role="combobox"],
+button[role="combobox"] {
+  background-color: hsl(var(--background) / 0.6) !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: calc(var(--clay-radius) - 0.5rem);
+  box-shadow: var(--clay-inset-soft);
+}
+input:focus-visible,
+textarea:focus-visible,
+[role="combobox"]:focus-visible {
+  box-shadow: var(--clay-inset-soft), 0 0 0 3px hsl(var(--ring) / 0.28);
+}
+
+/* --- Overlays: dialogs, popovers, dropdowns, sheets, tooltips --- */
+[role="dialog"],
+[role="alertdialog"],
+[role="menu"],
+[role="listbox"],
+[data-radix-popper-content-wrapper] > * {
+  background-color: var(--glass-bg-strong) !important;
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-color: var(--glass-rim) !important;
+  border-radius: var(--clay-radius);
+  box-shadow: var(--clay-shadow) !important;
+}
+
+/* --- Tables: glass header, balanced row contrast --- */
+thead tr,
+th {
+  background-color: hsl(var(--muted) / 0.55);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+tbody tr {
+  transition: background-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+tbody tr:hover {
+  background-color: hsl(var(--primary) / 0.07);
+  box-shadow: inset 0 0 0 1px hsl(var(--primary) / 0.14);
+}
+
+/* --- Tabs / badges / switch: soft clay pills --- */
+[role="tablist"] {
+  background-color: hsl(var(--muted) / 0.5) !important;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 999px;
+  box-shadow: var(--clay-inset-soft);
+}
+[role="tab"][data-state="active"] {
+  border-radius: 999px;
+  box-shadow: 0 6px 14px -8px hsl(var(--foreground) / 0.4), inset 0 1px 0 0 hsl(0 0% 100% / 0.3);
+}
+[class*="rounded-full"][class*="border"][class*="px-2"] {
+  box-shadow: inset 0 1px 0 0 hsl(0 0% 100% / 0.25), 0 4px 10px -6px hsl(var(--foreground) / 0.35);
+}
+
+/* --- Contrast balancing: keep text legible over translucent surfaces --- */
+.text-muted-foreground {
+  color: hsl(var(--muted-foreground));
+  filter: contrast(1.06);
+}
+.dark [class*="bg-card"] {
+  color: hsl(var(--card-foreground));
+}
+
+/* --- Print: strip glass/clay so exports stay crisp --- */
+@media print {
+  body { background-image: none; }
+  *, *::before, *::after {
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background-color: transparent !important;
+  }
+}
