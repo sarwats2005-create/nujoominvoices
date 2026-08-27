@@ -946,11 +946,22 @@
     inset 0 8px 16px -6px hsl(var(--foreground) / 0.24),
     inset 0 -2px 1px 0 hsl(0 0% 100% / 0.4),
     0 2px 6px -4px hsl(var(--foreground) / 0.2);
-  --glass-bg: hsl(var(--card) / 0.72);
-  --glass-bg-strong: hsl(var(--card) / 0.86);
-  --glass-rim: hsl(0 0% 100% / 0.28);
-  --glass-blur: saturate(180%) blur(18px);
-  --clay-inset-soft: inset 0 2px 4px -2px hsl(var(--foreground) / 0.25);
+  /* Per-tier glass: chrome > card > control > data (data = crispest) */
+  --glass-bg: hsl(var(--card) / 0.8);
+  --glass-bg-strong: hsl(var(--card) / 0.92);
+  --glass-rim: hsl(216 30% 30% / 0.14);
+  --glass-blur: saturate(150%) blur(20px);
+  --glass-blur-card: saturate(120%) blur(10px);
+  --glass-blur-control: saturate(110%) blur(6px);
+  /* data surfaces: nearly opaque so table text stays crisp */
+  --data-bg: hsl(var(--card) / 0.97);
+  --data-head-bg: hsl(210 40% 94% / 0.96);
+  --data-row-alt: hsl(210 40% 97% / 0.7);
+  --data-grid: hsl(214 32% 85% / 0.9);
+  --control-bg: hsl(0 0% 100% / 0.9);
+  --clay-inset-soft: inset 0 2px 4px -2px hsl(var(--foreground) / 0.18);
+  --clay-shadow-flat: 0 6px 16px -12px hsl(var(--foreground) / 0.3), 0 1px 2px -1px hsl(var(--foreground) / 0.12);
+
 }
 
 .dark {
