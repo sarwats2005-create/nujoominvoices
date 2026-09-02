@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './AuthContext';
+import { format } from 'date-fns';
+import { parseDateString } from '@/lib/dateUtils';
 
 export interface Invoice {
   id: string;
