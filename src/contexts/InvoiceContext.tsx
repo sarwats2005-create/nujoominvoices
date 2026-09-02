@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './AuthContext';
+import { format } from 'date-fns';
+import { parseDateString } from '@/lib/dateUtils';
 
 export interface Invoice {
   id: string;
@@ -453,15 +455,12 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   const searchAllInvoices = async (query: string): Promise<Invoice[]> => {
     if (!user || !query.trim()) return [];
-    const q = query.trim();
+    const q = query.trim().toLowerCase();
 
     const { data, error } = await supabase
       .from('invoices')
       .select('*')
       .eq('user_id', user.id)
-      .or(
-        `invoice_number.ilike.%${q}%,beneficiary.ilike.%${q}%,bank.ilike.%${q}%,container_number.ilike.%${q}%`
-      )
       .order('created_at', { ascending: false })
       .limit(500);
 
@@ -482,7 +481,30 @@ export const InvoiceProvider: React.FC<{ children: ReactNode }> = ({ children })
       transactionTypeId: (inv as any).transaction_type_id || null,
       status: inv.status as 'pending' | 'received',
       createdAt: inv.created_at,
-    }));
+    })).filter(inv => {
+      const qTokens = q.split(/\s+/).filter(Boolean);
+      if (qTokens.length === 0) return true;
+
+      const formattedDate = inv.date ? format(parseDateString(inv.date), 'dd/MM/yyyy') : '';
+      const formattedSwiftDate = inv.swiftDate ? format(parseDateString(inv.swiftDate), 'dd/MM/yyyy') : '';
+      const roundedAmount = Math.round(inv.amount).toLocaleString();
+
+      const haystack = [
+        inv.invoiceNumber,
+        inv.beneficiary,
+        inv.bank,
+        inv.containerNumber || '',
+        inv.currency || '',
+        inv.amount.toString(),
+        roundedAmount,
+        formattedDate,
+        formattedSwiftDate,
+        inv.status,
+      ].join(' ').toLowerCase();
+
+      // Every token must match somewhere in the combined record
+      return qTokens.every(token => haystack.includes(token));
+    });
   };
 
   const addBank = async (name: string) => {
