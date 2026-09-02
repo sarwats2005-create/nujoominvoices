@@ -754,11 +754,10 @@ const Dashboard: React.FC = () => {
               <Search className="absolute left-3 sm:left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input placeholder={t('searchInvoices')} value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-9 sm:pl-11 h-9 sm:h-11 border-muted bg-muted/30 focus:bg-card input-focus rounded-xl text-sm" />
             </div>
-            <div className="flex items-center gap-2">
-              <Globe className={cn("h-4 w-4", searchAllDashboards ? "text-primary" : "text-muted-foreground")} />
+            <div className="flex items-center gap-2" title={t('searchAllDashboards') || 'Search all dashboards'}>
               <Switch id="search-all" checked={searchAllDashboards} onCheckedChange={setSearchAllDashboards} />
-              <Label htmlFor="search-all" className="text-xs sm:text-sm cursor-pointer">
-                {t('searchAllDashboards') || 'Search all dashboards'}
+              <Label htmlFor="search-all" className="cursor-pointer">
+                <Globe className={cn("h-4 w-4", searchAllDashboards ? "text-primary" : "text-muted-foreground")} />
               </Label>
               {isGlobalMode && isSearchingGlobal && <span className="text-xs text-muted-foreground">…</span>}
             </div>
