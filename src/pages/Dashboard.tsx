@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
 import { format, differenceInDays } from 'date-fns';
-import { Copy, FileText, ArrowUpDown, Trash2, Printer, Edit, AlertTriangle, LayoutDashboard, Search, Hash, DollarSign, CalendarIcon, User, Landmark, Package, CheckCircle, Upload, Download, BarChart3, Clock, Plus, MoveRight, Globe, Tag } from 'lucide-react';
+import { Copy, FileText, ArrowUpDown, Trash2, Printer, Edit, AlertTriangle, LayoutDashboard, Search, Hash, DollarSign, CalendarIcon, User, Landmark, Package, CheckCircle, Upload, Download, BarChart3, Clock, Plus, MoveRight, Globe, Tag, Filter, X } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuLabel, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -50,7 +50,7 @@ const Dashboard: React.FC = () => {
     setInvoicesTransactionType,
     refreshData
   } = useInvoice();
-  const { types, getType } = useTransactionTypes();
+  const { types, getType, formatType } = useTransactionTypes();
   const {
     currency
   } = useSettings();
@@ -72,6 +72,27 @@ const Dashboard: React.FC = () => {
   const [searchAllDashboards, setSearchAllDashboards] = useState(false);
   const [globalResults, setGlobalResults] = useState<Invoice[]>([]);
   const [isSearchingGlobal, setIsSearchingGlobal] = useState(false);
+  const emptyColFilters = {
+    invoiceNumber: '',
+    amountMin: '',
+    amountMax: '',
+    dateFrom: '',
+    dateTo: '',
+    beneficiary: '',
+    bank: '',
+    containerNumber: '',
+    swiftFrom: '',
+    swiftTo: '',
+    status: 'all',
+    typeId: 'all',
+  };
+  const [colFilters, setColFilters] = useState(emptyColFilters);
+  const [showColFilters, setShowColFilters] = useState(false);
+  const setColFilter = (key: keyof typeof emptyColFilters, value: string) =>
+    setColFilters(prev => ({ ...prev, [key]: value }));
+  const activeColFilterCount = Object.entries(colFilters).filter(([k, v]) =>
+    (k === 'status' || k === 'typeId') ? v !== 'all' : v !== ''
+  ).length;
   const printRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const currentDashboard = dashboards.find(d => d.id === currentDashboardId);
@@ -116,12 +137,34 @@ const Dashboard: React.FC = () => {
     };
   }, [isGlobalMode, searchQuery, searchAllInvoices]);
 
-  const filteredInvoices = useMemo(() => {
+  const searchedInvoices = useMemo(() => {
     if (isGlobalMode) return globalResults;
     if (!searchQuery.trim()) return invoices;
     const query = searchQuery.toLowerCase();
     return invoices.filter(inv => inv.invoiceNumber.toLowerCase().includes(query) || inv.beneficiary.toLowerCase().includes(query) || inv.bank.toLowerCase().includes(query) || inv.amount.toString().includes(query) || inv.containerNumber && inv.containerNumber.toLowerCase().includes(query) || format(parseDateString(inv.date), 'dd/MM/yyyy').includes(query) || (inv.status === 'received' ? t('received') : t('pending')).toLowerCase().includes(query));
   }, [invoices, searchQuery, t, isGlobalMode, globalResults]);
+
+  const filteredInvoices = useMemo(() => {
+    const f = colFilters;
+    const txt = (v: string, needle: string) => !needle || (v || '').toLowerCase().includes(needle.toLowerCase());
+    return searchedInvoices.filter(inv => {
+      if (!txt(inv.invoiceNumber, f.invoiceNumber)) return false;
+      if (!txt(inv.beneficiary, f.beneficiary)) return false;
+      if (!txt(inv.bank, f.bank)) return false;
+      if (!txt(inv.containerNumber || '', f.containerNumber)) return false;
+      if (f.amountMin && inv.amount < Number(f.amountMin)) return false;
+      if (f.amountMax && inv.amount > Number(f.amountMax)) return false;
+      const d = (inv.date || '').split('T')[0];
+      if (f.dateFrom && d < f.dateFrom) return false;
+      if (f.dateTo && d > f.dateTo) return false;
+      const sd = (inv.swiftDate || '').split('T')[0];
+      if (f.swiftFrom && (!sd || sd < f.swiftFrom)) return false;
+      if (f.swiftTo && (!sd || sd > f.swiftTo)) return false;
+      if (f.status !== 'all' && inv.status !== f.status) return false;
+      if (f.typeId === 'none' ? !!inv.transactionTypeId : f.typeId !== 'all' && inv.transactionTypeId !== f.typeId) return false;
+      return true;
+    });
+  }, [searchedInvoices, colFilters]);
   const sortedInvoices = useMemo(() => {
     return [...filteredInvoices].sort((a, b) => {
       let comparison = 0;
@@ -358,15 +401,36 @@ const Dashboard: React.FC = () => {
       title: t('csvExported')
     });
   };
+  const exportColumns: { key: string; label: string; value: (inv: Invoice) => string }[] = useMemo(() => [
+    { key: 'invoiceNumber', label: t('invoiceNumber'), value: inv => inv.invoiceNumber },
+    { key: 'amount', label: t('invoiceAmount'), value: inv => formatAmount(inv.amount, inv.currency) },
+    { key: 'date', label: t('invoiceDate'), value: inv => format(parseDateString(inv.date), 'dd/MM/yyyy') },
+    { key: 'beneficiary', label: t('beneficiary'), value: inv => inv.beneficiary },
+    { key: 'bank', label: t('bank'), value: inv => inv.bank },
+    { key: 'containerNumber', label: t('containerNumber'), value: inv => inv.containerNumber || '-' },
+    { key: 'swiftDate', label: t('swiftDate'), value: inv => inv.swiftDate ? format(parseDateString(inv.swiftDate), 'dd/MM/yyyy') : '-' },
+    { key: 'transactionType', label: t('transactionType') || 'Type', value: inv => formatType(inv.transactionTypeId) || '-' },
+    { key: 'dashboard', label: t('dashboard') || 'Dashboard', value: inv => dashboards.find(d => d.id === inv.dashboardId)?.name || '-' },
+    { key: 'status', label: t('status'), value: inv => inv.status === 'received' ? t('received') : t('pending') },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  ], [t, dashboards, formatType, currency]);
+
+  const pickColumns = (settings: PrintSettings) => {
+    const keys = settings.columns?.length ? settings.columns : exportColumns.map(c => c.key);
+    return exportColumns.filter(c => keys.includes(c.key));
+  };
+
+  const escapeHtml = (v: string) =>
+    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
   const handlePrint = (settings: PrintSettings) => {
-    const printContent = printRef.current;
-    if (!printContent) return;
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
-    
+
     const isLandscape = settings.orientation === 'landscape';
     const margins = settings.margins;
-    
+    const cols = pickColumns(settings);
+
     printWindow.document.write(`
       <!DOCTYPE html>
       <html>
@@ -393,28 +457,12 @@ const Dashboard: React.FC = () => {
         <p class="print-info">${t('printDate')}: ${format(new Date(), 'PPP')} | ${t('totalInvoices')}: ${sortedInvoices.length}</p>
         <table>
           <thead>
-            <tr>
-              <th>${t('invoiceNumber')}</th>
-              <th>${t('invoiceAmount')}</th>
-              <th>${t('invoiceDate')}</th>
-              <th>${t('beneficiary')}</th>
-              <th>${t('bank')}</th>
-              <th>${t('containerNumber')}</th>
-              <th>${t('swiftDate')}</th>
-              <th>${t('status')}</th>
-            </tr>
+            <tr>${cols.map(c => `<th>${escapeHtml(c.label)}</th>`).join('')}</tr>
           </thead>
           <tbody>
             ${sortedInvoices.map(inv => `
               <tr class="${inv.status === 'received' ? 'received' : ''}">
-                <td>${inv.invoiceNumber}</td>
-                <td>${formatAmount(inv.amount, inv.currency)}</td>
-                <td>${format(parseDateString(inv.date), 'dd/MM/yyyy')}</td>
-                <td>${inv.beneficiary}</td>
-                <td>${inv.bank}</td>
-                <td>${inv.containerNumber || '-'}</td>
-                <td>${inv.swiftDate ? format(parseDateString(inv.swiftDate), 'dd/MM/yyyy') : '-'}</td>
-                <td>${inv.status === 'received' ? t('received') : t('pending')}</td>
+                ${cols.map(c => `<td>${escapeHtml(c.value(inv))}</td>`).join('')}
               </tr>
             `).join('')}
           </tbody>
@@ -437,44 +485,19 @@ const Dashboard: React.FC = () => {
     doc.setFont(fontName, 'normal');
 
     const margins = settings.margins;
+    const cols = pickColumns(settings);
 
-    // Add title
     doc.setFontSize(18);
     doc.setTextColor(30, 58, 95);
     doc.text(currentDashboard?.name || t('allInvoices'), margins.left, margins.top);
 
-    // Add date and count
     doc.setFontSize(10);
     doc.setTextColor(100, 100, 100);
     doc.text(`${t('printDate')}: ${format(new Date(), 'PPP')} | ${t('totalInvoices')}: ${sortedInvoices.length}`, margins.left, margins.top + 8);
 
-    // Table headers
-    const headers = [
-      t('invoiceNumber'),
-      t('invoiceAmount'),
-      t('invoiceDate'),
-      t('beneficiary'),
-      t('bank'),
-      t('containerNumber'),
-      t('swiftDate'),
-      t('status'),
-    ];
-
-    // Table data
-    const data = sortedInvoices.map(inv => [
-      inv.invoiceNumber,
-      formatAmount(inv.amount, inv.currency),
-      format(parseDateString(inv.date), 'dd/MM/yyyy'),
-      inv.beneficiary,
-      inv.bank,
-      inv.containerNumber || '-',
-      inv.swiftDate ? format(parseDateString(inv.swiftDate), 'dd/MM/yyyy') : '-',
-      inv.status === 'received' ? t('received') : t('pending'),
-    ]);
-
     autoTable(doc, {
-      head: [headers],
-      body: data,
+      head: [cols.map(c => c.label)],
+      body: sortedInvoices.map(inv => cols.map(c => c.value(inv))),
       startY: margins.top + 15,
       margin: { left: margins.left, right: margins.right },
       styles: {
@@ -490,7 +513,6 @@ const Dashboard: React.FC = () => {
         fillColor: [249, 249, 249],
       },
       didParseCell: (data) => {
-        // Highlight received rows
         if (data.section === 'body') {
           const rowData = sortedInvoices[data.row.index];
           if (rowData?.status === 'received') {
@@ -761,6 +783,21 @@ const Dashboard: React.FC = () => {
               </Label>
               {isGlobalMode && isSearchingGlobal && <span className="text-xs text-muted-foreground">…</span>}
             </div>
+            <div className="flex items-center gap-2">
+              <Button variant={showColFilters ? 'default' : 'outline'} size="sm" className="h-9 text-xs sm:text-sm" onClick={() => setShowColFilters(v => !v)}>
+                <Filter className="h-3.5 w-3.5 mr-1.5" />
+                {t('columnFilters') || 'Column filters'}
+                {activeColFilterCount > 0 && <span className="ml-1.5 rounded-full bg-primary/20 px-1.5 text-[10px]">{activeColFilterCount}</span>}
+              </Button>
+              {activeColFilterCount > 0 && (
+                <Button variant="ghost" size="sm" className="h-9 text-xs" onClick={() => setColFilters(emptyColFilters)}>
+                  <X className="h-3.5 w-3.5 mr-1" />{t('clearFilters') || 'Clear'}
+                </Button>
+              )}
+              <span className="text-xs text-muted-foreground">
+                {sortedInvoices.length} / {searchedInvoices.length}
+              </span>
+            </div>
           </div>
 
 
@@ -793,6 +830,47 @@ const Dashboard: React.FC = () => {
                     {isGlobalMode && <TableHead className="font-semibold"><div className="flex items-center gap-2"><LayoutDashboard className="h-4 w-4 text-primary" />{t('dashboard') || 'Dashboard'}</div></TableHead>}
                     {isAdmin && <TableHead className="font-semibold">{t('actions')}</TableHead>}
                   </TableRow>
+                  {showColFilters && <TableRow className="bg-muted/10 hover:bg-muted/10">
+                    {isAdmin && <TableHead />}
+                    <TableHead className="p-1">
+                      <select value={colFilters.status} onChange={e => setColFilter('status', e.target.value)} className="w-full h-8 rounded-md border border-input bg-background px-1 text-xs">
+                        <option value="all">{t('all') || 'All'}</option>
+                        <option value="received">{t('received')}</option>
+                        <option value="pending">{t('pending')}</option>
+                      </select>
+                    </TableHead>
+                    <TableHead className="p-1"><Input value={colFilters.invoiceNumber} onChange={e => setColFilter('invoiceNumber', e.target.value)} placeholder="..." className="h-8 text-xs" /></TableHead>
+                    <TableHead className="p-1">
+                      <div className="flex gap-1">
+                        <Input type="number" value={colFilters.amountMin} onChange={e => setColFilter('amountMin', e.target.value)} placeholder={t('min') || 'Min'} className="h-8 text-xs w-20" />
+                        <Input type="number" value={colFilters.amountMax} onChange={e => setColFilter('amountMax', e.target.value)} placeholder={t('max') || 'Max'} className="h-8 text-xs w-20" />
+                      </div>
+                    </TableHead>
+                    <TableHead className="p-1">
+                      <div className="flex gap-1">
+                        <Input type="date" value={colFilters.dateFrom} onChange={e => setColFilter('dateFrom', e.target.value)} className="h-8 text-xs w-32" />
+                        <Input type="date" value={colFilters.dateTo} onChange={e => setColFilter('dateTo', e.target.value)} className="h-8 text-xs w-32" />
+                      </div>
+                    </TableHead>
+                    <TableHead className="p-1"><Input value={colFilters.beneficiary} onChange={e => setColFilter('beneficiary', e.target.value)} placeholder="..." className="h-8 text-xs" /></TableHead>
+                    <TableHead className="p-1"><Input value={colFilters.bank} onChange={e => setColFilter('bank', e.target.value)} placeholder="..." className="h-8 text-xs" /></TableHead>
+                    <TableHead className="p-1"><Input value={colFilters.containerNumber} onChange={e => setColFilter('containerNumber', e.target.value)} placeholder="..." className="h-8 text-xs" /></TableHead>
+                    <TableHead className="p-1">
+                      <div className="flex gap-1">
+                        <Input type="date" value={colFilters.swiftFrom} onChange={e => setColFilter('swiftFrom', e.target.value)} className="h-8 text-xs w-32" />
+                        <Input type="date" value={colFilters.swiftTo} onChange={e => setColFilter('swiftTo', e.target.value)} className="h-8 text-xs w-32" />
+                      </div>
+                    </TableHead>
+                    <TableHead className="p-1">
+                      <select value={colFilters.typeId} onChange={e => setColFilter('typeId', e.target.value)} className="w-full h-8 rounded-md border border-input bg-background px-1 text-xs">
+                        <option value="all">{t('all') || 'All'}</option>
+                        <option value="none">{t('noType') || 'No type'}</option>
+                        {types.map(ty => <option key={ty.id} value={ty.id}>{ty.label ? `${ty.code} - ${ty.label}` : ty.code}</option>)}
+                      </select>
+                    </TableHead>
+                    {isGlobalMode && <TableHead />}
+                    {isAdmin && <TableHead />}
+                  </TableRow>}
                 </TableHeader>
                 <TableBody>
                   {sortedInvoices.map((inv, index) => {
@@ -984,6 +1062,8 @@ const Dashboard: React.FC = () => {
         onOpenChange={setShowPrintDialog}
         onPrint={handlePrint}
         onExportPDF={handleExportPDF}
+        availableColumns={exportColumns.filter(c => c.key !== 'dashboard' || isGlobalMode).map(c => ({ key: c.key, label: c.label }))}
+        rowCount={sortedInvoices.length}
       />
     </div>;
 };

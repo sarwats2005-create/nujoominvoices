@@ -1,12 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Printer, FileText, Settings2, Download } from 'lucide-react';
+import { Printer, FileText, Settings2, Download, Columns3 } from 'lucide-react';
+
+export interface ExportColumn {
+  key: string;
+  label: string;
+}
 
 export interface PrintSettings {
   paperSize: 'a4' | 'letter' | 'legal' | 'a3';
@@ -17,6 +23,7 @@ export interface PrintSettings {
     bottom: number;
     left: number;
   };
+  columns: string[];
 }
 
 interface PrintSettingsDialogProps {
@@ -24,12 +31,15 @@ interface PrintSettingsDialogProps {
   onOpenChange: (open: boolean) => void;
   onPrint: (settings: PrintSettings) => void;
   onExportPDF: (settings: PrintSettings) => void;
+  availableColumns?: ExportColumn[];
+  rowCount?: number;
 }
 
 const defaultSettings: PrintSettings = {
   paperSize: 'a4',
   orientation: 'portrait',
   margins: { top: 20, right: 15, bottom: 20, left: 15 },
+  columns: [],
 };
 
 const paperSizes = [
@@ -44,9 +54,35 @@ const PrintSettingsDialog: React.FC<PrintSettingsDialogProps> = ({
   onOpenChange,
   onPrint,
   onExportPDF,
+  availableColumns = [],
+  rowCount,
 }) => {
   const { t } = useLanguage();
-  const [settings, setSettings] = useState<PrintSettings>(defaultSettings);
+  const [settings, setSettings] = useState<PrintSettings>({
+    ...defaultSettings,
+    columns: availableColumns.map(c => c.key),
+  });
+
+  useEffect(() => {
+    if (open) {
+      setSettings(prev => ({
+        ...prev,
+        columns: prev.columns.length
+          ? prev.columns.filter(k => availableColumns.some(c => c.key === k))
+          : availableColumns.map(c => c.key),
+      }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
+  const toggleColumn = (key: string, checked: boolean) => {
+    setSettings(prev => ({
+      ...prev,
+      columns: checked
+        ? [...availableColumns.map(c => c.key).filter(k => k === key || prev.columns.includes(k))]
+        : prev.columns.filter(k => k !== key),
+    }));
+  };
 
   const handlePrint = () => {
     onPrint(settings);
@@ -76,8 +112,14 @@ const PrintSettingsDialog: React.FC<PrintSettingsDialogProps> = ({
           </DialogTitle>
         </DialogHeader>
 
+        {rowCount !== undefined && (
+          <p className="text-xs text-muted-foreground -mt-2">
+            {(t('exportRowsNotice') || 'Exports only the {count} row(s) currently shown by your filters.').replace('{count}', String(rowCount))}
+          </p>
+        )}
+
         <Tabs defaultValue="basic" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className={availableColumns.length ? 'grid w-full grid-cols-3' : 'grid w-full grid-cols-2'}>
             <TabsTrigger value="basic" className="flex items-center gap-2">
               <FileText className="h-4 w-4" />
               {t('basic') || 'Basic'}
@@ -86,7 +128,43 @@ const PrintSettingsDialog: React.FC<PrintSettingsDialogProps> = ({
               <Settings2 className="h-4 w-4" />
               {t('margins') || 'Margins'}
             </TabsTrigger>
+            {availableColumns.length > 0 && (
+              <TabsTrigger value="columns" className="flex items-center gap-2">
+                <Columns3 className="h-4 w-4" />
+                {t('columns') || 'Columns'}
+              </TabsTrigger>
+            )}
           </TabsList>
+
+          {availableColumns.length > 0 && (
+            <TabsContent value="columns" className="space-y-3 mt-4">
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-muted-foreground">
+                  {t('selectColumnsToExport') || 'Choose which columns to include'}
+                </p>
+                <div className="flex gap-2">
+                  <Button type="button" variant="ghost" size="sm" onClick={() => setSettings(prev => ({ ...prev, columns: availableColumns.map(c => c.key) }))}>
+                    {t('selectAll') || 'All'}
+                  </Button>
+                  <Button type="button" variant="ghost" size="sm" onClick={() => setSettings(prev => ({ ...prev, columns: [] }))}>
+                    {t('clear') || 'None'}
+                  </Button>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-2 max-h-[240px] overflow-y-auto pr-1">
+                {availableColumns.map(col => (
+                  <label key={col.key} className="flex items-center gap-2 rounded-lg border border-border px-3 py-2 cursor-pointer hover:bg-muted/40">
+                    <Checkbox
+                      checked={settings.columns.includes(col.key)}
+                      onCheckedChange={c => toggleColumn(col.key, !!c)}
+                    />
+                    <span className="text-sm">{col.label}</span>
+                  </label>
+                ))}
+              </div>
+            </TabsContent>
+          )}
+
 
           <TabsContent value="basic" className="space-y-4 mt-4">
             <div className="space-y-2">
@@ -191,6 +269,7 @@ const PrintSettingsDialog: React.FC<PrintSettingsDialogProps> = ({
             type="button"
             variant="secondary"
             onClick={handleExportPDF}
+            disabled={availableColumns.length > 0 && settings.columns.length === 0}
             className="sm:order-2 flex items-center gap-2"
           >
             <Download className="h-4 w-4" />
@@ -199,6 +278,7 @@ const PrintSettingsDialog: React.FC<PrintSettingsDialogProps> = ({
           <Button
             type="button"
             onClick={handlePrint}
+            disabled={availableColumns.length > 0 && settings.columns.length === 0}
             className="sm:order-3 flex items-center gap-2"
           >
             <Printer className="h-4 w-4" />
