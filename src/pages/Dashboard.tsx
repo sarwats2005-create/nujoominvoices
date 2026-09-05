@@ -783,6 +783,21 @@ const Dashboard: React.FC = () => {
               </Label>
               {isGlobalMode && isSearchingGlobal && <span className="text-xs text-muted-foreground">…</span>}
             </div>
+            <div className="flex items-center gap-2">
+              <Button variant={showColFilters ? 'default' : 'outline'} size="sm" className="h-9 text-xs sm:text-sm" onClick={() => setShowColFilters(v => !v)}>
+                <Filter className="h-3.5 w-3.5 mr-1.5" />
+                {t('columnFilters') || 'Column filters'}
+                {activeColFilterCount > 0 && <span className="ml-1.5 rounded-full bg-primary/20 px-1.5 text-[10px]">{activeColFilterCount}</span>}
+              </Button>
+              {activeColFilterCount > 0 && (
+                <Button variant="ghost" size="sm" className="h-9 text-xs" onClick={() => setColFilters(emptyColFilters)}>
+                  <X className="h-3.5 w-3.5 mr-1" />{t('clearFilters') || 'Clear'}
+                </Button>
+              )}
+              <span className="text-xs text-muted-foreground">
+                {sortedInvoices.length} / {searchedInvoices.length}
+              </span>
+            </div>
           </div>
 
 
