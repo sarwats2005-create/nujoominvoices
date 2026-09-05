@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
 import { format, differenceInDays } from 'date-fns';
-import { Copy, FileText, ArrowUpDown, Trash2, Printer, Edit, AlertTriangle, LayoutDashboard, Search, Hash, DollarSign, CalendarIcon, User, Landmark, Package, CheckCircle, Upload, Download, BarChart3, Clock, Plus, MoveRight, Globe, Tag } from 'lucide-react';
+import { Copy, FileText, ArrowUpDown, Trash2, Printer, Edit, AlertTriangle, LayoutDashboard, Search, Hash, DollarSign, CalendarIcon, User, Landmark, Package, CheckCircle, Upload, Download, BarChart3, Clock, Plus, MoveRight, Globe, Tag, Filter, X } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuLabel, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -830,6 +830,47 @@ const Dashboard: React.FC = () => {
                     {isGlobalMode && <TableHead className="font-semibold"><div className="flex items-center gap-2"><LayoutDashboard className="h-4 w-4 text-primary" />{t('dashboard') || 'Dashboard'}</div></TableHead>}
                     {isAdmin && <TableHead className="font-semibold">{t('actions')}</TableHead>}
                   </TableRow>
+                  {showColFilters && <TableRow className="bg-muted/10 hover:bg-muted/10">
+                    {isAdmin && <TableHead />}
+                    <TableHead className="p-1">
+                      <select value={colFilters.status} onChange={e => setColFilter('status', e.target.value)} className="w-full h-8 rounded-md border border-input bg-background px-1 text-xs">
+                        <option value="all">{t('all') || 'All'}</option>
+                        <option value="received">{t('received')}</option>
+                        <option value="pending">{t('pending')}</option>
+                      </select>
+                    </TableHead>
+                    <TableHead className="p-1"><Input value={colFilters.invoiceNumber} onChange={e => setColFilter('invoiceNumber', e.target.value)} placeholder="..." className="h-8 text-xs" /></TableHead>
+                    <TableHead className="p-1">
+                      <div className="flex gap-1">
+                        <Input type="number" value={colFilters.amountMin} onChange={e => setColFilter('amountMin', e.target.value)} placeholder={t('min') || 'Min'} className="h-8 text-xs w-20" />
+                        <Input type="number" value={colFilters.amountMax} onChange={e => setColFilter('amountMax', e.target.value)} placeholder={t('max') || 'Max'} className="h-8 text-xs w-20" />
+                      </div>
+                    </TableHead>
+                    <TableHead className="p-1">
+                      <div className="flex gap-1">
+                        <Input type="date" value={colFilters.dateFrom} onChange={e => setColFilter('dateFrom', e.target.value)} className="h-8 text-xs w-32" />
+                        <Input type="date" value={colFilters.dateTo} onChange={e => setColFilter('dateTo', e.target.value)} className="h-8 text-xs w-32" />
+                      </div>
+                    </TableHead>
+                    <TableHead className="p-1"><Input value={colFilters.beneficiary} onChange={e => setColFilter('beneficiary', e.target.value)} placeholder="..." className="h-8 text-xs" /></TableHead>
+                    <TableHead className="p-1"><Input value={colFilters.bank} onChange={e => setColFilter('bank', e.target.value)} placeholder="..." className="h-8 text-xs" /></TableHead>
+                    <TableHead className="p-1"><Input value={colFilters.containerNumber} onChange={e => setColFilter('containerNumber', e.target.value)} placeholder="..." className="h-8 text-xs" /></TableHead>
+                    <TableHead className="p-1">
+                      <div className="flex gap-1">
+                        <Input type="date" value={colFilters.swiftFrom} onChange={e => setColFilter('swiftFrom', e.target.value)} className="h-8 text-xs w-32" />
+                        <Input type="date" value={colFilters.swiftTo} onChange={e => setColFilter('swiftTo', e.target.value)} className="h-8 text-xs w-32" />
+                      </div>
+                    </TableHead>
+                    <TableHead className="p-1">
+                      <select value={colFilters.typeId} onChange={e => setColFilter('typeId', e.target.value)} className="w-full h-8 rounded-md border border-input bg-background px-1 text-xs">
+                        <option value="all">{t('all') || 'All'}</option>
+                        <option value="none">{t('noType') || 'No type'}</option>
+                        {types.map(ty => <option key={ty.id} value={ty.id}>{ty.label ? `${ty.code} - ${ty.label}` : ty.code}</option>)}
+                      </select>
+                    </TableHead>
+                    {isGlobalMode && <TableHead />}
+                    {isAdmin && <TableHead />}
+                  </TableRow>}
                 </TableHeader>
                 <TableBody>
                   {sortedInvoices.map((inv, index) => {
@@ -1021,6 +1062,8 @@ const Dashboard: React.FC = () => {
         onOpenChange={setShowPrintDialog}
         onPrint={handlePrint}
         onExportPDF={handleExportPDF}
+        availableColumns={exportColumns.filter(c => c.key !== 'dashboard' || isGlobalMode).map(c => ({ key: c.key, label: c.label }))}
+        rowCount={sortedInvoices.length}
       />
     </div>;
 };
