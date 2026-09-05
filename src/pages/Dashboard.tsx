@@ -401,15 +401,36 @@ const Dashboard: React.FC = () => {
       title: t('csvExported')
     });
   };
+  const exportColumns: { key: string; label: string; value: (inv: Invoice) => string }[] = useMemo(() => [
+    { key: 'invoiceNumber', label: t('invoiceNumber'), value: inv => inv.invoiceNumber },
+    { key: 'amount', label: t('invoiceAmount'), value: inv => formatAmount(inv.amount, inv.currency) },
+    { key: 'date', label: t('invoiceDate'), value: inv => format(parseDateString(inv.date), 'dd/MM/yyyy') },
+    { key: 'beneficiary', label: t('beneficiary'), value: inv => inv.beneficiary },
+    { key: 'bank', label: t('bank'), value: inv => inv.bank },
+    { key: 'containerNumber', label: t('containerNumber'), value: inv => inv.containerNumber || '-' },
+    { key: 'swiftDate', label: t('swiftDate'), value: inv => inv.swiftDate ? format(parseDateString(inv.swiftDate), 'dd/MM/yyyy') : '-' },
+    { key: 'transactionType', label: t('transactionType') || 'Type', value: inv => formatType(inv.transactionTypeId) || '-' },
+    { key: 'dashboard', label: t('dashboard') || 'Dashboard', value: inv => dashboards.find(d => d.id === inv.dashboardId)?.name || '-' },
+    { key: 'status', label: t('status'), value: inv => inv.status === 'received' ? t('received') : t('pending') },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  ], [t, dashboards, formatType, currency]);
+
+  const pickColumns = (settings: PrintSettings) => {
+    const keys = settings.columns?.length ? settings.columns : exportColumns.map(c => c.key);
+    return exportColumns.filter(c => keys.includes(c.key));
+  };
+
+  const escapeHtml = (v: string) =>
+    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
   const handlePrint = (settings: PrintSettings) => {
-    const printContent = printRef.current;
-    if (!printContent) return;
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
-    
+
     const isLandscape = settings.orientation === 'landscape';
     const margins = settings.margins;
-    
+    const cols = pickColumns(settings);
+
     printWindow.document.write(`
       <!DOCTYPE html>
       <html>
@@ -436,28 +457,12 @@ const Dashboard: React.FC = () => {
         <p class="print-info">${t('printDate')}: ${format(new Date(), 'PPP')} | ${t('totalInvoices')}: ${sortedInvoices.length}</p>
         <table>
           <thead>
-            <tr>
-              <th>${t('invoiceNumber')}</th>
-              <th>${t('invoiceAmount')}</th>
-              <th>${t('invoiceDate')}</th>
-              <th>${t('beneficiary')}</th>
-              <th>${t('bank')}</th>
-              <th>${t('containerNumber')}</th>
-              <th>${t('swiftDate')}</th>
-              <th>${t('status')}</th>
-            </tr>
+            <tr>${cols.map(c => `<th>${escapeHtml(c.label)}</th>`).join('')}</tr>
           </thead>
           <tbody>
             ${sortedInvoices.map(inv => `
               <tr class="${inv.status === 'received' ? 'received' : ''}">
-                <td>${inv.invoiceNumber}</td>
-                <td>${formatAmount(inv.amount, inv.currency)}</td>
-                <td>${format(parseDateString(inv.date), 'dd/MM/yyyy')}</td>
-                <td>${inv.beneficiary}</td>
-                <td>${inv.bank}</td>
-                <td>${inv.containerNumber || '-'}</td>
-                <td>${inv.swiftDate ? format(parseDateString(inv.swiftDate), 'dd/MM/yyyy') : '-'}</td>
-                <td>${inv.status === 'received' ? t('received') : t('pending')}</td>
+                ${cols.map(c => `<td>${escapeHtml(c.value(inv))}</td>`).join('')}
               </tr>
             `).join('')}
           </tbody>
@@ -480,44 +485,19 @@ const Dashboard: React.FC = () => {
     doc.setFont(fontName, 'normal');
 
     const margins = settings.margins;
+    const cols = pickColumns(settings);
 
-    // Add title
     doc.setFontSize(18);
     doc.setTextColor(30, 58, 95);
     doc.text(currentDashboard?.name || t('allInvoices'), margins.left, margins.top);
 
-    // Add date and count
     doc.setFontSize(10);
     doc.setTextColor(100, 100, 100);
     doc.text(`${t('printDate')}: ${format(new Date(), 'PPP')} | ${t('totalInvoices')}: ${sortedInvoices.length}`, margins.left, margins.top + 8);
 
-    // Table headers
-    const headers = [
-      t('invoiceNumber'),
-      t('invoiceAmount'),
-      t('invoiceDate'),
-      t('beneficiary'),
-      t('bank'),
-      t('containerNumber'),
-      t('swiftDate'),
-      t('status'),
-    ];
-
-    // Table data
-    const data = sortedInvoices.map(inv => [
-      inv.invoiceNumber,
-      formatAmount(inv.amount, inv.currency),
-      format(parseDateString(inv.date), 'dd/MM/yyyy'),
-      inv.beneficiary,
-      inv.bank,
-      inv.containerNumber || '-',
-      inv.swiftDate ? format(parseDateString(inv.swiftDate), 'dd/MM/yyyy') : '-',
-      inv.status === 'received' ? t('received') : t('pending'),
-    ]);
-
     autoTable(doc, {
-      head: [headers],
-      body: data,
+      head: [cols.map(c => c.label)],
+      body: sortedInvoices.map(inv => cols.map(c => c.value(inv))),
       startY: margins.top + 15,
       margin: { left: margins.left, right: margins.right },
       styles: {
@@ -533,7 +513,6 @@ const Dashboard: React.FC = () => {
         fillColor: [249, 249, 249],
       },
       didParseCell: (data) => {
-        // Highlight received rows
         if (data.section === 'body') {
           const rowData = sortedInvoices[data.row.index];
           if (rowData?.status === 'received') {
