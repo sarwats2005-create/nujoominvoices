@@ -54,9 +54,35 @@ const PrintSettingsDialog: React.FC<PrintSettingsDialogProps> = ({
   onOpenChange,
   onPrint,
   onExportPDF,
+  availableColumns = [],
+  rowCount,
 }) => {
   const { t } = useLanguage();
-  const [settings, setSettings] = useState<PrintSettings>(defaultSettings);
+  const [settings, setSettings] = useState<PrintSettings>({
+    ...defaultSettings,
+    columns: availableColumns.map(c => c.key),
+  });
+
+  useEffect(() => {
+    if (open) {
+      setSettings(prev => ({
+        ...prev,
+        columns: prev.columns.length
+          ? prev.columns.filter(k => availableColumns.some(c => c.key === k))
+          : availableColumns.map(c => c.key),
+      }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
+  const toggleColumn = (key: string, checked: boolean) => {
+    setSettings(prev => ({
+      ...prev,
+      columns: checked
+        ? [...availableColumns.map(c => c.key).filter(k => k === key || prev.columns.includes(k))]
+        : prev.columns.filter(k => k !== key),
+    }));
+  };
 
   const handlePrint = () => {
     onPrint(settings);
