@@ -50,7 +50,7 @@ const Dashboard: React.FC = () => {
     setInvoicesTransactionType,
     refreshData
   } = useInvoice();
-  const { types, getType } = useTransactionTypes();
+  const { types, getType, formatType } = useTransactionTypes();
   const {
     currency
   } = useSettings();
