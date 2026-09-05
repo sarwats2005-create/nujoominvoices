@@ -269,6 +269,7 @@ const PrintSettingsDialog: React.FC<PrintSettingsDialogProps> = ({
             type="button"
             variant="secondary"
             onClick={handleExportPDF}
+            disabled={availableColumns.length > 0 && settings.columns.length === 0}
             className="sm:order-2 flex items-center gap-2"
           >
             <Download className="h-4 w-4" />
