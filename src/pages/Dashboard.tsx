@@ -137,12 +137,34 @@ const Dashboard: React.FC = () => {
     };
   }, [isGlobalMode, searchQuery, searchAllInvoices]);
 
-  const filteredInvoices = useMemo(() => {
+  const searchedInvoices = useMemo(() => {
     if (isGlobalMode) return globalResults;
     if (!searchQuery.trim()) return invoices;
     const query = searchQuery.toLowerCase();
     return invoices.filter(inv => inv.invoiceNumber.toLowerCase().includes(query) || inv.beneficiary.toLowerCase().includes(query) || inv.bank.toLowerCase().includes(query) || inv.amount.toString().includes(query) || inv.containerNumber && inv.containerNumber.toLowerCase().includes(query) || format(parseDateString(inv.date), 'dd/MM/yyyy').includes(query) || (inv.status === 'received' ? t('received') : t('pending')).toLowerCase().includes(query));
   }, [invoices, searchQuery, t, isGlobalMode, globalResults]);
+
+  const filteredInvoices = useMemo(() => {
+    const f = colFilters;
+    const txt = (v: string, needle: string) => !needle || (v || '').toLowerCase().includes(needle.toLowerCase());
+    return searchedInvoices.filter(inv => {
+      if (!txt(inv.invoiceNumber, f.invoiceNumber)) return false;
+      if (!txt(inv.beneficiary, f.beneficiary)) return false;
+      if (!txt(inv.bank, f.bank)) return false;
+      if (!txt(inv.containerNumber || '', f.containerNumber)) return false;
+      if (f.amountMin && inv.amount < Number(f.amountMin)) return false;
+      if (f.amountMax && inv.amount > Number(f.amountMax)) return false;
+      const d = (inv.date || '').split('T')[0];
+      if (f.dateFrom && d < f.dateFrom) return false;
+      if (f.dateTo && d > f.dateTo) return false;
+      const sd = (inv.swiftDate || '').split('T')[0];
+      if (f.swiftFrom && (!sd || sd < f.swiftFrom)) return false;
+      if (f.swiftTo && (!sd || sd > f.swiftTo)) return false;
+      if (f.status !== 'all' && inv.status !== f.status) return false;
+      if (f.typeId === 'none' ? !!inv.transactionTypeId : f.typeId !== 'all' && inv.transactionTypeId !== f.typeId) return false;
+      return true;
+    });
+  }, [searchedInvoices, colFilters]);
   const sortedInvoices = useMemo(() => {
     return [...filteredInvoices].sort((a, b) => {
       let comparison = 0;
