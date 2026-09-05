@@ -1,12 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Printer, FileText, Settings2, Download } from 'lucide-react';
+import { Printer, FileText, Settings2, Download, Columns3 } from 'lucide-react';
+
+export interface ExportColumn {
+  key: string;
+  label: string;
+}
 
 export interface PrintSettings {
   paperSize: 'a4' | 'letter' | 'legal' | 'a3';
@@ -17,6 +23,7 @@ export interface PrintSettings {
     bottom: number;
     left: number;
   };
+  columns: string[];
 }
 
 interface PrintSettingsDialogProps {
@@ -24,12 +31,15 @@ interface PrintSettingsDialogProps {
   onOpenChange: (open: boolean) => void;
   onPrint: (settings: PrintSettings) => void;
   onExportPDF: (settings: PrintSettings) => void;
+  availableColumns?: ExportColumn[];
+  rowCount?: number;
 }
 
 const defaultSettings: PrintSettings = {
   paperSize: 'a4',
   orientation: 'portrait',
   margins: { top: 20, right: 15, bottom: 20, left: 15 },
+  columns: [],
 };
 
 const paperSizes = [
