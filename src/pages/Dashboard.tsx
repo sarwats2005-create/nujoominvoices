@@ -72,6 +72,27 @@ const Dashboard: React.FC = () => {
   const [searchAllDashboards, setSearchAllDashboards] = useState(false);
   const [globalResults, setGlobalResults] = useState<Invoice[]>([]);
   const [isSearchingGlobal, setIsSearchingGlobal] = useState(false);
+  const emptyColFilters = {
+    invoiceNumber: '',
+    amountMin: '',
+    amountMax: '',
+    dateFrom: '',
+    dateTo: '',
+    beneficiary: '',
+    bank: '',
+    containerNumber: '',
+    swiftFrom: '',
+    swiftTo: '',
+    status: 'all',
+    typeId: 'all',
+  };
+  const [colFilters, setColFilters] = useState(emptyColFilters);
+  const [showColFilters, setShowColFilters] = useState(false);
+  const setColFilter = (key: keyof typeof emptyColFilters, value: string) =>
+    setColFilters(prev => ({ ...prev, [key]: value }));
+  const activeColFilterCount = Object.entries(colFilters).filter(([k, v]) =>
+    (k === 'status' || k === 'typeId') ? v !== 'all' : v !== ''
+  ).length;
   const printRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const currentDashboard = dashboards.find(d => d.id === currentDashboardId);
