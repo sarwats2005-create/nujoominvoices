@@ -278,6 +278,7 @@ const PrintSettingsDialog: React.FC<PrintSettingsDialogProps> = ({
           <Button
             type="button"
             onClick={handlePrint}
+            disabled={availableColumns.length > 0 && settings.columns.length === 0}
             className="sm:order-3 flex items-center gap-2"
           >
             <Printer className="h-4 w-4" />
