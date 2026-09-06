@@ -15,7 +15,7 @@ export const translations: Translations = {
   appTitle: {
     en: 'Nujoom Invoices',
     ar: 'فواتير نجوم',
-    ku: 'پسوولەکانی نوژووم',
+    ku: 'پسوولەکانی نجووم',
   },
   // Auth
   login: {
