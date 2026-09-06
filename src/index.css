@@ -1192,3 +1192,105 @@ thead th {
     background-color: transparent !important;
   }
 }
+
+/* ===========================================================
+   GLOBAL RESPONSIVE LAYER
+   Fits every screen size (incl. short landscape), kills
+   horizontal scrollbars and prevents layer overlap.
+   =========================================================== */
+
+html, body, #root {
+  max-width: 100%;
+  overflow-x: hidden;
+  overflow-wrap: break-word;
+}
+
+/* flex/grid children must be allowed to shrink, otherwise they
+   push the page wider than the viewport */
+main *,
+header * {
+  min-width: 0;
+}
+
+/* media & embeds never exceed their box */
+img, svg, video, canvas, iframe, embed, object {
+  max-width: 100%;
+}
+img, video { height: auto; }
+
+/* long unbroken strings (BL numbers, emails, urls) wrap instead of overflowing */
+p, span, h1, h2, h3, h4, h5, h6, label, td, th, li, dd, dt, button, a {
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+/* fluid container: tighter gutters on small screens, capped on huge ones */
+.container {
+  width: 100%;
+  max-width: 100%;
+  padding-left: clamp(0.75rem, 2.5vw, 2rem) !important;
+  padding-right: clamp(0.75rem, 2.5vw, 2rem) !important;
+}
+@media (min-width: 1600px) {
+  .container { max-width: 1520px; }
+}
+
+/* fluid type scale */
+h1 { font-size: clamp(1.25rem, 0.9rem + 1.4vw, 2rem); line-height: 1.2; }
+h2 { font-size: clamp(1.1rem, 0.9rem + 1vw, 1.6rem); line-height: 1.25; }
+h3 { font-size: clamp(1rem, 0.9rem + 0.6vw, 1.3rem); line-height: 1.3; }
+
+/* any table always scrolls inside its own box, never the page */
+table { width: 100%; }
+.overflow-auto, .overflow-x-auto, [class*="overflow-auto"] {
+  -webkit-overflow-scrolling: touch;
+  max-width: 100%;
+}
+
+/* --- Overlays: never taller/wider than the viewport, always on top --- */
+[role="dialog"], [role="alertdialog"] {
+  max-width: min(96vw, 64rem) !important;
+  max-height: 92dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+[data-radix-popper-content-wrapper] { max-width: 96vw; }
+[role="menu"], [role="listbox"] {
+  max-height: min(70dvh, 28rem);
+  overflow-y: auto;
+}
+
+/* toasts stay inside the safe area on tiny/landscape screens */
+[data-radix-toast-viewport] {
+  max-width: calc(100vw - 1rem);
+  max-height: 100dvh;
+}
+
+/* --- Short landscape screens (phones/tablets turned sideways, netbooks) --- */
+@media (orientation: landscape) and (max-height: 620px) {
+  header.sticky > .container { height: 3rem; }
+  main.container { padding-top: 0.75rem !important; padding-bottom: 0.75rem !important; }
+  [role="dialog"], [role="alertdialog"] { max-height: 96dvh; }
+  .space-y-6 > * + * { margin-top: 0.85rem; }
+  .space-y-4 > * + * { margin-top: 0.6rem; }
+  [data-slot="card-header"], .card-header { padding-top: 0.75rem; padding-bottom: 0.75rem; }
+}
+
+/* very small phones */
+@media (max-width: 380px) {
+  body { font-size: 0.925rem; }
+  .container {
+    padding-left: 0.6rem !important;
+    padding-right: 0.6rem !important;
+  }
+}
+
+/* wide/ultrawide: keep content readable and centered */
+@media (min-width: 2000px) {
+  main.container { max-width: 1760px; }
+}
+
+/* stacking order so nothing sits on top of the wrong layer */
+header.sticky { z-index: 50; }
+[data-radix-popper-content-wrapper] { z-index: 60 !important; }
+[data-radix-toast-viewport] { z-index: 80 !important; }
