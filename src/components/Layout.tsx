@@ -4,9 +4,9 @@ import Header from './Header';
 
 const Layout: React.FC = () => {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-background">
       <Header />
-      <main className="container mx-auto px-4 py-6">
+      <main className="container mx-auto w-full max-w-full py-4 sm:py-6">
         <Outlet />
       </main>
     </div>
