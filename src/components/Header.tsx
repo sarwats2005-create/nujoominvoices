@@ -241,16 +241,16 @@ const Header: React.FC = () => {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
-      <div className="container flex h-16 items-center justify-between px-4">
-        <div className="flex items-center gap-4">
+      <div className="container flex h-14 sm:h-16 items-center justify-between gap-2">
+        <div className="flex min-w-0 items-center gap-2 sm:gap-4">
           {/* Mobile Menu */}
           <Sheet>
-            <SheetTrigger asChild className="md:hidden">
+            <SheetTrigger asChild className="lg:hidden">
               <Button variant="ghost" size="icon">
                 <Menu className="h-5 w-5" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-64 bg-card">
+            <SheetContent side="left" className="w-[85vw] max-w-xs overflow-y-auto bg-card">
               <div className="flex flex-col gap-2 mt-8">
                 <MobileNav onClose={() => {}} />
               </div>
@@ -258,27 +258,27 @@ const Header: React.FC = () => {
           </Sheet>
 
           {/* Logo */}
-          <Link to="/dashboard" className="flex items-center gap-3">
+          <Link to="/dashboard" className="flex min-w-0 items-center gap-2 sm:gap-3">
             {logo ? (
-              <img src={logo} alt="Logo" className="h-10 w-auto object-scale-down border border-transparent px-[10px] py-[8px] mx-px my-px" />
+              <img src={logo} alt="Logo" className="h-8 sm:h-10 w-auto max-w-[120px] object-scale-down" />
             ) : (
-              <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+              <div className="h-9 w-9 shrink-0 rounded-lg bg-primary/10 flex items-center justify-center">
                 <span className="text-primary font-bold text-lg">📄</span>
               </div>
             )}
-            <h1 className="text-lg font-bold text-foreground hidden sm:block">
+            <h1 className="hidden truncate text-base font-bold text-foreground xl:block">
               {t('appTitle')}
             </h1>
           </Link>
         </div>
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-1">
+        <nav className="hidden min-w-0 flex-wrap items-center gap-1 lg:flex">
           <DesktopNav />
         </nav>
 
         {/* Right side actions */}
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-1 sm:gap-2">
           <MagicIconButton onClick={toggleDarkMode}>
             {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
           </MagicIconButton>
