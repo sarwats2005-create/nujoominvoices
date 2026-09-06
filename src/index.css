@@ -1201,7 +1201,7 @@ thead th {
 
 html, body, #root {
   max-width: 100%;
-  overflow-x: hidden;
+  overflow-x: auto;
   overflow-wrap: break-word;
 }
 
@@ -1219,7 +1219,7 @@ img, svg, video, canvas, iframe, embed, object {
 img, video { height: auto; }
 
 /* long unbroken strings (BL numbers, emails, urls) wrap instead of overflowing */
-p, span, h1, h2, h3, h4, h5, h6, label, td, th, li, dd, dt, button, a {
+p, span, h1, h2, h3, h4, h5, h6, label, li, dd, dt, button, a {
   overflow-wrap: anywhere;
   word-break: normal;
 }
@@ -1240,12 +1240,53 @@ h1 { font-size: clamp(1.25rem, 0.9rem + 1.4vw, 2rem); line-height: 1.2; }
 h2 { font-size: clamp(1.1rem, 0.9rem + 1vw, 1.6rem); line-height: 1.25; }
 h3 { font-size: clamp(1rem, 0.9rem + 0.6vw, 1.3rem); line-height: 1.3; }
 
-/* any table always scrolls inside its own box, never the page */
+/* ---- Tables: never wrap, shrink text to fit, scroll horizontally ---- */
 table { width: 100%; }
+table th, table td,
+[role="table"] [role="cell"], [role="table"] [role="columnheader"] {
+  white-space: nowrap !important;
+  overflow-wrap: normal !important;
+  word-break: keep-all !important;
+  font-size: clamp(0.68rem, 0.55rem + 0.32vw, 0.875rem);
+}
+table th { font-size: clamp(0.64rem, 0.52rem + 0.28vw, 0.8125rem); }
+/* let cells that must wrap opt out */
+table th.wrap, table td.wrap,
+table th[data-wrap], table td[data-wrap] {
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+}
 .overflow-auto, .overflow-x-auto, [class*="overflow-auto"] {
   -webkit-overflow-scrolling: touch;
   max-width: 100%;
+  overflow-x: auto;
 }
+
+/* ---- Themed scrollbars (horizontal + vertical) ---- */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--primary) / 0.55) hsl(var(--muted) / 0.35);
+}
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: hsl(var(--muted) / 0.35);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--primary) / 0.55);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--primary) / 0.8);
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-corner { background: transparent; }
+
 
 /* --- Overlays: never taller/wider than the viewport, always on top --- */
 [role="dialog"], [role="alertdialog"] {
