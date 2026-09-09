@@ -968,19 +968,19 @@
   --clay-shadow:
     0 20px 44px -14px hsl(216 80% 4% / 0.75),
     0 8px 18px -8px hsl(216 80% 4% / 0.6),
-    inset 0 1px 0 0 hsl(0 0% 100% / 0.09),
+    inset 0 1px 0 0 hsl(0 0% 100% / 0.03),
     inset 0 -8px 16px -8px hsl(216 80% 4% / 0.5);
   --clay-shadow-hover:
     0 30px 66px -18px hsl(216 80% 4% / 0.85),
     0 12px 24px -10px hsl(216 80% 4% / 0.65),
-    inset 0 1px 0 0 hsl(0 0% 100% / 0.14),
+    inset 0 1px 0 0 hsl(0 0% 100% / 0.05),
     inset 0 -10px 20px -10px hsl(216 80% 4% / 0.55);
   --clay-shadow-pressed:
     inset 0 10px 20px -8px hsl(216 80% 4% / 0.7),
-    inset 0 -1px 0 0 hsl(0 0% 100% / 0.08);
+    inset 0 -1px 0 0 hsl(0 0% 100% / 0.03);
   --glass-bg: hsl(var(--card) / 0.78);
   --glass-bg-strong: hsl(var(--card) / 0.9);
-  --glass-rim: hsl(0 0% 100% / 0.08);
+  --glass-rim: hsl(0 0% 100% / 0.06);
   --data-bg: hsl(var(--card) / 0.96);
   --data-head-bg: hsl(216 60% 26% / 0.95);
   --data-row-alt: hsl(216 55% 24% / 0.55);
@@ -1061,6 +1061,9 @@ header {
   border-bottom: 1px solid var(--glass-rim);
   box-shadow: 0 10px 30px -18px hsl(var(--foreground) / 0.35);
 }
+.dark header {
+  box-shadow: 0 10px 30px -18px hsl(var(--foreground) / 0.18);
+}
 
 /* --- Buttons: puffy clay with rim highlight --- */
 button:not([role="checkbox"]):not([role="switch"]):not([data-state="checked"][role="radio"]) {
@@ -1080,6 +1083,16 @@ button:not([role="checkbox"]):not([role="switch"]):not(.clay-none):hover {
 button:not([role="checkbox"]):not([role="switch"]):not(.clay-none):active {
   transform: translateY(0);
   box-shadow: var(--clay-shadow-pressed);
+}
+.dark button:not([role="checkbox"]):not([role="switch"]):not(.clay-none) {
+  box-shadow:
+    0 8px 18px -10px hsl(var(--foreground) / 0.25),
+    inset 0 1px 0 0 hsl(0 0% 100% / 0.06);
+}
+.dark button:not([role="checkbox"]):not([role="switch"]):not(.clay-none):hover {
+  box-shadow:
+    0 14px 26px -12px hsl(var(--foreground) / 0.3),
+    inset 0 1px 0 0 hsl(0 0% 100% / 0.09);
 }
 /* keep ghost/link buttons flat until hovered */
 button[class*="hover:bg-accent"]:not([class*="border"]):not([class*="bg-primary"]):not([class*="bg-secondary"]):not([class*="bg-destructive"]) {
@@ -1170,8 +1183,14 @@ thead th {
   border-radius: 999px;
   box-shadow: 0 6px 14px -8px hsl(var(--foreground) / 0.4), inset 0 1px 0 0 hsl(0 0% 100% / 0.3);
 }
+.dark [role="tab"][data-state="active"] {
+  box-shadow: 0 6px 14px -8px hsl(var(--foreground) / 0.2), inset 0 1px 0 0 hsl(0 0% 100% / 0.06);
+}
 [class*="rounded-full"][class*="border"][class*="px-2"] {
   box-shadow: inset 0 1px 0 0 hsl(0 0% 100% / 0.25), 0 4px 10px -6px hsl(var(--foreground) / 0.35);
+}
+.dark [class*="rounded-full"][class*="border"][class*="px-2"] {
+  box-shadow: inset 0 1px 0 0 hsl(0 0% 100% / 0.05), 0 4px 10px -6px hsl(var(--foreground) / 0.2);
 }
 
 /* --- Contrast balancing: keep text legible over translucent surfaces --- */
