@@ -1061,6 +1061,9 @@ header {
   border-bottom: 1px solid var(--glass-rim);
   box-shadow: 0 10px 30px -18px hsl(var(--foreground) / 0.35);
 }
+.dark header {
+  box-shadow: 0 10px 30px -18px hsl(var(--foreground) / 0.18);
+}
 
 /* --- Buttons: puffy clay with rim highlight --- */
 button:not([role="checkbox"]):not([role="switch"]):not([data-state="checked"][role="radio"]) {
