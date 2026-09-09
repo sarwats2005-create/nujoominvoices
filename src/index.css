@@ -1081,6 +1081,16 @@ button:not([role="checkbox"]):not([role="switch"]):not(.clay-none):active {
   transform: translateY(0);
   box-shadow: var(--clay-shadow-pressed);
 }
+.dark button:not([role="checkbox"]):not([role="switch"]):not(.clay-none) {
+  box-shadow:
+    0 8px 18px -10px hsl(var(--foreground) / 0.25),
+    inset 0 1px 0 0 hsl(0 0% 100% / 0.06);
+}
+.dark button:not([role="checkbox"]):not([role="switch"]):not(.clay-none):hover {
+  box-shadow:
+    0 14px 26px -12px hsl(var(--foreground) / 0.3),
+    inset 0 1px 0 0 hsl(0 0% 100% / 0.09);
+}
 /* keep ghost/link buttons flat until hovered */
 button[class*="hover:bg-accent"]:not([class*="border"]):not([class*="bg-primary"]):not([class*="bg-secondary"]):not([class*="bg-destructive"]) {
   box-shadow: none;
