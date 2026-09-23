@@ -64,7 +64,7 @@ const defaultBLPresets: BLPresets = {
 
 const defaultContactInfo: ContactInfo = {
   email: 'nujoomalkawakb@gmail.com',
-  phone: '+647504482440',
+  phone: '+9647504482440',
   address: 'Baghdad, Iraq',
 };
 
@@ -74,6 +74,9 @@ const legacySampleContactInfo: ContactInfo = {
   phone: '+964 750 123 4567',
   address: 'Baghdad, Iraq',
 };
+
+// Earlier version of the real details with a mistyped phone — also migrated
+const mistypedPhone = '+647504482440';
 
 const defaultCurrency: Currency = currencies[0]; // USD
 
