@@ -63,6 +63,13 @@ const defaultBLPresets: BLPresets = {
 };
 
 const defaultContactInfo: ContactInfo = {
+  email: 'nujoomalkawakb@gmail.com',
+  phone: '+647504482440',
+  address: 'Baghdad, Iraq',
+};
+
+// Legacy sample details — migrate any device still storing them to the real ones
+const legacySampleContactInfo: ContactInfo = {
   email: 'support@nujoom.com',
   phone: '+964 750 123 4567',
   address: 'Baghdad, Iraq',
@@ -96,7 +103,16 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     document.documentElement.classList.toggle('dark', prefersDark);
 
     if (savedContactInfo) {
-      setContactInfoState(JSON.parse(savedContactInfo));
+      const parsed = JSON.parse(savedContactInfo);
+      // Replace legacy sample details saved on this device with the real ones
+      if (
+        parsed.email === legacySampleContactInfo.email &&
+        parsed.phone === legacySampleContactInfo.phone
+      ) {
+        localStorage.removeItem(CONTACT_INFO_KEY);
+      } else {
+        setContactInfoState(parsed);
+      }
     }
 
     if (savedCurrency) {
