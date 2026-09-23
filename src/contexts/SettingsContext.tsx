@@ -64,7 +64,7 @@ const defaultBLPresets: BLPresets = {
 
 const defaultContactInfo: ContactInfo = {
   email: 'nujoomalkawakb@gmail.com',
-  phone: '+647504482440',
+  phone: '+9647504482440',
   address: 'Baghdad, Iraq',
 };
 
@@ -74,6 +74,9 @@ const legacySampleContactInfo: ContactInfo = {
   phone: '+964 750 123 4567',
   address: 'Baghdad, Iraq',
 };
+
+// Earlier version of the real details with a mistyped phone — also migrated
+const mistypedPhone = '+647504482440';
 
 const defaultCurrency: Currency = currencies[0]; // USD
 
@@ -104,10 +107,11 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
 
     if (savedContactInfo) {
       const parsed = JSON.parse(savedContactInfo);
-      // Replace legacy sample details saved on this device with the real ones
+      // Replace legacy sample details OR a previously saved mistyped phone with the real ones
       if (
-        parsed.email === legacySampleContactInfo.email &&
-        parsed.phone === legacySampleContactInfo.phone
+        (parsed.email === legacySampleContactInfo.email &&
+          parsed.phone === legacySampleContactInfo.phone) ||
+        (parsed.email === defaultContactInfo.email && parsed.phone === mistypedPhone)
       ) {
         localStorage.removeItem(CONTACT_INFO_KEY);
       } else {
