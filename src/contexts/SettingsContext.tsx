@@ -107,10 +107,11 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
 
     if (savedContactInfo) {
       const parsed = JSON.parse(savedContactInfo);
-      // Replace legacy sample details saved on this device with the real ones
+      // Replace legacy sample details OR a previously saved mistyped phone with the real ones
       if (
-        parsed.email === legacySampleContactInfo.email &&
-        parsed.phone === legacySampleContactInfo.phone
+        (parsed.email === legacySampleContactInfo.email &&
+          parsed.phone === legacySampleContactInfo.phone) ||
+        (parsed.email === defaultContactInfo.email && parsed.phone === mistypedPhone)
       ) {
         localStorage.removeItem(CONTACT_INFO_KEY);
       } else {
