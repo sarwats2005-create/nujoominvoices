@@ -63,6 +63,13 @@ const defaultBLPresets: BLPresets = {
 };
 
 const defaultContactInfo: ContactInfo = {
+  email: 'nujoomalkawakb@gmail.com',
+  phone: '+647504482440',
+  address: 'Baghdad, Iraq',
+};
+
+// Legacy sample details — migrate any device still storing them to the real ones
+const legacySampleContactInfo: ContactInfo = {
   email: 'support@nujoom.com',
   phone: '+964 750 123 4567',
   address: 'Baghdad, Iraq',
