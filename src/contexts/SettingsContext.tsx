@@ -103,7 +103,16 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     document.documentElement.classList.toggle('dark', prefersDark);
 
     if (savedContactInfo) {
-      setContactInfoState(JSON.parse(savedContactInfo));
+      const parsed = JSON.parse(savedContactInfo);
+      // Replace legacy sample details saved on this device with the real ones
+      if (
+        parsed.email === legacySampleContactInfo.email &&
+        parsed.phone === legacySampleContactInfo.phone
+      ) {
+        localStorage.removeItem(CONTACT_INFO_KEY);
+      } else {
+        setContactInfoState(parsed);
+      }
     }
 
     if (savedCurrency) {
